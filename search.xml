@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Flask入门</title>
+    <url>/2020/03/12/Flask%E5%85%A5%E9%97%A8/</url>
+    <content><![CDATA[<h5 id="一个最小的应用"><a href="#一个最小的应用" class="headerlink" title="一个最小的应用"></a>一个最小的应用</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 导入 Flask 类，该类的实例成为我们的 WSGI 应用</span></span><br><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创建 Flask 类的实例。第一个参数是应用模块或者包的名称</span></span><br><span class="line"><span class="comment"># 若使用一个单一模块（就像本例），则使用 __name__</span></span><br><span class="line"><span class="comment"># 名称根据模块是按应用方式使用或作为模块导入而变化</span></span><br><span class="line"><span class="comment"># （可能是 '__main__' 或实际导入的名称）</span></span><br><span class="line"><span class="comment"># 此参数是必需的，这样 Flask 才知道在哪里能找到模板和静态文件等东西</span></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用 route() 装饰器把函数绑定到 URL:</span></span><br><span class="line"><span class="meta">@app.route('/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'Hello, World'</span></span><br></pre></td></tr></table></figure>
+<p><a href="https://imgchr.com/i/8myzWR" target="_blank" rel="noopener"><img src="https://s1.ax1x.com/2020/03/12/8myzWR.png" alt="8myzWR.png"></a></p>
+<h5 id="变量规则"><a href="#变量规则" class="headerlink" title="变量规则"></a>变量规则</h5><p>通过把 URL 的一部分标记为 &#60;variable_name&#62; 就可以在 URL 中添加变量。标记的部分会作为关键字参数传递给函数。通过使用 &#60;converter:variable_name&#62; ，可以选择性的加上一个转换器，为变量指定规则。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app.route('/user/&lt;username&gt;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show_user_profile</span><span class="params">(username)</span>:</span></span><br><span class="line">    <span class="comment"># show the user profile for that user</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'User &#123;&#125;'</span>.format(username)</span><br></pre></td></tr></table></figure>
+<p><a href="https://imgchr.com/i/8m6POK" target="_blank" rel="noopener"><img src="https://s1.ax1x.com/2020/03/12/8m6POK.png" alt="8m6POK.png"></a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app.route('/post/&lt;int:post_id&gt;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show_post</span><span class="params">(post_id)</span>:</span></span><br><span class="line">    <span class="comment"># show the post with the given id, the id is an integer</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'Post &#123;&#125;'</span>.format(post_id)</span><br></pre></td></tr></table></figure>
+<p><a href="https://imgchr.com/i/8m6Cy6" target="_blank" rel="noopener"><img src="https://s1.ax1x.com/2020/03/12/8m6Cy6.png" alt="8m6Cy6.png"></a></p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app.route('/path/&lt;path:subpath&gt;')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">show_subpath</span><span class="params">(subpath)</span>:</span></span><br><span class="line">    <span class="comment"># show the subpath after /path/</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'Subpath &#123;&#125;'</span>.format(subpath)</span><br></pre></td></tr></table></figure>
+<p><a href="https://imgchr.com/i/8myvFJ" target="_blank" rel="noopener"><img src="https://s1.ax1x.com/2020/03/12/8myvFJ.png" alt="8myvFJ.png"></a></p>
+<h5 id="唯一的-URL-重定向行为"><a href="#唯一的-URL-重定向行为" class="headerlink" title="唯一的 URL / 重定向行为"></a>唯一的 URL / 重定向行为</h5><p>以下两条规则的不同之处在于是否使用尾部的斜杠。:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="meta">@app.route('/projects/')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">projects</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'The project page'</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route('/about')</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">about</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">'The about page'</span></span><br></pre></td></tr></table></figure>
+<p>projects 的 URL 是中规中矩的，尾部有一个斜杠，如同文件夹。 访问一个没有斜杠结尾的 URL 时 Flask 会自动进行重定并尾部加上一个斜杠。</p>
+<p>about 的 URL 没有尾部斜杠，与文件类似。如果访问这个 URL 时添加了尾部斜杠就会得到一个 404 错误。这样可以保持 URL 唯一，并帮助搜索引擎避免重复索引同一页面。<br><a href="https://imgchr.com/i/8m6R6x" target="_blank" rel="noopener"><img src="https://s1.ax1x.com/2020/03/12/8m6R6x.png" alt="8m6R6x.png"></a></p>
+<table>
+<thead>
+<tr>
+<th align="left"></th>
+<th align="center"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">sting</td>
+<td align="center">（缺省值） 接受任何不包含斜杠的文本</td>
+</tr>
+<tr>
+<td align="left">int</td>
+<td align="center">接受正整数</td>
+</tr>
+<tr>
+<td align="left">float</td>
+<td align="center">接受正浮点数</td>
+</tr>
+<tr>
+<td align="left">path</td>
+<td align="center">类似 string ，但可以包含斜杠</td>
+</tr>
+<tr>
+<td align="left">uuid</td>
+<td align="center">接受 UUID 字符串</td>
+</tr>
+</tbody></table>
+]]></content>
+      <tags>
+        <tag>Flask</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>关于Python __name__</title>
     <url>/2020/03/12/%E5%85%B3%E4%BA%8EPython-name/</url>
     <content><![CDATA[<h5 id="关于-name"><a href="#关于-name" class="headerlink" title="关于 __ name__"></a>关于 __ <strong>name__</strong></h5><p>__ <strong>name__</strong> 属于 python 的内置类属性，它天生存在于一个 python 程序中，代表对应程序名称。  </p>
@@ -14,6 +63,9 @@
 <p>自己的 __ <strong>name__</strong> 在自己用时就是 main，当自己作为模块被调用时就是自己的名字。  </p>
 <h5 id="实际项目的应用"><a href="#实际项目的应用" class="headerlink" title="实际项目的应用"></a>实际项目的应用</h5><p>如果在a.py里写了一个函数并且写了测试用例a_test， 运行a.py会显示测试用例a_test的结果。在b.py导入a并在b.py写了测试用例b_test，如果直接运行b.py会返回a_test和b_test的结果。显然a_test的结果不是我们想要的，我们只需要在b.py的b_test之前加上“if __ <strong>name__</strong> == __ <strong>name__</strong>:”，这样就不会返回a_test的结果了。</p>
 ]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
   </entry>
   <entry>
     <title>SQLAlchemy的基本使用</title>
@@ -35,5 +87,8 @@
 
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># coding:utf-8</span></span><br><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> create_engine</span><br><span class="line"><span class="keyword">from</span> sqlalchemy.orm <span class="keyword">import</span> sessionmaker</span><br><span class="line"><span class="keyword">from</span> sqlalchemy.ext.declarative <span class="keyword">import</span> declarative_base</span><br><span class="line"><span class="keyword">from</span> sqlalchemy <span class="keyword">import</span> Column, Integer, String, DateTime, Boolean</span><br><span class="line"></span><br><span class="line">engine = create_engine(<span class="string">'mysql://root:@localhost:3306/news_test?charset=utf8'</span>)</span><br><span class="line">Base = declarative_base()</span><br><span class="line"></span><br><span class="line">Session = sessionmaker(bind=engine)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">News</span><span class="params">(Base)</span>:</span></span><br><span class="line">    __tablename__ = <span class="string">"news"</span></span><br><span class="line">    id = Column(Integer, primary_key=<span class="literal">True</span>)</span><br><span class="line">    title = Column(String(<span class="number">200</span>), nullable=<span class="literal">False</span>)</span><br><span class="line">    content = Column(String(<span class="number">2000</span>), nullable=<span class="literal">False</span>)</span><br><span class="line">    types = Column(String(<span class="number">10</span>), nullable=<span class="literal">False</span>)</span><br><span class="line">    image = Column(String(<span class="number">300</span>), )</span><br><span class="line">    author = Column(String(<span class="number">20</span>), )</span><br><span class="line">    view_count = Column(Integer)</span><br><span class="line">    created_at = Column(DateTime)</span><br><span class="line">    is_valid = Column(Boolean)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OrmTest</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></span><br><span class="line">        self.session = Session()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">add_one</span><span class="params">(self)</span>:</span></span><br><span class="line">        new_obj = News(</span><br><span class="line">            title=<span class="string">'标题'</span>,</span><br><span class="line">            content=<span class="string">'内容'</span>,</span><br><span class="line">            types=<span class="string">'百家'</span>,</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">        self.session.add(new_obj)</span><br><span class="line">        self.session.commit()</span><br><span class="line">        <span class="keyword">return</span> new_obj</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_one</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""查询一条数据"""</span></span><br><span class="line">        <span class="keyword">return</span> self.session.query(News).get(<span class="number">14</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">get_more</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">"""查询多条数据"""</span></span><br><span class="line">        <span class="keyword">return</span> self.session.query(News).filter_by(is_valid=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">update_data</span><span class="params">(self, pk)</span>:</span></span><br><span class="line">        <span class="string">"""修改数据"""</span></span><br><span class="line">        new_obj = self.session.query(News).get(pk)</span><br><span class="line">        <span class="keyword">if</span> new_obj:</span><br><span class="line">            new_obj.is_valid = <span class="number">0</span></span><br><span class="line">            self.session.add(new_obj)</span><br><span class="line">            self.session.commit()</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    obj = OrmTest()</span><br><span class="line">    <span class="comment"># res = obj.add_one()</span></span><br><span class="line">    print(obj.update_data(<span class="number">3</span>))</span><br></pre></td></tr></table></figure>
 ]]></content>
+      <tags>
+        <tag>Database</tag>
+      </tags>
   </entry>
 </search>
