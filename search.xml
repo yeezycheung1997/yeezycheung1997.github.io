@@ -1,6 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>关于Python __name__</title>
+    <url>/2020/03/12/%E5%85%B3%E4%BA%8EPython-name/</url>
+    <content><![CDATA[<h5 id="关于-name"><a href="#关于-name" class="headerlink" title="关于 __ name__"></a>关于 __ <strong>name__</strong></h5><p>__ <strong>name__</strong> 属于 python 的内置类属性，它天生存在于一个 python 程序中，代表对应程序名称。  </p>
+<p>比如下面的代码里面（app.py），当运行此代码时，这个代码的 <strong>name</strong> 的值为 <strong>main</strong> （一段程序作为主线运行程序时其内置名称就是 <strong>main</strong>）。  </p>
+<p>文件夹目录结构</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">folder</span><br><span class="line">│</span><br><span class="line">└─── __init__.py</span><br><span class="line">│</span><br><span class="line">└─── app.py</span><br><span class="line">│</span><br><span class="line">└─── task_name.py</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># app.py</span></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    print(__name__)</span><br><span class="line">&gt;&gt;&gt;__main__</span><br></pre></td></tr></table></figure>
+<p>当 app.py 作为模块被 (task_name.py) 调用时，则它的 <strong>name</strong> 就是它自己的名字</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># task_name.py</span></span><br><span class="line"><span class="keyword">import</span> app</span><br><span class="line"></span><br><span class="line">print(app.__name__)</span><br><span class="line">&gt;&gt;&gt;app</span><br></pre></td></tr></table></figure>
+<p>自己的 __ <strong>name__</strong> 在自己用时就是 main，当自己作为模块被调用时就是自己的名字。  </p>
+<h5 id="实际项目的应用"><a href="#实际项目的应用" class="headerlink" title="实际项目的应用"></a>实际项目的应用</h5><p>如果在a.py里写了一个函数并且写了测试用例a_test， 运行a.py会显示测试用例a_test的结果。在b.py导入a并在b.py写了测试用例b_test，如果直接运行b.py会返回a_test和b_test的结果。显然a_test的结果不是我们想要的，我们只需要在b.py的b_test之前加上“if __ <strong>name__</strong> == __ <strong>name__</strong>:”，这样就不会返回a_test的结果了。</p>
+]]></content>
+  </entry>
+  <entry>
     <title>SQLAlchemy的基本使用</title>
     <url>/2020/03/11/SQLAlchemy%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<p>数据库表是一个二维表，包含多行多列。用Python的数据结构表示表的数据，可以用一个list表示多行，list的每一个元素是tuple，表示一行记录，比如，包含id和name的user表：</p>
