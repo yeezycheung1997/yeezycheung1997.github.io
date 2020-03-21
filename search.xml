@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Python的property动态属性</title>
+    <url>/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/</url>
+    <content><![CDATA[<p>我们首先定义一个User类，包含两个属性 name 和 birthday</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> date, datetime</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name, birthday)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.birthday = birthday</span><br></pre></td></tr></table></figure>
+<p>如果想获得User实例的年龄，我们可以定义一个方法，然后使用函数调用的方式获得年龄。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_age</span><span class="params">(self)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> datetime.now().year - self.birthday.year</span><br></pre></td></tr></table></figure>
+<p>举例如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    user = User(<span class="string">"zqy"</span>, date(year=<span class="number">1997</span>, month=<span class="number">6</span>, day=<span class="number">15</span>))</span><br><span class="line">    print(user.get_age()) <span class="comment"># 返回23</span></span><br></pre></td></tr></table></figure>
+<p>如果我们想使用调用属性的方式获得年龄（user.age），那么就可以使用property装饰器。<br>为了区别上面的代码，以下是完整的使用property装饰器的代码。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> date, datetime</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name, birthday)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.birthday = birthday</span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">age</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">""" 将函数调用装饰成属性调用 """</span></span><br><span class="line">        <span class="keyword">return</span> datetime.now().year - self.birthday.year</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    user = User(<span class="string">"zqy"</span>, date(year=<span class="number">1997</span>, month=<span class="number">6</span>, day=<span class="number">15</span>))</span><br><span class="line">    print(user.age)</span><br></pre></td></tr></table></figure>
+<p>我们并没有定义age属性，但是通过property装饰器装饰的age函数，可以直接通过实例调用函数名的方式，作为一个属性返回。<br>那么setter装饰器又是什么呢？  </p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> date, datetime</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name, birthday)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.birthday = birthday</span><br><span class="line">        self._age = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">age</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">""" 取函数调用的模式编程取属性调用 """</span></span><br><span class="line">        <span class="keyword">return</span> datetime.now().year - self.birthday.year</span><br><span class="line"></span><br><span class="line"><span class="meta">    @age.setter</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">age</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self._age = value</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    user = User(<span class="string">"zqy"</span>, date(year=<span class="number">1997</span>, month=<span class="number">6</span>, day=<span class="number">15</span>))</span><br><span class="line">    user.age = <span class="number">30</span></span><br><span class="line">    print(user._age) <span class="comment"># 30</span></span><br><span class="line">    print(user.age) <span class="comment"># 23</span></span><br></pre></td></tr></table></figure>
+<p>1、只有 @property 表示只读。<br>2、同时有 @property 和 @*.setter 表示可读可写。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>关于CORS的学习</title>
+    <url>/2020/03/15/%E5%85%B3%E4%BA%8ECORS%E7%9A%84%E5%AD%A6%E4%B9%A0/</url>
+    <content><![CDATA[]]></content>
+      <tags>
+        <tag>前端</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MongoDB的简单介绍</title>
     <url>/2020/03/14/MongoDB%E7%9A%84%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D/</url>
     <content><![CDATA[<p>首先将下载好的文件夹的bin目录添加到系统环境变量中</p>
