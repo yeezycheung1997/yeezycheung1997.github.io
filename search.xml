@@ -1,6 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Python多线程基础</title>
+    <url>/2020/03/23/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<h5 id="多线程理解"><a href="#多线程理解" class="headerlink" title="多线程理解"></a>多线程理解</h5><p><strong>多线程是多个任务同时运行的一种方式</strong>。比如一个循环中，每个循环看做一个任务，我们希望第一次循环运行还没结束时，就能开始第二次循环，以此节省时间。</p>
+<p>Python中这种同时运行的使用多线程目的是最大化利用CPU的计算能力，将很多等待时间利用起来。如果程序耗时不是因为等待时间，而是任务非常多。计算时间较长，则多线程无法改善运行时间。</p>
+<h5 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h5><p>先看下面这个函数</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myfun</span><span class="params">()</span>:</span></span><br><span class="line">    time.sleep(<span class="number">1</span>)</span><br><span class="line">    a = <span class="number">1</span> + <span class="number">1</span></span><br><span class="line">    print(a)</span><br></pre></td></tr></table></figure>
+<p>如果我们要运行10次myfun，运行时间主要取决于每次sleep的1s，a的计算耗时可以忽略不计。这种情况可以用多线程提高效率。</p>
+<p>不使用多线程</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">t = time.time()</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">    myfun()</span><br><span class="line">print(time.time() - t)</span><br><span class="line"></span><br><span class="line"><span class="comment">#结果</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">5.000431537628174</span></span><br></pre></td></tr></table></figure>
+<p>使用多线程</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">    th = Thread(target = myfun)</span><br><span class="line">    th.start()</span><br></pre></td></tr></table></figure>
+<p>运行后会发现大概1秒后5个2同时出来，说明5次循环几乎同时运行，5次1秒的等待时间同时进行，最后只等待了1秒。</p>
+<p>这里多线程只包括了两步：</p>
+<ol>
+<li>用Thread增加一个线程，这里将每一次循环作为一次新线程，一个线程执行一次myfun函数。</li>
+<li>用start()开始运行线程，每个线程都需要这样显式开启才会运行。一个线程开启后，无需等待它运行完成，就能继续向下运行，即下一次循环（然后又新建了第二个线程，运行未结束即开启第三个……）</li>
+</ol>
+<h5 id="join的使用"><a href="#join的使用" class="headerlink" title="join的使用"></a>join的使用</h5><p>线程的join()方法表示等这个线程运行完毕，程序再往下运行。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line">t = time.time()</span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">    th = Thread(target = myfun)</span><br><span class="line">    th.start()</span><br><span class="line">    th.join()</span><br><span class="line">print(time.time() - t)</span><br><span class="line"></span><br><span class="line"><span class="comment">#结果</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">5.0054051876068115</span></span><br></pre></td></tr></table></figure>
+<p>start()之后马上join()，表示每一个线程都要运行结束才能进行下一次循环。这样就和没使用多线程一样了。</p>
+<p>下面是未使用join()方法</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line">t = time.time()</span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">    th = Thread(target = myfun)</span><br><span class="line">    th.start()</span><br><span class="line">print(time.time() - t)</span><br><span class="line"></span><br><span class="line"><span class="comment">#结果</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">0.0019860267639160156</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">22</span></span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span><span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>程序几乎马上输出了结果，而且5个2是在打印秒数之后才打印的。这是因为print(time.time() - t)是区别于那5次循环线程之外的第6个线程，它不会等待5个线程运行结束就会开始运行。所以这样是无法获得上面5个线程的运行时间的，我们需要用join()等待5个线程都运行结束。</p>
+<p>代码如下</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> threading <span class="keyword">import</span> Thread</span><br><span class="line">t = time.time()</span><br><span class="line">ths = []</span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> range(<span class="number">5</span>):</span><br><span class="line">    th = Thread(target = myfun)</span><br><span class="line">    th.start()</span><br><span class="line">    ths.append(th)</span><br><span class="line"><span class="keyword">for</span> th <span class="keyword">in</span> ths:</span><br><span class="line">    th.join()</span><br><span class="line">print(time.time() - t)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 结果为 1.0038363933563232</span></span><br></pre></td></tr></table></figure>
+<p>上面定义ths列表存储这些线程，最后用循环确保每一个线程都已经运行完成再计算时间差。</p>
+<p>join()不只适用于这种情形。当当前代码运行依赖之前代码运行完成时，就要加入join()命令。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>进程和线程</title>
     <url>/2020/03/23/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B/</url>
     <content><![CDATA[<p>整理并加上了自己的理解，来源自<a href="https://www.liaoxuefeng.com/wiki/1016959663602400/1017627212385376" target="_blank" rel="noopener">廖雪峰的官方网站——Python进程和线程</a>  </p>
@@ -125,14 +158,6 @@
 ]]></content>
       <tags>
         <tag>Python</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>关于CORS的学习</title>
-    <url>/2020/03/15/%E5%85%B3%E4%BA%8ECORS%E7%9A%84%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[]]></content>
-      <tags>
-        <tag>前端</tag>
       </tags>
   </entry>
   <entry>
