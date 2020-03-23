@@ -1,6 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>对可迭代对象、迭代器和生成器的理解</title>
+    <url>/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/</url>
+    <content><![CDATA[<h5 id="可迭代对象和迭代器"><a href="#可迭代对象和迭代器" class="headerlink" title="可迭代对象和迭代器"></a>可迭代对象和迭代器</h5><p>序列可以迭代的原因：<strong>iter</strong> 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：</p>
+<ol>
+<li><p>检查对象是否实现了 __ <strong>iter__</strong> 方法，实现了就调用它，获取一个迭代器。</p>
+</li>
+<li><p>没有实现 __ <strong>iter__</strong> 方法，但实现了 __ <strong>getitem__</strong> 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开始）获取元素。</p>
+</li>
+<li><p>如果前两步都失败，Python抛出 TypeError 异常，通常会提示“C object is not iterable”，其中 C 是目标对象所属的类。</p>
+</li>
+</ol>
+<p>由此可以明确可迭代对象（Iterable）： 使用 iter 内置函数可以获取迭代器（Iterator）的对象。即对象实现了能返回迭代器的 __ <strong>iter__</strong> 方法或实现了 __ <strong>getitem__</strong> 方法，而且其参数是从零开始的索引。</p>
+<p>一个实现 __ <strong>getitem__</strong> 的demo：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__getitem__</span><span class="params">(self, item)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.text[item]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o1 = Test(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o1:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+
+<p>下面来看一个实现 __ <strong>iter__</strong> 的例子。因为用到了迭代器，所以先明确一下迭代器的用法。 标准的迭代器接口有两个方法：  </p>
+<ol>
+<li><p>__ <strong>next__</strong> ：返回下一个可用的元素，如果没有元素了就抛出 <strong>StopIteration</strong> 异常。</p>
+</li>
+<li><p>__ <strong>iter__</strong> ：返回 self，以便在应该使用可迭代对象的地方使用迭代器，例如 for 循环。</p>
+</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> Eg2Iterator(self.text) <span class="comment"># 获取一个迭代器</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2Iterator</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text</span><br><span class="line">        self.index = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__next__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            subtext = self.text[self.index]</span><br><span class="line">        <span class="keyword">except</span> IndexError:</span><br><span class="line">            <span class="keyword">raise</span> StopIteration()</span><br><span class="line">        self.index +=<span class="number">1</span></span><br><span class="line">        <span class="keyword">return</span> subtext</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o2 = Eg2(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o2:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+
+<p>我们明确可迭代的对象和迭代器之间的关系：</p>
+<ol>
+<li><p>Python 从可迭代对象中获取迭代器。</p>
+</li>
+<li><p>__ <strong>iter__</strong> 方法从我们自己创建的迭代器类中获取迭代器，而__ <strong>getitem__</strong> 方法是python内部自动创建迭代器。</p>
+</li>
+</ol>
+<p>我们来了解一下使用更符合 Python 的方式实现 Eg2类。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> self.text:</span><br><span class="line">            <span class="keyword">yield</span> item</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+<p>这里使用了 <strong>yield</strong> 关键字， 只要 Python 函数体中有 yield 关键字，该函数就是生成器函数。调用生成器函数时会返回一个生成器对象。也就是说生成器函数是生成器工厂。 上述代码还可以使用yield from进一步简化：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> self.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+
+<p>还可以使用生成器表达式</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg5</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> (item <span class="keyword">for</span> item <span class="keyword">in</span> self.text) <span class="comment"># 生成器表达式</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o5 = Eg5(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o5:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+
+<p>总结：</p>
+<ol>
+<li><p>可迭代对象（Iterable）要么实现了能返回迭代器的 __ <strong>iter__</strong> 方法，要么实现了 __ <strong>getitem__</strong> 方法而且其参数是从零开始的索引。</p>
+</li>
+<li><p>迭代器（Iterator）是这样的对象：实现了无参数的 __ <strong>next__</strong> 方法，返回下一个元素，如果没有元素就抛出 StopIteration 异常；并且实现 __ <strong>iter__</strong> 方法，返回迭代器本身。</p>
+</li>
+<li><p>生成器是带有 yield 关键字的函数。调用生成器函数时，会返回一个生成器对象。</p>
+</li>
+<li><p>生成器表达式是创建生成器的简洁句法，这样无需先定义函数再调用。</p>
+</li>
+<li><p>什么是迭代器模式？按需一次获取一个数据项。</p>
+</li>
+<li><p>生成器和迭代器有什么不同？</p>
+<p>相同点：所有生成器都是迭代器，因为生成器完全实现了迭代器接口。</p>
+<p>不同点：迭代器用于从集合中取出元素；生成器用于凭空生成元素。</p>
+</li>
+</ol>
+<h5 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h5><p>迭代是处理大量数据的好方法。以列表为例，迭代存在两个问题。第一，列表中的元素太多将大量占用内存。第二，我们有时候只需要使用一次数据，如果用列表把数据全部保存起来，将会造成内存浪费。</p>
+<p>生成器是创建迭代器的工具。它们像常规函数一样撰写，但是在需要返回数据时使用yield语句。每当对它调用next()函数，生成器从它上次停止的地方重新开始（它会记住所有的数据值和上次执行的语句）。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python的property动态属性</title>
     <url>/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/</url>
     <content><![CDATA[<p>我们首先定义一个User类，包含两个属性 name 和 birthday</p>
