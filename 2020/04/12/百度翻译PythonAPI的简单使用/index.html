@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="Python," />
 
 
 
@@ -79,11 +79,16 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Qianyi Zhang&#39;s blog">
-<meta property="og:url" content="https://yeezycheung1997.github.io/tags/MongoDB/index.html">
+<meta name="description" content="美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。   百度翻译API链接：http:&#x2F;&#x2F;api.fanyi.baidu.com&#x2F;doc&#x2F;21 下面是官方给的Python3的demo 12345678910111213141516171819202122232425262728293031323334353637383940414243">
+<meta property="og:type" content="article">
+<meta property="og:title" content="百度翻译PythonAPI的简单使用">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/04/12/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91PythonAPI%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
+<meta property="og:description" content="美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。   百度翻译API链接：http:&#x2F;&#x2F;api.fanyi.baidu.com&#x2F;doc&#x2F;21 下面是官方给的Python3的demo 12345678910111213141516171819202122232425262728293031323334353637383940414243">
+<meta property="article:published_time" content="2020-04-12T12:55:02.000Z">
+<meta property="article:modified_time" content="2020-04-12T13:02:26.258Z">
 <meta property="article:author" content="Qianyi Zhang">
+<meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
 
 
@@ -114,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/tags/MongoDB/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/04/12/百度翻译PythonAPI的简单使用/"/>
 
 
 
 
 
-  <title>标签: MongoDB | Qianyi Zhang's blog</title>
+  <title>百度翻译PythonAPI的简单使用 | Qianyi Zhang's blog</title>
   
 
 
@@ -139,7 +144,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
     <a href="https://github.com/yeezycheung1997" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 
@@ -268,54 +273,183 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>MongoDB<small>标签</small>
-        </h1>
-      </div>
+  
 
-      
-        
+  
+  
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/04/12/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91PythonAPI%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Qianyi Zhang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://upload.cc/i1/2020/03/11/XoIZC7.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qianyi Zhang's blog">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2020/03/14/MongoDB%E7%9A%84%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D/" itemprop="url">
-              
-                <span itemprop="name">MongoDB的简单介绍</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">百度翻译PythonAPI的简单使用</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2020-03-14T11:48:39-04:00"
-              content="2020-03-14" >
-          03-14
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-12T08:55:02-04:00">
+                2020-04-12
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。  </p>
+<p>百度翻译API链接：<a href="http://api.fanyi.baidu.com/doc/21" target="_blank" rel="noopener">http://api.fanyi.baidu.com/doc/21</a></p>
+<p>下面是官方给的Python3的demo</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#百度通用翻译API,不包含词典、tts语音合成等资源，如有相关需求请联系translate_api@baidu.com</span></span><br><span class="line"><span class="comment"># coding=utf-8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> http.client</span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line">appid = <span class="string">''</span>  <span class="comment"># 填写你的appid</span></span><br><span class="line">secretKey = <span class="string">''</span>  <span class="comment"># 填写你的密钥</span></span><br><span class="line"></span><br><span class="line">httpClient = <span class="literal">None</span></span><br><span class="line">myurl = <span class="string">'/api/trans/vip/translate'</span></span><br><span class="line"></span><br><span class="line">fromLang = <span class="string">'auto'</span>   <span class="comment">#原文语种</span></span><br><span class="line">toLang = <span class="string">'zh'</span>   <span class="comment">#译文语种</span></span><br><span class="line">salt = random.randint(<span class="number">32768</span>, <span class="number">65536</span>)</span><br><span class="line">q= <span class="string">'apple'</span></span><br><span class="line">sign = appid + q + str(salt) + secretKey</span><br><span class="line">sign = hashlib.md5(sign.encode()).hexdigest()</span><br><span class="line">myurl = myurl + <span class="string">'?appid='</span> + appid + <span class="string">'&amp;q='</span> + urllib.parse.quote(q) + <span class="string">'&amp;from='</span> + fromLang + <span class="string">'&amp;to='</span> + toLang + <span class="string">'&amp;salt='</span> + str(</span><br><span class="line">salt) + <span class="string">'&amp;sign='</span> + sign</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    httpClient = http.client.HTTPConnection(<span class="string">'api.fanyi.baidu.com'</span>)</span><br><span class="line">    httpClient.request(<span class="string">'GET'</span>, myurl)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># response是HTTPResponse对象</span></span><br><span class="line">    response = httpClient.getresponse()</span><br><span class="line">    result_all = response.read().decode(<span class="string">"utf-8"</span>)</span><br><span class="line">    result = json.loads(result_all)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">print</span> (result)</span><br><span class="line"></span><br><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">print</span> (e)</span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="keyword">if</span> httpClient:</span><br><span class="line">        httpClient.close()</span><br><span class="line"></span><br><span class="line">------------------------------------</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="string">'from'</span>: <span class="string">'en'</span>, <span class="string">'to'</span>: <span class="string">'zh'</span>, <span class="string">'trans_result'</span>: [&#123;<span class="string">'src'</span>: <span class="string">'apple'</span>, <span class="string">'dst'</span>: <span class="string">'苹果'</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简单地用面向对象方式改写一下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaiduTranslate</span>:</span></span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, q)</span>:</span></span><br><span class="line">       self.q = q</span><br><span class="line">       self.__appid = <span class="string">''</span>  <span class="comment"># appid</span></span><br><span class="line">       self.__secretKey = <span class="string">''</span>  <span class="comment"># 密钥</span></span><br><span class="line">       self.__myurl = <span class="string">"http://api.fanyi.baidu.com/api/trans/vip/translate"</span></span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">(self)</span>:</span></span><br><span class="line">       fromLang = <span class="string">'auto'</span>  <span class="comment"># 原文语种</span></span><br><span class="line">       toLang = <span class="string">'zh'</span>  <span class="comment"># 译文语种</span></span><br><span class="line">       salt = random.randint(<span class="number">32768</span>, <span class="number">65536</span>)  <span class="comment"># 随机数</span></span><br><span class="line">       sign = self.__appid + self.q + str(salt) + self.__secretKey</span><br><span class="line">       sign = hashlib.md5(sign.encode()).hexdigest()  <span class="comment"># "appid+q+salt+密钥 的MD5值"</span></span><br><span class="line"></span><br><span class="line">       params = &#123;<span class="string">'appid'</span>: self.__appid, <span class="string">'q'</span>: self.q, <span class="string">'from'</span>: fromLang, <span class="string">'to'</span>: toLang, <span class="string">'salt'</span>: salt, <span class="string">'sign'</span>: sign&#125;</span><br><span class="line">       r = requests.get(self.__myurl, params=params)</span><br><span class="line">       print(r.url)</span><br><span class="line">       dict_json = json.loads(r.content.decode())</span><br><span class="line">       print(<span class="string">"查询的英文单词: "</span>, dict_json[<span class="string">'trans_result'</span>][<span class="number">0</span>][<span class="string">'src'</span>])</span><br><span class="line">       print(<span class="string">"结果为: "</span>, dict_json[<span class="string">'trans_result'</span>][<span class="number">0</span>][<span class="string">'dst'</span>])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">   bt = BaiduTranslate(<span class="string">'sunflower'</span>)</span><br><span class="line">   bt.run()</span><br><span class="line"></span><br><span class="line">------------------------------------</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>查询的英文单词:  sunflower</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>结果为:  向日葵</span><br></pre></td></tr></table></figure>
+<p>难度系数为0，非常简单。之所以选择官方的api是因为我爬网页版的百度翻译爬不到了，具体原因之后有时间会解决。</p>
 
       
     </div>
+    
+    
+    
 
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Donate comment here</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Qianyi Zhang 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Qianyi Zhang 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"><i class="fa fa-tag"></i> Python</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/03/24/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%BF%9B%E9%98%B6/" rel="next" title="Python多线程进阶">
+                <i class="fa fa-chevron-left"></i> Python多线程进阶
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -323,6 +457,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -582,6 +720,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
