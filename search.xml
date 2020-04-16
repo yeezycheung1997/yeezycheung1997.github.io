@@ -1,6 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Nginx反向代理实例一</title>
+    <url>/2020/04/16/Nginx%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%AE%9E%E4%BE%8B%E4%B8%80/</url>
+    <content><![CDATA[<p>我使用了Nginx + Django自带的服务器来进行反向代理的实例</p>
+<p>首先新建一个Django项目，然后进入 settings 进行配置</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">ALLOWED_HOSTS = [<span class="string">'*'</span>,]</span><br></pre></td></tr></table></figure>
+<p>然后启动Django，使用如下命令</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">python manage.py runserver <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>:<span class="number">8000</span></span><br></pre></td></tr></table></figure>
+<p>因为我设置的服务器端的ip地址是：192.168.1.165，所以在浏览器输入 192.168.1.165：8000，可以看到Django启动页面</p>
+<p><img src="https://s1.ax1x.com/2020/04/17/JE8YZV.png" alt="avatar"></p>
+<p>然后在本地的HOST文件进行ip映射</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">192.168.1.165 www.mydjango.com</span><br></pre></td></tr></table></figure>
+<p>试着在浏览器输入 mydjango.com:8000</p>
+<p><img src="https://s1.ax1x.com/2020/04/17/JE8NIU.png" alt="avatar"></p>
+<p>假如我们想通过 mydjango.com:80 来访问服务器，那么我们需要添加一个Nginx反向代理服务器，它通过监听 mydjango.com:80，然后将请求转发给目标服务器的8000端口。接下来配置nginx.conf</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 我们找到server块</span><br><span class="line">server &#123;</span><br><span class="line">        listen       80;</span><br><span class="line">        server_name  192.168.1.165; # 目标服务器的ip地址</span><br><span class="line">        location &#x2F; &#123;</span><br><span class="line">            root   html;</span><br><span class="line">            proxy_pass  http:&#x2F;&#x2F;1277.0.0.1:8000 # 反向代理的目标服务器</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+<p>在浏览器输入：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;www.mydjango.com</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s1.ax1x.com/2020/04/17/JE8RiD.png" alt="avatar"><br>成功访问。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Nginx入门</title>
     <url>/2020/04/16/Nginx%E5%85%A5%E9%97%A8/</url>
     <content><![CDATA[<h5 id="Nginx的介绍"><a href="#Nginx的介绍" class="headerlink" title="Nginx的介绍"></a>Nginx的介绍</h5><p>Nginx 是一个高性能的HTTP和反向代理web服务器。</p>
