@@ -1,6 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Nginx入门</title>
+    <url>/2020/04/16/Nginx%E5%85%A5%E9%97%A8/</url>
+    <content><![CDATA[<h5 id="Nginx的介绍"><a href="#Nginx的介绍" class="headerlink" title="Nginx的介绍"></a>Nginx的介绍</h5><p>Nginx 是一个高性能的HTTP和反向代理web服务器。</p>
+<p>其将源代码以类BSD许可证的形式发布，因它的稳定性、丰富的功能集、示例配置文件和低系统资源的消耗而闻名。</p>
+<p>Nginx是一款轻量级的Web 服务器/反向代理服务器及电子邮件（IMAP/POP3）代理服务器，在BSD-like 协议下发行。其特点是<strong>占有内存少，并发能力强</strong>。中国大陆使用nginx网站用户有：百度、京东、新浪、网易、腾讯、淘宝等。</p>
+<h5 id="Nginx的优点"><a href="#Nginx的优点" class="headerlink" title="Nginx的优点"></a>Nginx的优点</h5><p>一. 可以高并发连接：官方测试Nginx能够支撑5万并发连接。</p>
+<p>二. 内存消耗少。</p>
+<p>三. 成本低廉：购买F5BIG-IP、NetScaler等硬件负载均衡交换机，需要十多万到几十万人民币；Nginx为开源软件，可以免费试用并用于商业用途。</p>
+<p>BSD开源协议可以自由使用、修改源代码、也可以将修改后的代码作为开源或专用软件再发布。</p>
+<p>四. 配置文件非常简单。</p>
+<p>五. 支持Rewrite重写：能够根据域名、URL的不同，将http请求分到不同的后端服务器群组。</p>
+<p>六. 内置的健康检查功能：如果NginxProxy后端的某台Web服务器宕机了，不会影响前端的访问。</p>
+<p>七. 稳定性高：用于反向代理，宕机的概率微乎其微。</p>
+<p>八. 支持热部署：它的自动特别容易，几乎可以7天*24小时不间断的运行。即使运行数个月也无需重启，还能在不间断服务的情况下，升级软件版本。</p>
+<p>Nginx、Apache、Lighttpd对比<br><img src="https://img-blog.csdn.net/20170303172847457?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbmFuZ2VhbGk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="avatar"></p>
+<h5 id="Nginx的相关特性"><a href="#Nginx的相关特性" class="headerlink" title="Nginx的相关特性"></a>Nginx的相关特性</h5><p><strong>正向代理</strong> ：是位于客户端和目标服务器之间的代理（中间）服务器。为了从目标服务器取得内容，客户端向代理服务器发送请求并指定目标服务器。代理服务器向目标服务器转交并且将获得的内容返回给客户端。</p>
+<p>正向代理需要客户端进行一些设置才能使用。</p>
+<p><img src="https://pic4.zhimg.com/v2-b2c357e187a1259829f0d08e1de16737_b.jpg" alt="avatar"></p>
+<p><strong>反向代理</strong> ：客户端对代理服务器是无感知的，客户端无需任何配置。用户只请求反向代理服务器，反向代理服务器选择目标服务器，获取数据后再返回给客户端。反向代理服务器和目标服务器对外而言就是一个服务器，只暴露了代理服务器地址，隐藏了真实服务器的IP地址。</p>
+<p><img src="https://pic2.zhimg.com/v2-7a3cf7885df57a322cab8c9d8dc25cc5_b.jpg" alt="avatar"></p>
+<p><strong>负载均衡</strong> ：将原先请求集中到单个服务器上的情况改为增加服务器的数量。将请求分发到各个服务器上，将负载分发到不同的服务器，即负载均衡。</p>
+<p><img src="https://pic2.zhimg.com/v2-744d9c94b3fcdebceab2ae1b7c7798e9_b.jpg" alt="avatar"></p>
+<p><strong>动静分离</strong> ：为了加快网站的解析速度，把静态页面和动态页面由不同服务器解析，加快解析速度，降低单个服务器的压力。</p>
+<p><img src="https://pic1.zhimg.com/v2-8257f63059cd86ff676d3e2e4a9d10d0_b.jpg" alt="avatar"></p>
+<p><strong>高可用</strong> ：为了提高系统的可用性和容错能力，可以增加nginx服务器的数量，当主服务器发生故障或宕机，备份服务器可以立即充当主服务器进行不间断工作。</p>
+<p><img src="https://pic1.zhimg.com/v2-d26d65f53f88cec4d7553637ca56cb00_b.jpg" alt="avatar"></p>
+<h5 id="Nginx配置文件"><a href="#Nginx配置文件" class="headerlink" title="Nginx配置文件"></a>Nginx配置文件</h5><h6 id="文件结构"><a href="#文件结构" class="headerlink" title="文件结构"></a>文件结构</h6><p>Nginx 配置文件由全局块、events块和http块三部分组成。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">...              #全局块</span><br><span class="line"></span><br><span class="line">events &#123;         #events块</span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">http      #http块</span><br><span class="line">&#123;</span><br><span class="line">    ...   #http全局块</span><br><span class="line">    server        #server块</span><br><span class="line">    &#123;</span><br><span class="line">        ...       #server全局块</span><br><span class="line">        location [PATTERN]   #location块</span><br><span class="line">        &#123;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">        location [PATTERN]</span><br><span class="line">        &#123;</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    server</span><br><span class="line">    &#123;</span><br><span class="line">      ...</span><br><span class="line">    &#125;</span><br><span class="line">    ...     #http全局块</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>一. 第一部分 全局块<br>主要设置一些影响 Nginx 服务器整体运行的配置指令。  比如： worker_processes 1; ， worker_processes 值越大，可以支持的并发处理量就越多。</p>
+<p>二. 第二部分 events块<br>events 块涉及的指令主要影响Nginx服务器与用户的网络连接。  比如： worker_connections 1024; ，支持的最大连接数。</p>
+<p>三. 第三部分 http块<br>http 块又包括 http 全局块和 server 块，是服务器配置中最频繁的部分，包括配置代理、缓存、日志定义等绝大多数功能。</p>
+<p>server块：配置虚拟主机的相关参数。<br>location块：配置请求路由，以及各种页面的处理情况。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>百度翻译PythonAPI的简单使用</title>
     <url>/2020/04/12/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91PythonAPI%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<p>美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。  </p>
