@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Nginx反向代理实例二</title>
+    <url>/2020/04/17/Nginx%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%AE%9E%E4%BE%8B%E4%BA%8C/</url>
+    <content><![CDATA[<h5 id="实验目的"><a href="#实验目的" class="headerlink" title="实验目的"></a>实验目的</h5><p>实现效果：使用Nginx反向代理，根据访问的路径跳转到不同服务端口的服务中。<br>Nginx监听端口为9001<br>访问：<a href="http://127.0.0.1:9001/edu/" target="_blank" rel="noopener">http://127.0.0.1:9001/edu/</a> 直接跳转到127.0.0.1:8080<br>访问：<a href="http://127.0.0.1:9001/vod/" target="_blank" rel="noopener">http://127.0.0.1:9001/vod/</a> 直接跳转到127.0.0.1:8081</p>
+<p>首先使用Django新建两个项目server1和server2，并且分别添加一个index.html，index的路由分别是edu/和vod/</p>
+<p><img src="https://s1.ax1x.com/2020/04/17/JZhqSS.png" alt="avatar"></p>
+<p><img src="https://s1.ax1x.com/2020/04/17/JZ4KfK.png" alt="avatar"></p>
+<p>接下来需要在 nginx.conf 进行配置：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 我们通过Django创建了两个项目，那么就是两个服务器，端口号分别是 8080 和 8081</span><br><span class="line"># Nginx通过监听 192.168.1.165:9001 这个端口，然后分别将 edu&#x2F; 和 vod&#x2F; 的 url 分发至服务器 127.0.0.1:8080 和 127.0.0.1:8081</span><br><span class="line"># location 使我们新加的一个字段</span><br><span class="line"># ‘~’ 用于表示URI包含正则表达式，并且区分大小写</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen       9001;</span><br><span class="line">    server_name  192.168.1.165;</span><br><span class="line"></span><br><span class="line">    location ~ &#x2F;edu&#x2F; &#123;</span><br><span class="line">      proxy_pass  http:&#x2F;&#x2F;127.0.0.1:8080;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ &#x2F;vod&#x2F; &#123;</span><br><span class="line">      proxy_pass  http:&#x2F;&#x2F;127.0.0.1:8081;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我们试着在浏览器里输入<a href="http://192.168.1.165:9001/edu/" target="_blank" rel="noopener">http://192.168.1.165:9001/edu/</a> 和 <a href="http://192.168.1.165:9001/vod/" target="_blank" rel="noopener">http://192.168.1.165:9001/vod/</a></p>
+<p><img src="https://s1.ax1x.com/2020/04/17/JZ5iNt.png" alt="avatar"></p>
+<p><img src="https://s1.ax1x.com/2020/04/17/JZ5E38.png" alt="avatar"></p>
+<p>实验成功。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Nginx反向代理实例一</title>
     <url>/2020/04/16/Nginx%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%AE%9E%E4%BE%8B%E4%B8%80/</url>
     <content><![CDATA[<p>我使用了Nginx + Django自带的服务器来进行反向代理的实例</p>
@@ -15,7 +33,7 @@
 <p>试着在浏览器输入 mydjango.com:8000</p>
 <p><img src="https://s1.ax1x.com/2020/04/17/JE8NIU.png" alt="avatar"></p>
 <p>假如我们想通过 mydjango.com:80 来访问服务器，那么我们需要添加一个Nginx反向代理服务器，它通过监听 mydjango.com:80，然后将请求转发给目标服务器的8000端口。接下来配置nginx.conf</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 我们找到server块</span><br><span class="line">server &#123;</span><br><span class="line">        listen       80;</span><br><span class="line">        server_name  192.168.1.165; # 目标服务器的ip地址</span><br><span class="line">        location &#x2F; &#123;</span><br><span class="line">            root   html;</span><br><span class="line">            proxy_pass  http:&#x2F;&#x2F;1277.0.0.1:8000 # 反向代理的目标服务器</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 我们找到server块</span><br><span class="line">server &#123;</span><br><span class="line">        listen       80;</span><br><span class="line">        server_name  192.168.1.165; # 目标服务器的ip地址</span><br><span class="line">        location &#x2F; &#123;</span><br><span class="line">            root   html;</span><br><span class="line">            proxy_pass  http:&#x2F;&#x2F;127.0.0.1:8000 # 反向代理的目标服务器</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
 <p>在浏览器输入：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;www.mydjango.com</span><br></pre></td></tr></table></figure>
 
