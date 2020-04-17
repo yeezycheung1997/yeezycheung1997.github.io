@@ -90,7 +90,7 @@
 <meta property="og:image" content="https://s1.ax1x.com/2020/04/17/JZbjIJ.png">
 <meta property="og:image" content="https://s1.ax1x.com/2020/04/17/JZqPsK.png">
 <meta property="article:published_time" content="2020-04-17T14:56:22.000Z">
-<meta property="article:modified_time" content="2020-04-17T15:11:01.826Z">
+<meta property="article:modified_time" content="2020-04-17T15:13:52.745Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="Nginx">
 <meta name="twitter:card" content="summary">
@@ -366,7 +366,7 @@
 <p>接下来需要在 nginx.conf 进行负载均衡的配置：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">upstream myserver &#123;</span><br><span class="line">		server 192.168.1.165:8080;</span><br><span class="line">		server 192.168.1.165:8081;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    server &#123;</span><br><span class="line">        listen       8088;</span><br><span class="line">        server_name  192.168.1.165;</span><br><span class="line"></span><br><span class="line">        location &#x2F; &#123;</span><br><span class="line">            root   html;</span><br><span class="line">			proxy_pass  http:&#x2F;&#x2F;myserver;</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 
-<p>我们试着在浏览器里输入<a href="http://192.168.1.165:8088/edu/" target="_blank" rel="noopener">http://192.168.1.165:8088/edu/</a> ，试着多刷新几次，会发现8界面来回跳转，说明负载均衡在8080和8081两个服务器上成功实现。</p>
+<p>我们试着在浏览器里输入<a href="http://192.168.1.165:8088/edu/" target="_blank" rel="noopener">http://192.168.1.165:8088/edu/</a> ，试着多刷新几次，会发现界面来回跳转，说明负载均衡在8080和8081两个服务器上成功实现。</p>
 <p><img src="https://s1.ax1x.com/2020/04/17/JZbjIJ.png" alt="avatar"></p>
 <p><img src="https://s1.ax1x.com/2020/04/17/JZqPsK.png" alt="avatar"></p>
 <h5 id="几种不同的负载均衡的实现方式"><a href="#几种不同的负载均衡的实现方式" class="headerlink" title="几种不同的负载均衡的实现方式"></a>几种不同的负载均衡的实现方式</h5><p>一. 轮询：默认的策略，把每个请求按顺序逐一分配到不同的server，如果server挂掉，能自动剔除。</p>
@@ -450,6 +450,10 @@
 
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2020/04/17/Nginx%E5%8A%A8%E9%9D%99%E5%88%86%E7%A6%BB%E5%AE%9E%E4%BE%8B%E4%B8%80/" rel="prev" title="Nginx动静分离实例一">
+                Nginx动静分离实例一 <i class="fa fa-chevron-right"></i>
+              </a>
+            
           </div>
         </div>
       
@@ -529,7 +533,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
