@@ -4,17 +4,16 @@
     <title>Python面经</title>
     <url>/2020/08/04/Python%E9%9D%A2%E7%BB%8F/</url>
     <content><![CDATA[<h4 id="全局变量和局部变量"><a href="#全局变量和局部变量" class="headerlink" title="全局变量和局部变量"></a>全局变量和局部变量</h4><p>全局变量和局部变量的区别在于作用域。全局变量在整个py文件中声明，全局范围内使用；局部变量在函数内声明，只能在函数内使用，在函数外使用会报错。</p>
-<p>在函数内部，如果局部变量与全局变量变量名一样，则优先调用局部变量。</p>
-<p>如果想在函数内改变全局变量，就需要在函数内使用<code>global</code>关键字。函数执行后，全局变量的值会改变。</p>
+<p>在函数内部，如果局部变量与全局变量变量名一样，优先调用局部变量。</p>
+<p>如果想在函数内改变全局变量，需要在函数内使用<code>global</code>关键字。函数执行后全局变量的值会改变。</p>
 <p>如果全局变量是列表类型，可以通过list的列表方法修改变量，可以不用<code>global</code>声明。</p>
-<h4 id="python标准数据类型"><a href="#python标准数据类型" class="headerlink" title="python标准数据类型"></a>python标准数据类型</h4><p>Python3 中有六个标准的数据类型：</p>
-<ol>
+<h4 id="python标准数据类型"><a href="#python标准数据类型" class="headerlink" title="python标准数据类型"></a>python标准数据类型</h4><ol>
 <li>Number</li>
 <li>String</li>
 <li>List</li>
 <li>Tuple</li>
 <li>Set</li>
-<li>Dictionary<br>Python3 的六个标准数据类型中：</li>
+<li>Dictionary</li>
 </ol>
 <p><strong>不可变数据</strong>：Number、String、Tuple<br><strong>可变数据</strong>：List、Dictionary、Set</p>
 <h4 id="元组和列表区别"><a href="#元组和列表区别" class="headerlink" title="元组和列表区别"></a>元组和列表区别</h4><p><strong>相同点：</strong></p>
@@ -25,14 +24,14 @@
 </ul>
 <p><strong>不同点：</strong></p>
 <ul>
-<li>元组不可变列表可变，元组能作为字典的建，或集合的元素，而列表不行。</li>
-<li>元组不能修改元素（内存结构设计上更精简），性能更好；创建元组比 列表快，存储空间比列表更小。</li>
+<li>元组不可变列表可变，元组能作为字典的键，或集合的元素，而列表不行。</li>
+<li>元组不能修改元素（内存结构设计上更精简），性能更好；创建元组比列表快，存储空间比列表更小。</li>
 </ul>
 <h4 id="python关键字"><a href="#python关键字" class="headerlink" title="python关键字"></a>python关键字</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> keyword</span><br><span class="line">print(keyword.kwlist)</span><br></pre></td></tr></table></figure>
 <p><code>[&#39;False&#39;, &#39;None&#39;, &#39;True&#39;, &#39;and&#39;, &#39;as&#39;, &#39;assert&#39;, &#39;async&#39;, &#39;await&#39;, &#39;break&#39;, &#39;class&#39;, &#39;continue&#39;, &#39;def&#39;, &#39;del&#39;, &#39;elif&#39;, &#39;else&#39;, &#39;except&#39;, &#39;finally&#39;, &#39;for&#39;, &#39;from&#39;, &#39;global&#39;, &#39;if&#39;, &#39;import&#39;, &#39;in&#39;, &#39;is&#39;, &#39;lambda&#39;, &#39;nonlocal&#39;, &#39;not&#39;, &#39;or&#39;, &#39;pass&#39;, &#39;raise&#39;, &#39;return&#39;, &#39;try&#39;, &#39;while&#39;, &#39;with&#39;, &#39;yield&#39;]</code></p>
-<h4 id="lambda匿名函数"><a href="#lambda匿名函数" class="headerlink" title="lambda匿名函数"></a>lambda匿名函数</h4><h4 id="浅拷贝和深拷贝"><a href="#浅拷贝和深拷贝" class="headerlink" title="浅拷贝和深拷贝"></a>浅拷贝和深拷贝</h4><p>深拷贝和浅拷贝都是对象的拷贝。本质区别是拷贝出来的对象的地址是否和原对象一样，也就是地址复制还是值复制的区别。</p>
+<h4 id="lambda匿名函数"><a href="#lambda匿名函数" class="headerlink" title="lambda匿名函数"></a>lambda匿名函数</h4><h4 id="浅拷贝和深拷贝"><a href="#浅拷贝和深拷贝" class="headerlink" title="浅拷贝和深拷贝"></a>浅拷贝和深拷贝</h4><p>深拷贝和浅拷贝都是对象的拷贝。本质区别是拷贝出来的对象的地址是否和原对象一样，区别在于地址复制还是值复制。</p>
 <p><strong>什么是可变对象，什么是不可变对象：</strong></p>
-<p>可变对象：对象在不改变其所指向的地址的前提下，可以修改其所指向地址中的值；</p>
+<p>可变对象：对象在不改变其指向地址的前提下，可以修改其指向地址中的值；</p>
 <p>不可变对象：对象指向地址上的值不能修改。如果修改了对象的值，那么它指向的地址就改变。相当于复制对象指向的值再修改后存到另一个地址上。可变对象就不会这样，而是直接在对象指向的地址上修改值，对象依然指向这个地址。</p>
 <p><strong>深拷贝和浅拷贝需要注意的地方就是可变元素的拷贝：</strong></p>
 <p>浅拷贝拷贝出的新对象的地址不同于原对象，但新对象里的可变元素（如列表）的地址和原对象里的可变元素的地址相同。浅拷贝拷贝的是浅层次的数据结构（不可变元素），对象里的可变元素（深层次的数据结构）并未拷贝到新地址，而是和原对象里的可变元素指向同一地址。在新对象或原对象里修改可变元素，两个对象同时改变。但深拷贝不会这样，这个是浅拷贝相对于深拷贝最根本的区别。</p>
@@ -40,21 +39,20 @@
 
 <p>深拷贝跟原对象没有任何关系，原对象改变不会影响到当前对象。</p>
 <p>浅拷贝中改变原对象的list元素会改变当前对象，反之亦然。</p>
-<p>通常要用深拷贝复制。<strong>因为浅拷贝后，两个对象中不可变对象指向不同地址，相互没有影响；但两个对象中的可变元素指向相同地址，一个变了另一个也会变，相互有影响。</strong></p>
+<p>通常要用深拷贝复制。<strong>因为浅拷贝后，两个对象中不可变对象指向不同地址，相互不影响；但两个对象中的可变元素指向相同地址，一个变了另一个也会变，相互影响。</strong></p>
 <h4 id="关键字-pass-with"><a href="#关键字-pass-with" class="headerlink" title="关键字 pass/ with"></a>关键字 pass/ with</h4><p><strong>pass</strong>   </p>
-<p>pass 是空语句，为了保持程序结构的完整性。  </p>
-<p>pass 不做任何事情，一般用做占位语句。</p>
+<p>pass 是空语句，保持程序结构的完整性；不做任何事情，一般用做占位语句。</p>
 <p><strong>with</strong></p>
-<p>上下文管理器：任何实现了 <code>__enter__()</code> 和 <code>__exit__()</code> 方法的对象都是上下文管理器，上下文管理器对象能使用<code>with</code>关键字。显然，文件（file）对象也实现了上下文管理器。</p>
-<p>Python提供了一个<code>contextmanager</code>的装饰器，进一步简化了上下文管理器的实现方式。通过<code>yield</code>将函数分成两部分，<code>yield</code>前的语句在 <code>__enter__()</code>中执行，<code>yield</code>后的语句在 <code>__exit__()</code> 中执行。<code>yield</code>后的值是函数的返回值。</p>
+<p>上下文管理器：任何实现了 <code>__enter__()</code> 和 <code>__exit__()</code> 方法的对象都是上下文管理器，上下文管理器对象能使用<code>with</code>关键字。例如文件（file）对象实现了上下文管理器。</p>
+<p>Python提供了<code>contextmanager</code>装饰器，进一步简化了上下文管理器的实现。通过<code>yield</code>将函数分成两部分，<code>yield</code>前的语句在 <code>__enter__()</code>中执行，<code>yield</code>后的语句在 <code>__exit__()</code> 中执行。<code>yield</code>的值是函数的返回值。</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> contextlib <span class="keyword">import</span> contextmanager</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__enter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        print(<span class="string">"first step"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__exit__</span><span class="params">(self, exc_type, exc_val, exc_tb)</span>:</span></span><br><span class="line">        print(<span class="string">"third step"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@contextmanager</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">my_A</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">"first step"</span>)</span><br><span class="line">    <span class="keyword">yield</span></span><br><span class="line">    print(<span class="string">"third step"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">with</span> A() <span class="keyword">as</span> f:</span><br><span class="line">        print(<span class="string">"second step"</span>)</span><br><span class="line"></span><br><span class="line">    print()</span><br><span class="line">    <span class="keyword">with</span> my_A() <span class="keyword">as</span> a:</span><br><span class="line">        print(<span class="string">"second step"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>first step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>second step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>third step</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>first step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>second step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>third step</span><br></pre></td></tr></table></figure>
 <h4 id="GIL锁"><a href="#GIL锁" class="headerlink" title="GIL锁"></a>GIL锁</h4><h4 id="字典的底层结构-字典常用方法"><a href="#字典的底层结构-字典常用方法" class="headerlink" title="字典的底层结构/字典常用方法"></a>字典的底层结构/字典常用方法</h4><h4 id="垃圾回收机制"><a href="#垃圾回收机制" class="headerlink" title="垃圾回收机制"></a>垃圾回收机制</h4><p><strong>引用计数：</strong>  </p>
-<p>Python中变量的本质是对内存数据区域的引用，所以python可以给所有对象（内存中的区域）维护一个引用计数的属性。   </p>
-<p>在一个引用被创建或复制时，Python把相关对象的引用计数+1；<br>当引用被销毁时就把相关对象的引用计数-1。</p>
+<p>Python中变量的本质是对内存数据区域的引用，Python给所有对象（内存中的区域）维护一个引用计数的属性。   </p>
+<p>在一个引用被创建或复制时，Python把该对象的引用计数+1；<br>当引用被销毁时把该对象的引用计数-1。</p>
 <p>当对象的引用计数减到0，可以认为Python中不会再引用这个对象，就可以释放对象占据的内存空间了。</p>
 <p>优点：实时性。其他语言的垃圾回收可能只在固定的时间点上进行，如内存分配失败时进行垃圾回收，而引用计数可以动态管理内存。</p>
 <p>缺点：引用计数在每次引用创建和销毁时都要多做一些操作，创建和销毁很频繁时效率会不足。并且<strong>不能解决循环引用</strong>。</p>
-<p><strong>标记-清除：</strong><br>标记-清除能解决循环引用的问题。只有容器对象（列表、字典、类、元组）才会出现循环引用。</p>
+<p><strong>标记-清除：</strong><br>标记-清除能解决循环引用的问题。只有容器对象（列表、字典、类、元组）才会出现循环引用的问题。</p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line">a=[<span class="number">1</span>,<span class="number">2</span>] <span class="comment"># a的引用为1</span></span><br><span class="line">b=[<span class="number">3</span>,<span class="number">4</span>] <span class="comment"># b的引用为1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#循环引用</span></span><br><span class="line">a.append(b) <span class="comment"># b的引用为2</span></span><br><span class="line">b.append(a) <span class="comment"># a的引用为2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果要删除a,应该如何回收呢？（注意删除a可以使用del a，这样a这个引用就不存在了，但是它指向的对象，在标记删除后还存在，因为还被b使用着）</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">c=[<span class="number">5</span>,<span class="number">6</span>] <span class="comment"># c的引用为1</span></span><br><span class="line">d=[<span class="number">7</span>,<span class="number">8</span>] <span class="comment"># d的引用为1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#循环引用</span></span><br><span class="line">c.append(d) <span class="comment">#c的引用为2</span></span><br><span class="line">d.append(c) <span class="comment">#d的引用为2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果要同时删除c、d，应该如何回收呢？</span></span><br></pre></td></tr></table></figure>
 <p>上面的哪种情况都无法通过引用计数完成回收，因为引用始终大于0，不会回收。</p>
 <p>Python 标记-清除通过两个容器来完成的：死亡容器和存活容器。</p>
@@ -72,11 +70,6 @@
 <p>对于循环引用，必须将循环引用的双方对象都删除，才能被回收。</p>
 <p><strong>分代回收：</strong></p>
 <p>了解分类回收要先了解GC的阈值。阈值是一个临界点的值。随着程序运行，Python解释器保持对新创建的对象和因为引用计数为零被释放的对象的追踪。理论上创建数量应该等于释放数量。如果存在循环引用，那么创建数量就大于释放数量，当创建数量与释放数量的差值达到规定的阈值时，就需要分代回收机制。</p>
-<ul>
-<li>新创建的对象做为0代</li>
-<li>每执行一个【标记-删除】，存活的对象代数就+1</li>
-<li>代数越高的对象（存活越久的对象），进行【标记-删除】的时间间隔就越长。这个间隔就是阀值。</li>
-</ul>
 <p>垃圾回收=垃圾检测+释放。</p>
 <p>分代回收将对象分为三代。幼年对象（0代），青年对象（1代），老年对象（2代）。根据弱代假说（年轻对象易死掉，老年对象活更久）新生对象被放入0代，如果该对象在第0代的一次gc垃圾回收中存活，它就被放到第1代里。如果第1代的对象在第1代的一次gc垃圾回收中存活，它就被放到第2代里。</p>
 ]]></content>
