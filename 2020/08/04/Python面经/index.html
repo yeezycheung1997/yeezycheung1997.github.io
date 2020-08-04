@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="面经," />
 
 
 
@@ -79,16 +79,16 @@
 
 
 
-<meta name="description" content="可迭代对象和迭代器序列可以迭代的原因：iter 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：  检查对象是否实现了 __ iter__ 方法，实现了就调用它，获取一个迭代器。  没有实现 __ iter__ 方法，但实现了 __ getitem__ 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开">
+<meta name="description" content="全局变量和局部变量全局变量和局部变量的区别在于作用域。全局变量在整个py文件中声明，全局范围内使用；局部变量在函数内声明，只能在函数内使用，在函数外使用会报错。 在函数内部，如果局部变量与全局变量变量名一样，则优先调用局部变量。 如果想在函数内改变全局变量，就需要在函数内使用global关键字。函数执行后，全局变量的值会改变。 如果全局变量是列表类型，可以通过list的列表方法修改变量，可以不用g">
 <meta property="og:type" content="article">
-<meta property="og:title" content="对可迭代对象、迭代器和生成器的理解">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:title" content="Python面经">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/08/04/Python%E9%9D%A2%E7%BB%8F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="可迭代对象和迭代器序列可以迭代的原因：iter 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：  检查对象是否实现了 __ iter__ 方法，实现了就调用它，获取一个迭代器。  没有实现 __ iter__ 方法，但实现了 __ getitem__ 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开">
-<meta property="article:published_time" content="2020-03-23T13:53:46.000Z">
-<meta property="article:modified_time" content="2020-03-23T13:54:39.991Z">
+<meta property="og:description" content="全局变量和局部变量全局变量和局部变量的区别在于作用域。全局变量在整个py文件中声明，全局范围内使用；局部变量在函数内声明，只能在函数内使用，在函数外使用会报错。 在函数内部，如果局部变量与全局变量变量名一样，则优先调用局部变量。 如果想在函数内改变全局变量，就需要在函数内使用global关键字。函数执行后，全局变量的值会改变。 如果全局变量是列表类型，可以通过list的列表方法修改变量，可以不用g">
+<meta property="article:published_time" content="2020-08-04T20:34:52.000Z">
+<meta property="article:modified_time" content="2020-08-04T20:35:33.380Z">
 <meta property="article:author" content="Qianyi Zhang">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="面经">
 <meta name="twitter:card" content="summary">
 
 
@@ -119,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/03/23/对可迭代对象、迭代器和生成器的理解/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/08/04/Python面经/"/>
 
 
 
 
 
-  <title>对可迭代对象、迭代器和生成器的理解 | Qianyi Zhang's blog</title>
+  <title>Python面经 | Qianyi Zhang's blog</title>
   
 
 
@@ -287,7 +287,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/08/04/Python%E9%9D%A2%E7%BB%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -304,7 +304,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">对可迭代对象、迭代器和生成器的理解</h1>
+          <h1 class="post-title" itemprop="name headline">Python面经</h1>
         
 
         <div class="post-meta">
@@ -316,8 +316,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-23T09:53:46-04:00">
-                2020-03-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-04T16:34:52-04:00">
+                2020-08-04
               </time>
             
 
@@ -354,62 +354,82 @@
       
 
       
-        <h5 id="可迭代对象和迭代器"><a href="#可迭代对象和迭代器" class="headerlink" title="可迭代对象和迭代器"></a>可迭代对象和迭代器</h5><p>序列可以迭代的原因：<strong>iter</strong> 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：</p>
+        <h4 id="全局变量和局部变量"><a href="#全局变量和局部变量" class="headerlink" title="全局变量和局部变量"></a>全局变量和局部变量</h4><p>全局变量和局部变量的区别在于作用域。全局变量在整个py文件中声明，全局范围内使用；局部变量在函数内声明，只能在函数内使用，在函数外使用会报错。</p>
+<p>在函数内部，如果局部变量与全局变量变量名一样，则优先调用局部变量。</p>
+<p>如果想在函数内改变全局变量，就需要在函数内使用<code>global</code>关键字。函数执行后，全局变量的值会改变。</p>
+<p>如果全局变量是列表类型，可以通过list的列表方法修改变量，可以不用<code>global</code>声明。</p>
+<h4 id="python标准数据类型"><a href="#python标准数据类型" class="headerlink" title="python标准数据类型"></a>python标准数据类型</h4><p>Python3 中有六个标准的数据类型：</p>
 <ol>
-<li><p>检查对象是否实现了 __ <strong>iter__</strong> 方法，实现了就调用它，获取一个迭代器。</p>
-</li>
-<li><p>没有实现 __ <strong>iter__</strong> 方法，但实现了 __ <strong>getitem__</strong> 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开始）获取元素。</p>
-</li>
-<li><p>如果前两步都失败，Python抛出 TypeError 异常，通常会提示“C object is not iterable”，其中 C 是目标对象所属的类。</p>
-</li>
+<li>Number</li>
+<li>String</li>
+<li>List</li>
+<li>Tuple</li>
+<li>Set</li>
+<li>Dictionary<br>Python3 的六个标准数据类型中：</li>
 </ol>
-<p>由此可以明确可迭代对象（Iterable）： 使用 iter 内置函数可以获取迭代器（Iterator）的对象。即对象实现了能返回迭代器的 __ <strong>iter__</strong> 方法或实现了 __ <strong>getitem__</strong> 方法，而且其参数是从零开始的索引。</p>
-<p>一个实现 __ <strong>getitem__</strong> 的demo：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__getitem__</span><span class="params">(self, item)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.text[item]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o1 = Test(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o1:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+<p><strong>不可变数据</strong>：Number、String、Tuple<br><strong>可变数据</strong>：List、Dictionary、Set</p>
+<h4 id="元组和列表区别"><a href="#元组和列表区别" class="headerlink" title="元组和列表区别"></a>元组和列表区别</h4><p><strong>相同点：</strong></p>
+<ul>
+<li>都是序列</li>
+<li>都可以存储任何数据类型</li>
+<li>可以通过索引访问</li>
+</ul>
+<p><strong>不同点：</strong></p>
+<ul>
+<li>元组不可变列表可变，元组能作为字典的建，或集合的元素，而列表不行。</li>
+<li>元组不能修改元素（内存结构设计上更精简），性能更好；创建元组比 列表快，存储空间比列表更小。</li>
+</ul>
+<h4 id="python关键字"><a href="#python关键字" class="headerlink" title="python关键字"></a>python关键字</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> keyword</span><br><span class="line">print(keyword.kwlist)</span><br></pre></td></tr></table></figure>
+<p><code>[&#39;False&#39;, &#39;None&#39;, &#39;True&#39;, &#39;and&#39;, &#39;as&#39;, &#39;assert&#39;, &#39;async&#39;, &#39;await&#39;, &#39;break&#39;, &#39;class&#39;, &#39;continue&#39;, &#39;def&#39;, &#39;del&#39;, &#39;elif&#39;, &#39;else&#39;, &#39;except&#39;, &#39;finally&#39;, &#39;for&#39;, &#39;from&#39;, &#39;global&#39;, &#39;if&#39;, &#39;import&#39;, &#39;in&#39;, &#39;is&#39;, &#39;lambda&#39;, &#39;nonlocal&#39;, &#39;not&#39;, &#39;or&#39;, &#39;pass&#39;, &#39;raise&#39;, &#39;return&#39;, &#39;try&#39;, &#39;while&#39;, &#39;with&#39;, &#39;yield&#39;]</code></p>
+<h4 id="lambda匿名函数"><a href="#lambda匿名函数" class="headerlink" title="lambda匿名函数"></a>lambda匿名函数</h4><h4 id="浅拷贝和深拷贝"><a href="#浅拷贝和深拷贝" class="headerlink" title="浅拷贝和深拷贝"></a>浅拷贝和深拷贝</h4><p>深拷贝和浅拷贝都是对象的拷贝。本质区别是拷贝出来的对象的地址是否和原对象一样，也就是地址复制还是值复制的区别。</p>
+<p><strong>什么是可变对象，什么是不可变对象：</strong></p>
+<p>可变对象：对象在不改变其所指向的地址的前提下，可以修改其所指向地址中的值；</p>
+<p>不可变对象：对象指向地址上的值不能修改。如果修改了对象的值，那么它指向的地址就改变。相当于复制对象指向的值再修改后存到另一个地址上。可变对象就不会这样，而是直接在对象指向的地址上修改值，对象依然指向这个地址。</p>
+<p><strong>深拷贝和浅拷贝需要注意的地方就是可变元素的拷贝：</strong></p>
+<p>浅拷贝拷贝出的新对象的地址不同于原对象，但新对象里的可变元素（如列表）的地址和原对象里的可变元素的地址相同。浅拷贝拷贝的是浅层次的数据结构（不可变元素），对象里的可变元素（深层次的数据结构）并未拷贝到新地址，而是和原对象里的可变元素指向同一地址。在新对象或原对象里修改可变元素，两个对象同时改变。但深拷贝不会这样，这个是浅拷贝相对于深拷贝最根本的区别。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> copy</span><br><span class="line"></span><br><span class="line">a = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>]]</span><br><span class="line">b = a  <span class="comment"># 赋值，传对象的引用</span></span><br><span class="line">c = copy.copy(a)  <span class="comment"># 浅拷贝</span></span><br><span class="line">d = copy.deepcopy(a)  <span class="comment"># 深拷贝</span></span><br><span class="line">print(<span class="string">"a="</span>, a, <span class="string">"    id(a)="</span>, id(a), <span class="string">"id(a[5])="</span>, id(a[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"b="</span>, b, <span class="string">"    id(b)="</span>, id(b), <span class="string">"id(b[5])="</span>, id(b[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"c="</span>, c, <span class="string">"    id(c)="</span>, id(c), <span class="string">"id(c[5])="</span>, id(c[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"d="</span>, d, <span class="string">"    id(d)="</span>, id(d), <span class="string">"id(d[5])="</span>, id(d[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"*"</span> * <span class="number">70</span>)</span><br><span class="line"></span><br><span class="line">a.append(<span class="number">6</span>)  <span class="comment"># 修改对象a</span></span><br><span class="line">a[<span class="number">5</span>].append(<span class="string">'c'</span>)  <span class="comment"># 修改对象a中的['a','b']数组对象</span></span><br><span class="line">print(<span class="string">"a="</span>, a, <span class="string">"    id(a)="</span>, id(a), <span class="string">"id(a[5])="</span>, id(a[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"b="</span>, b, <span class="string">"    id(b)="</span>, id(b), <span class="string">"id(b[5])="</span>, id(b[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"c="</span>, c, <span class="string">"    id(c)="</span>, id(c), <span class="string">"id(c[5])="</span>, id(c[<span class="number">5</span>]))</span><br><span class="line">print(<span class="string">"d="</span>, d, <span class="string">"    id(d)="</span>, id(d), <span class="string">"id(d[5])="</span>, id(d[<span class="number">5</span>]))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>]]     id(a)= <span class="number">1643637134408</span> id(a[<span class="number">5</span>])= <span class="number">1643637133896</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>b= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>]]     id(b)= <span class="number">1643637134408</span> id(b[<span class="number">5</span>])= <span class="number">1643637133896</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>c= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>]]     id(c)= <span class="number">1643893203016</span> id(c[<span class="number">5</span>])= <span class="number">1643637133896</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>]]     id(d)= <span class="number">1643638403016</span> id(d[<span class="number">5</span>])= <span class="number">1643892964488</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>**********************************************************************</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>a= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>], <span class="number">6</span>]     id(a)= <span class="number">1643637134408</span> id(a[<span class="number">5</span>])= <span class="number">1643637133896</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>b= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>], <span class="number">6</span>]     id(b)= <span class="number">1643637134408</span> id(b[<span class="number">5</span>])= <span class="number">1643637133896</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>c= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>, <span class="string">'c'</span>]]     id(c)= <span class="number">1643893203016</span> id(c[<span class="number">5</span>])= <span class="number">1643637133896</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>d= [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, [<span class="string">'a'</span>, <span class="string">'b'</span>]]     id(d)= <span class="number">1643638403016</span> id(d[<span class="number">5</span>])= <span class="number">1643892964488</span></span><br></pre></td></tr></table></figure>
 
-<p>下面来看一个实现 __ <strong>iter__</strong> 的例子。因为用到了迭代器，所以先明确一下迭代器的用法。 标准的迭代器接口有两个方法：  </p>
-<ol>
-<li><p>__ <strong>next__</strong> ：返回下一个可用的元素，如果没有元素了就抛出 <strong>StopIteration</strong> 异常。</p>
-</li>
-<li><p>__ <strong>iter__</strong> ：返回 self，以便在应该使用可迭代对象的地方使用迭代器，例如 for 循环。</p>
-</li>
-</ol>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> Eg2Iterator(self.text) <span class="comment"># 获取一个迭代器</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2Iterator</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text</span><br><span class="line">        self.index = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__next__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            subtext = self.text[self.index]</span><br><span class="line">        <span class="keyword">except</span> IndexError:</span><br><span class="line">            <span class="keyword">raise</span> StopIteration()</span><br><span class="line">        self.index +=<span class="number">1</span></span><br><span class="line">        <span class="keyword">return</span> subtext</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o2 = Eg2(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o2:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>我们明确可迭代的对象和迭代器之间的关系：</p>
-<ol>
-<li><p>Python 从可迭代对象中获取迭代器。</p>
-</li>
-<li><p>__ <strong>iter__</strong> 方法从我们自己创建的迭代器类中获取迭代器，而__ <strong>getitem__</strong> 方法是python内部自动创建迭代器。</p>
-</li>
-</ol>
-<p>我们来了解一下使用更符合 Python 的方式实现 Eg2类。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> self.text:</span><br><span class="line">            <span class="keyword">yield</span> item</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-<p>这里使用了 <strong>yield</strong> 关键字， 只要 Python 函数体中有 yield 关键字，该函数就是生成器函数。调用生成器函数时会返回一个生成器对象。也就是说生成器函数是生成器工厂。 上述代码还可以使用yield from进一步简化：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> self.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>还可以使用生成器表达式</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg5</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> (item <span class="keyword">for</span> item <span class="keyword">in</span> self.text) <span class="comment"># 生成器表达式</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o5 = Eg5(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o5:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>总结：</p>
-<ol>
-<li><p>可迭代对象（Iterable）要么实现了能返回迭代器的 __ <strong>iter__</strong> 方法，要么实现了 __ <strong>getitem__</strong> 方法而且其参数是从零开始的索引。</p>
-</li>
-<li><p>迭代器（Iterator）是这样的对象：实现了无参数的 __ <strong>next__</strong> 方法，返回下一个元素，如果没有元素就抛出 StopIteration 异常；并且实现 __ <strong>iter__</strong> 方法，返回迭代器本身。</p>
-</li>
-<li><p>生成器是带有 yield 关键字的函数。调用生成器函数时，会返回一个生成器对象。</p>
-</li>
-<li><p>生成器表达式是创建生成器的简洁句法，这样无需先定义函数再调用。</p>
-</li>
-<li><p>什么是迭代器模式？按需一次获取一个数据项。</p>
-</li>
-<li><p>生成器和迭代器有什么不同？</p>
-<p>相同点：所有生成器都是迭代器，因为生成器完全实现了迭代器接口。</p>
-<p>不同点：迭代器用于从集合中取出元素；生成器用于凭空生成元素。</p>
-</li>
-</ol>
-<h5 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h5><p>迭代是处理大量数据的好方法。以列表为例，迭代存在两个问题。第一，列表中的元素太多将大量占用内存。第二，我们有时候只需要使用一次数据，如果用列表把数据全部保存起来，将会造成内存浪费。</p>
-<p>生成器是创建迭代器的工具。它们像常规函数一样撰写，但是在需要返回数据时使用yield语句。每当对它调用next()函数，生成器从它上次停止的地方重新开始（它会记住所有的数据值和上次执行的语句）。</p>
+<p>深拷贝跟原对象没有任何关系，原对象改变不会影响到当前对象。</p>
+<p>浅拷贝中改变原对象的list元素会改变当前对象，反之亦然。</p>
+<p>通常要用深拷贝复制。<strong>因为浅拷贝后，两个对象中不可变对象指向不同地址，相互没有影响；但两个对象中的可变元素指向相同地址，一个变了另一个也会变，相互有影响。</strong></p>
+<h4 id="关键字-pass-with"><a href="#关键字-pass-with" class="headerlink" title="关键字 pass/ with"></a>关键字 pass/ with</h4><p><strong>pass</strong>   </p>
+<p>pass 是空语句，为了保持程序结构的完整性。  </p>
+<p>pass 不做任何事情，一般用做占位语句。</p>
+<p><strong>with</strong></p>
+<p>上下文管理器：任何实现了 <code>__enter__()</code> 和 <code>__exit__()</code> 方法的对象都是上下文管理器，上下文管理器对象能使用<code>with</code>关键字。显然，文件（file）对象也实现了上下文管理器。</p>
+<p>Python提供了一个<code>contextmanager</code>的装饰器，进一步简化了上下文管理器的实现方式。通过<code>yield</code>将函数分成两部分，<code>yield</code>前的语句在 <code>__enter__()</code>中执行，<code>yield</code>后的语句在 <code>__exit__()</code> 中执行。<code>yield</code>后的值是函数的返回值。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> contextlib <span class="keyword">import</span> contextmanager</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__enter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        print(<span class="string">"first step"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__exit__</span><span class="params">(self, exc_type, exc_val, exc_tb)</span>:</span></span><br><span class="line">        print(<span class="string">"third step"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@contextmanager</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">my_A</span><span class="params">()</span>:</span></span><br><span class="line">    print(<span class="string">"first step"</span>)</span><br><span class="line">    <span class="keyword">yield</span></span><br><span class="line">    print(<span class="string">"third step"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    <span class="keyword">with</span> A() <span class="keyword">as</span> f:</span><br><span class="line">        print(<span class="string">"second step"</span>)</span><br><span class="line"></span><br><span class="line">    print()</span><br><span class="line">    <span class="keyword">with</span> my_A() <span class="keyword">as</span> a:</span><br><span class="line">        print(<span class="string">"second step"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>first step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>second step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>third step</span><br><span class="line">&gt;&gt;&gt;</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>first step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>second step</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>third step</span><br></pre></td></tr></table></figure>
+<h4 id="GIL锁"><a href="#GIL锁" class="headerlink" title="GIL锁"></a>GIL锁</h4><h4 id="字典的底层结构-字典常用方法"><a href="#字典的底层结构-字典常用方法" class="headerlink" title="字典的底层结构/字典常用方法"></a>字典的底层结构/字典常用方法</h4><h4 id="垃圾回收机制"><a href="#垃圾回收机制" class="headerlink" title="垃圾回收机制"></a>垃圾回收机制</h4><p><strong>引用计数：</strong>  </p>
+<p>Python中变量的本质是对内存数据区域的引用，所以python可以给所有对象（内存中的区域）维护一个引用计数的属性。   </p>
+<p>在一个引用被创建或复制时，Python把相关对象的引用计数+1；<br>当引用被销毁时就把相关对象的引用计数-1。</p>
+<p>当对象的引用计数减到0，可以认为Python中不会再引用这个对象，就可以释放对象占据的内存空间了。</p>
+<p>优点：实时性。其他语言的垃圾回收可能只在固定的时间点上进行，如内存分配失败时进行垃圾回收，而引用计数可以动态管理内存。</p>
+<p>缺点：引用计数在每次引用创建和销毁时都要多做一些操作，创建和销毁很频繁时效率会不足。并且<strong>不能解决循环引用</strong>。</p>
+<p><strong>标记-清除：</strong><br>标记-清除能解决循环引用的问题。只有容器对象（列表、字典、类、元组）才会出现循环引用。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">a=[<span class="number">1</span>,<span class="number">2</span>] <span class="comment"># a的引用为1</span></span><br><span class="line">b=[<span class="number">3</span>,<span class="number">4</span>] <span class="comment"># b的引用为1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#循环引用</span></span><br><span class="line">a.append(b) <span class="comment"># b的引用为2</span></span><br><span class="line">b.append(a) <span class="comment"># a的引用为2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果要删除a,应该如何回收呢？（注意删除a可以使用del a，这样a这个引用就不存在了，但是它指向的对象，在标记删除后还存在，因为还被b使用着）</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">c=[<span class="number">5</span>,<span class="number">6</span>] <span class="comment"># c的引用为1</span></span><br><span class="line">d=[<span class="number">7</span>,<span class="number">8</span>] <span class="comment"># d的引用为1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#循环引用</span></span><br><span class="line">c.append(d) <span class="comment">#c的引用为2</span></span><br><span class="line">d.append(c) <span class="comment">#d的引用为2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 如果要同时删除c、d，应该如何回收呢？</span></span><br></pre></td></tr></table></figure>
+<p>上面的哪种情况都无法通过引用计数完成回收，因为引用始终大于0，不会回收。</p>
+<p>Python 标记-清除通过两个容器来完成的：死亡容器和存活容器。</p>
+<p>首先分析情况2：删除c、d</p>
+<p>删除后，c和d的引用都为1，根据引用计数还是无法删除。</p>
+<p>标记-清除 第一步：对执行删除操作后的每个引用-1，此时c和d的引用都为0，把它们都放入死亡容器。把那些引用大于0的放入存活容器。</p>
+<p>标记-清除 第二步：遍历存活容器，查看是否有存活容器内的对象引用了死亡容器内的对象，如果有就把该对象(注意是对象，比如0x7f94bb602f80，不是对象的引用)从死亡容器内取出并放入存活容器。</p>
+<p>由于c、d都没有对象引用它们了，所以经过上述步骤，它们还是在死亡容器内。</p>
+<p>标记删除第三步：删除死亡容器内的所有对象。</p>
+<p>这样就完成了对从c、d的删除。</p>
+<p>同样道理分析情况1：只删除a</p>
+<p>标记-清除 第一步：对执行删除（-1）后的每个引用-1，那么a的引用就是0，b的引用为1，将a放到死亡容器，将b放到存活容器。</p>
+<p>标记-清除 第二步：循环存活容器，发现b引用a，复活a：将a放到存活容器内。</p>
+<p>标记-清除 第三步：删除死亡容器内的所有对象。</p>
+<p>对于循环引用，必须将循环引用的双方对象都删除，才能被回收。</p>
+<p><strong>分代回收：</strong></p>
+<p>了解分类回收要先了解GC的阈值。阈值是一个临界点的值。随着程序运行，Python解释器保持对新创建的对象和因为引用计数为零被释放的对象的追踪。理论上创建数量应该等于释放数量。如果存在循环引用，那么创建数量就大于释放数量，当创建数量与释放数量的差值达到规定的阈值时，就需要分代回收机制。</p>
+<ul>
+<li>新创建的对象做为0代</li>
+<li>每执行一个【标记-删除】，存活的对象代数就+1</li>
+<li>代数越高的对象（存活越久的对象），进行【标记-删除】的时间间隔就越长。这个间隔就是阀值。</li>
+</ul>
+<p>垃圾回收=垃圾检测+释放。</p>
+<p>分代回收将对象分为三代。幼年对象（0代），青年对象（1代），老年对象（2代）。根据弱代假说（年轻对象易死掉，老年对象活更久）新生对象被放入0代，如果该对象在第0代的一次gc垃圾回收中存活，它就被放到第1代里。如果第1代的对象在第1代的一次gc垃圾回收中存活，它就被放到第2代里。</p>
 
       
     </div>
@@ -456,7 +476,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag"><i class="fa fa-tag"></i> Python</a>
+            <a href="/tags/%E9%9D%A2%E7%BB%8F/" rel="tag"><i class="fa fa-tag"></i> 面经</a>
           
         </div>
       
@@ -469,8 +489,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/" rel="next" title="Python的property动态属性">
-                <i class="fa fa-chevron-left"></i> Python的property动态属性
+              <a href="/2020/04/21/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E2%80%94%E2%80%94%E6%95%B0%E6%8D%AE%E9%93%BE%E8%B7%AF%E5%B1%82/" rel="next" title="计算机网络——数据链路层">
+                <i class="fa fa-chevron-left"></i> 计算机网络——数据链路层
               </a>
             
           </div>
@@ -478,10 +498,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/03/23/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B/" rel="prev" title="进程和线程">
-                进程和线程 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -650,7 +666,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#可迭代对象和迭代器"><span class="nav-number">1.</span> <span class="nav-text">可迭代对象和迭代器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#生成器"><span class="nav-number">2.</span> <span class="nav-text">生成器</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#全局变量和局部变量"><span class="nav-number">1.</span> <span class="nav-text">全局变量和局部变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#python标准数据类型"><span class="nav-number">2.</span> <span class="nav-text">python标准数据类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#元组和列表区别"><span class="nav-number">3.</span> <span class="nav-text">元组和列表区别</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#python关键字"><span class="nav-number">4.</span> <span class="nav-text">python关键字</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#lambda匿名函数"><span class="nav-number">5.</span> <span class="nav-text">lambda匿名函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#浅拷贝和深拷贝"><span class="nav-number">6.</span> <span class="nav-text">浅拷贝和深拷贝</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关键字-pass-with"><span class="nav-number">7.</span> <span class="nav-text">关键字 pass&#x2F; with</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GIL锁"><span class="nav-number">8.</span> <span class="nav-text">GIL锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#字典的底层结构-字典常用方法"><span class="nav-number">9.</span> <span class="nav-text">字典的底层结构&#x2F;字典常用方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#垃圾回收机制"><span class="nav-number">10.</span> <span class="nav-text">垃圾回收机制</span></a></li></ol></div>
             
 
           </div>
