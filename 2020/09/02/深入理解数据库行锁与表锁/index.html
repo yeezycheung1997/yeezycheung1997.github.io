@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Nginx," />
+  <meta name="keywords" content="数据库," />
 
 
 
@@ -79,21 +79,31 @@
 
 
 
-<meta name="description" content="首先创建一个文件夹data，文件夹目录如下 1234567data||---image|     |---final.jpg||---www      |---test.html 接下来需要在 nginx.conf 进行动静分离的配置： 12345678910111213141516171819server &amp;#123;        # 监听192.168.1.165：9080 这个服务器端口">
+<meta name="description" content="整理自加耀：深入理解数据库行锁与表锁 数据库是怎样隔离事务的呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”锁行”。 当多个用户对数据库进行操作时，会带来数据不一致的情况。所以，锁用来在多用户情况下保证数据库数据完整性和一致性。   行锁行锁是一锁锁一行或多行记录，mysql的行锁是基于索引加载的，所以行锁要加在索引响应的行上，即命中索引，如下所示：  表中有一个主键">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Nginx动静分离实例一">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/04/17/Nginx%E5%8A%A8%E9%9D%99%E5%88%86%E7%A6%BB%E5%AE%9E%E4%BE%8B%E4%B8%80/index.html">
+<meta property="og:title" content="深入理解数据库行锁与表锁">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/09/02/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%8C%E9%94%81%E4%B8%8E%E8%A1%A8%E9%94%81/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="首先创建一个文件夹data，文件夹目录如下 1234567data||---image|     |---final.jpg||---www      |---test.html 接下来需要在 nginx.conf 进行动静分离的配置： 12345678910111213141516171819server &amp;#123;        # 监听192.168.1.165：9080 这个服务器端口">
-<meta property="og:image" content="https://s1.ax1x.com/2020/04/18/JeVykj.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/04/18/JeV2pq.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/04/18/JeVR10.png">
-<meta property="article:published_time" content="2020-04-17T18:54:18.000Z">
-<meta property="article:modified_time" content="2020-04-17T19:03:14.530Z">
+<meta property="og:description" content="整理自加耀：深入理解数据库行锁与表锁 数据库是怎样隔离事务的呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”锁行”。 当多个用户对数据库进行操作时，会带来数据不一致的情况。所以，锁用来在多用户情况下保证数据库数据完整性和一致性。   行锁行锁是一锁锁一行或多行记录，mysql的行锁是基于索引加载的，所以行锁要加在索引响应的行上，即命中索引，如下所示：  表中有一个主键">
+<meta property="og:image" content="https://picb.zhimg.com/80/v2-eec522a8cf7d8a38eaea29192edbb2f5_720w.jpg">
+<meta property="og:image" content="https://picb.zhimg.com/80/v2-5cf8b96fdca1428e6f3cce863fdfa73e_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-81420e5b7f1a256b86346781f0379bc6_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-e7cb6996c72c83c495ee940ffd6964a2_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-2b69c74a17cfe1ef6b0f29cca0ee130c_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-54fde24a455d14e96d364f633f87b680_720w.jpg">
+<meta property="og:image" content="https://picb.zhimg.com/80/v2-a3da10ada0e98184ca99dc31ee68c3a1_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-e7cb6996c72c83c495ee940ffd6964a2_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-32fd1eb4a26fa35610703d98f6b36a79_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-018f7b3ebf9bdac04068b77714dc430c_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-0a82d8e24b998db426e0363e6140343f_720w.jpg">
+<meta property="og:image" content="https://picb.zhimg.com/80/v2-2693531707b096359a778852d943c12b_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-44833c3c68bd57d7112967ab4797e07c_720w.jpg">
+<meta property="article:published_time" content="2020-09-02T18:58:24.000Z">
+<meta property="article:modified_time" content="2020-09-02T18:59:31.217Z">
 <meta property="article:author" content="Qianyi Zhang">
-<meta property="article:tag" content="Nginx">
+<meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/04/18/JeVykj.png">
+<meta name="twitter:image" content="https://picb.zhimg.com/80/v2-eec522a8cf7d8a38eaea29192edbb2f5_720w.jpg">
 
 
 
@@ -123,13 +133,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/04/17/Nginx动静分离实例一/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/09/02/深入理解数据库行锁与表锁/"/>
 
 
 
 
 
-  <title>Nginx动静分离实例一 | Qianyi Zhang's blog</title>
+  <title>深入理解数据库行锁与表锁 | Qianyi Zhang's blog</title>
   
 
 
@@ -291,7 +301,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/04/17/Nginx%E5%8A%A8%E9%9D%99%E5%88%86%E7%A6%BB%E5%AE%9E%E4%BE%8B%E4%B8%80/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/09/02/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%8C%E9%94%81%E4%B8%8E%E8%A1%A8%E9%94%81/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -308,7 +318,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Nginx动静分离实例一</h1>
+          <h1 class="post-title" itemprop="name headline">深入理解数据库行锁与表锁</h1>
         
 
         <div class="post-meta">
@@ -320,8 +330,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-17T14:54:18-04:00">
-                2020-04-17
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-02T14:58:24-04:00">
+                2020-09-02
               </time>
             
 
@@ -358,13 +368,53 @@
       
 
       
-        <p>首先创建一个文件夹data，文件夹目录如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">data</span><br><span class="line">|</span><br><span class="line">|---image</span><br><span class="line">|     |---final.jpg</span><br><span class="line">|</span><br><span class="line">|---www</span><br><span class="line">      |---test.html</span><br></pre></td></tr></table></figure>
-<p>接下来需要在 nginx.conf 进行动静分离的配置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">        # 监听192.168.1.165：9080 这个服务器端口</span><br><span class="line">        listen       9080;</span><br><span class="line">        server_name  192.168.1.165;</span><br><span class="line"></span><br><span class="line">        location &#x2F;www&#x2F; &#123;</span><br><span class="line">            # 文件夹存储路径</span><br><span class="line">            root   C:&#x2F;Users&#x2F;qiany&#x2F;Desktop&#x2F;data&#x2F;;</span><br><span class="line">            index  index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        location &#x2F;image&#x2F; &#123;</span><br><span class="line">            root   C:&#x2F;Users&#x2F;qiany&#x2F;Desktop&#x2F;data&#x2F;;</span><br><span class="line">            autoindex  on;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><img src="https://s1.ax1x.com/2020/04/18/JeVykj.png" alt="avatar"></p>
-<p><img src="https://s1.ax1x.com/2020/04/18/JeV2pq.png" alt="avatar"></p>
-<p><img src="https://s1.ax1x.com/2020/04/18/JeVR10.png" alt="avatar"></p>
+        <p>整理自<a href="https://zhuanlan.zhihu.com/p/52678870" target="_blank" rel="noopener">加耀：深入理解数据库行锁与表锁</a></p>
+<p>数据库是怎样隔离事务的呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”锁行”。</p>
+<p>当多个用户对数据库进行操作时，会带来数据不一致的情况。所以，锁用来<strong>在多用户情况下保证数据库数据完整性和一致性。</strong></p>
+<p><img src="https://picb.zhimg.com/80/v2-eec522a8cf7d8a38eaea29192edbb2f5_720w.jpg" alt="img"></p>
+<p><img src="https://picb.zhimg.com/80/v2-5cf8b96fdca1428e6f3cce863fdfa73e_720w.jpg" alt="img"></p>
+<h4 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h4><p>行锁是一锁锁一行或多行记录，<strong>mysql的行锁是基于索引加载的</strong>，所以<strong>行锁要加在索引响应的行上，即命中索引</strong>，如下所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-81420e5b7f1a256b86346781f0379bc6_720w.jpg" alt="img"></p>
+<p>表中有一个主键索引（id）和一个普通索引（email），sql语句基于索引查询命中两条记录。此时行锁锁定了两条记录，当其他事务访问这张表时，被锁定的记录不能被访问，其他的记录能被访问。</p>
+<p>行锁的特征：锁冲突概率低，并发性高，但可能出现死锁。</p>
+<p>打开两个窗口，在窗口 A 中根据 id 更新一条记录，再在窗口 B 中也执行相同的SQL语句：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-e7cb6996c72c83c495ee940ffd6964a2_720w.jpg" alt="img"></p>
+<p>窗口 A 先修改了 id 为3的用户信息后，还未提交事务，此时窗口 B 再更新同一条记录，数据库就提示 <code>Lock wait timeout exceeded; try restarting transaction</code>，由于窗口 A 迟迟没有提交事务，导致锁一直没有被释放，出现了锁冲突。窗口 B 一直在等待锁的释放，所以出现了超过锁定超时的警告了。</p>
+<p>此时如果更新 id 为3它旁边的记录会出现怎样的情况呢？我们新打开一个窗口更新 id 为2的记录。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-2b69c74a17cfe1ef6b0f29cca0ee130c_720w.jpg" alt="img"></p>
+<p>在窗口B中更新 id 为3的记录报错，但在窗口 C 中可以更新 id 为2的记录，说明此时锁定了id为 3 的记录但未锁定其它的记录。</p>
+<h4 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h4><p>表锁就是一锁锁一整张表。在表被锁定期间，其他事务不能操作该表，必须等该表的锁被释放后再操作。<strong>表锁响应的是非索引字段，即全表扫描</strong>，全表扫描时锁定整张表。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-54fde24a455d14e96d364f633f87b680_720w.jpg" alt="img"></p>
+<p>表锁每次都锁整张表，所以表锁的锁冲突概率高，表锁不会出现死锁。</p>
+<p>打开两个窗口，在窗口 A 中更新一条记录，条件为<strong>非索引字段</strong>，不提交事务，然后在窗口 B 中任意再更新一条记录，看看会出现怎样的现象：</p>
+<p><img src="https://picb.zhimg.com/80/v2-a3da10ada0e98184ca99dc31ee68c3a1_720w.jpg" alt="img"></p>
+<p>当更新数据时，没有触发索引，就会锁表。锁表后再对表做的任何变更操作都会导致锁冲突，所以表锁的锁冲突概率高。</p>
+<p>行锁又衍生了三种算法锁：记录锁、间隙锁、临键锁。</p>
+<h4 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h4><p>行锁是命中索引，锁的是表的一条或多条记录，记录锁是行锁衍生的锁。</p>
+<p>记录锁锁的是表中的某<strong>一条</strong>记录，记录锁的出现条件<strong>必须是精准命中索引并且索引是唯一索引</strong>，如主键id。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-e7cb6996c72c83c495ee940ffd6964a2_720w.jpg" alt="img"></p>
+<p>图中 id 是唯一索引，此时锁的就是一条记录，命中索引为唯一索引，此时使用的锁就是记录锁。</p>
+<h4 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h4><p>间隙锁（区间锁），每次都锁定一个区间，也属于行锁。所以间隙锁的触发条件也是命中索引，当我们查询数据用范围查询而不是相等条件查询时，<strong>查询条件命中索引，但没有查询到符合条件的记录</strong>，此时就会将查询条件中的范围数据进行锁定（即使是范围库中不存在的数据也会被锁定）。</p>
+<p>打开两个窗口，在窗口 A 中根据id做一个范围更改操作，不提交事务，然后在窗口 B 中插入一条记录，该记录的id值位于窗口 A 中的条件范围内：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-32fd1eb4a26fa35610703d98f6b36a79_720w.jpg" alt="img"></p>
+<p>如上所示，程序报错：<code>Lock wait timeout exceeded; try restarting transaction</code>。这就是间隙锁的作用。<strong>间隙锁只出现在可重复读的事务隔离级别中，<code>mysql5.7</code>默认就是可重复读</strong>。间隙锁锁的是一个区间范围，查询命中索引但没有匹配到记录时，锁定的是查询的这个区间范围，上图锁定的区间就是 (1,3]这个左开右闭的区间。</p>
+<p>如果将 mysql 数据库隔离级别修改为读已提交，再运行上面代码，看看会是怎样的呢？验证一下间隙锁只会出现在可重复读的事务隔离级别中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">设置事务隔离级别为读已提交</span><br><span class="line">set session transaction isolation level read committed;</span><br><span class="line">查看当前事务级别</span><br><span class="line">SELECT @@tx_isolation</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic2.zhimg.com/80/v2-018f7b3ebf9bdac04068b77714dc430c_720w.jpg" alt="img"></p>
+<p>修改了数据库隔离级别后，再次测试间隙锁，间隙锁没有生效。我们可以通过rollback回滚事务。</p>
+<h4 id="临键锁"><a href="#临键锁" class="headerlink" title="临键锁"></a>临键锁</h4><p>mysql 的行锁默认就是临键锁，临键锁由记录锁和间隙锁共同实现。间隙锁的触发条件是命中索引，范围查询没有匹配的记录。而临键锁恰好相反，临键锁的触发条件也是<strong>查询条件命中索引，但临键锁匹配了记录</strong>。</p>
+<p>间隙锁锁定的是一个左开右闭的集合，而临键锁锁定的是当前记录的区间和下一个记录的区间：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-0a82d8e24b998db426e0363e6140343f_720w.jpg" alt="img"></p>
+<p><img src="https://picb.zhimg.com/80/v2-2693531707b096359a778852d943c12b_720w.jpg" alt="img"></p>
+<p>数据库中只有三条数据1、5、7，当修改范围为（1， 8]时，则锁定的区间为(1,+∞)，不仅锁定了查询的范围，还锁定了当前范围的下一个范围区间。查询的区间8，在数据库中是一个不存在的记录值，如果查询条件是<code>&lt;=8</code>，也是锁定8到后面的区间。</p>
+<p>如果查询的结尾是一个存在的值，又会怎样呢？现在数据库有三条数据id分别是1、5、7，我们查询条件改为大于1小于7再看看。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-44833c3c68bd57d7112967ab4797e07c_720w.jpg" alt="img"></p>
+<p>7在数据库中是已知记录，所以此时只锁定了(1,7]，7之后的数据都没有被锁定。我们可以正常插入id为8的数据和后面的数据。</p>
+<p>临键锁的锁定区间和查询范围的后匹配值有关，如果后匹配值存在，则只锁定当前的查询区间，否则锁定查询区间和后匹配值与它的下一个值的区间。</p>
+<p>但是为什么会出现这种情况呢？为什么临键锁后匹配会这样呢？因为 mysql 的索引是基于B+树实现的，每个树节点上都有多个元素，即关键字数，当我们的索引树上只有1、5、7时，我们查询1~8，此时由于树节点关键字中并没有8，所以就把8到正无穷的区间范围都给锁定了。</p>
+<p>如果数据库中id有1、5、7、10，此时模糊匹配id为 <code>(1， 8]</code> 的时候，由于关键字中并没有 8 ，所以找到了比 8 大的 10，根据左开右闭原则，此时区间为<code>(1， 10]</code>，10 也被锁定了，但<code>id=11</code>的记录仍可以正常插入。</p>
+<p>锁是基于索引的，mysql 中索引的底层是B+树，了解了B+树的特性后，就更容易理解锁的问题了。</p>
 
       
     </div>
@@ -411,7 +461,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Nginx/" rel="tag"><i class="fa fa-tag"></i> Nginx</a>
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"><i class="fa fa-tag"></i> 数据库</a>
           
         </div>
       
@@ -424,8 +474,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/04/17/Nginx%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E5%AE%9E%E4%BE%8B%E4%B8%80/" rel="next" title="Nginx负载均衡实例一">
-                <i class="fa fa-chevron-left"></i> Nginx负载均衡实例一
+              <a href="/2020/08/28/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%20Mysql%20%E7%B4%A2%E5%BC%95%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" rel="next" title="深入理解 Mysql 索引底层原理">
+                <i class="fa fa-chevron-left"></i> 深入理解 Mysql 索引底层原理
               </a>
             
           </div>
@@ -433,10 +483,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/08/04/Python%E9%9D%A2%E7%BB%8F/" rel="prev" title="Python面经">
-                Python面经 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -488,8 +534,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -586,6 +641,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#行锁"><span class="nav-number">1.</span> <span class="nav-text">行锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#表锁"><span class="nav-number">2.</span> <span class="nav-text">表锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#记录锁"><span class="nav-number">3.</span> <span class="nav-text">记录锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#间隙锁"><span class="nav-number">4.</span> <span class="nav-text">间隙锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#临键锁"><span class="nav-number">5.</span> <span class="nav-text">临键锁</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
