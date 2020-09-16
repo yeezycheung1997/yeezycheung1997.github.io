@@ -79,12 +79,12 @@
 
 
 
-<meta name="description" content="整理自加耀：深入理解数据库行锁与表锁 数据库是怎样隔离事务的呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”行锁”。     行锁 表锁    MyISAM  ✔   InnoDB ✔ ✔   表锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率高，并发度最低。行锁：开销大，加锁慢；会出现死锁；锁定粒度小，发生锁冲突的概率低，并发度高。 当多个用户对数据库">
+<meta name="description" content="整理自加耀：深入理解数据库行锁与表锁 数据库如何隔离事务呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”行锁”。     行锁 表锁    MyISAM  ✔   InnoDB ✔ ✔   表锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率高，并发度最低。行锁：开销大，加锁慢；会出现死锁；锁定粒度小，发生锁冲突的概率低，并发度高。 当多个用户对数据库进行">
 <meta property="og:type" content="article">
 <meta property="og:title" content="深入理解数据库行锁与表锁">
 <meta property="og:url" content="https://yeezycheung1997.github.io/2020/09/02/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%8C%E9%94%81%E4%B8%8E%E8%A1%A8%E9%94%81/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="整理自加耀：深入理解数据库行锁与表锁 数据库是怎样隔离事务的呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”行锁”。     行锁 表锁    MyISAM  ✔   InnoDB ✔ ✔   表锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率高，并发度最低。行锁：开销大，加锁慢；会出现死锁；锁定粒度小，发生锁冲突的概率低，并发度高。 当多个用户对数据库">
+<meta property="og:description" content="整理自加耀：深入理解数据库行锁与表锁 数据库如何隔离事务呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”行锁”。     行锁 表锁    MyISAM  ✔   InnoDB ✔ ✔   表锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率高，并发度最低。行锁：开销大，加锁慢；会出现死锁；锁定粒度小，发生锁冲突的概率低，并发度高。 当多个用户对数据库进行">
 <meta property="og:image" content="https://picb.zhimg.com/80/v2-eec522a8cf7d8a38eaea29192edbb2f5_720w.jpg">
 <meta property="og:image" content="https://picb.zhimg.com/80/v2-5cf8b96fdca1428e6f3cce863fdfa73e_720w.jpg">
 <meta property="og:image" content="https://pic1.zhimg.com/80/v2-81420e5b7f1a256b86346781f0379bc6_720w.jpg">
@@ -99,7 +99,7 @@
 <meta property="og:image" content="https://picb.zhimg.com/80/v2-2693531707b096359a778852d943c12b_720w.jpg">
 <meta property="og:image" content="https://pic1.zhimg.com/80/v2-44833c3c68bd57d7112967ab4797e07c_720w.jpg">
 <meta property="article:published_time" content="2020-09-02T18:58:24.000Z">
-<meta property="article:modified_time" content="2020-09-03T01:54:51.935Z">
+<meta property="article:modified_time" content="2020-09-16T00:11:21.490Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
@@ -369,7 +369,7 @@
 
       
         <p>整理自<a href="https://zhuanlan.zhihu.com/p/52678870" target="_blank" rel="noopener">加耀：深入理解数据库行锁与表锁</a></p>
-<p>数据库是怎样隔离事务的呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”行锁”。</p>
+<p>数据库如何隔离事务呢？这就牵连到了锁。当插入数据时就锁定表的叫”锁表”；当更新数据时锁定行的叫”行锁”。</p>
 <table>
 <thead>
 <tr>
@@ -393,18 +393,17 @@
 <p>当多个用户对数据库进行操作时，可能导致数据不一致。所以，锁用来<strong>在多用户情况下保证数据库数据完整性和一致性。</strong></p>
 <p><img src="https://picb.zhimg.com/80/v2-eec522a8cf7d8a38eaea29192edbb2f5_720w.jpg" alt="img"></p>
 <p><img src="https://picb.zhimg.com/80/v2-5cf8b96fdca1428e6f3cce863fdfa73e_720w.jpg" alt="img"></p>
-<h4 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h4><p>行锁是一锁锁一行或多行记录，<strong>mysql的行锁是基于索引加载的</strong>，所以<strong>行锁要加在索引响应的行上，即命中索引</strong>。</p>
+<h4 id="行锁"><a href="#行锁" class="headerlink" title="行锁"></a>行锁</h4><p>行锁锁一行或多行记录，<strong>mysql的行锁是基于索引加载的</strong>，所以<strong>行锁要加在索引响应的行上，即命中索引</strong>。</p>
 <p><img src="https://pic1.zhimg.com/80/v2-81420e5b7f1a256b86346781f0379bc6_720w.jpg" alt="img"></p>
-<p>上表中有一个主键索引（id）和一个普通索引（email），sql语句基于索引查询命中两条记录。此时行锁锁定了两条记录，当其他事务访问这张表时，被锁定的记录不能被访问，其它记录能被访问。</p>
-<p><strong>行锁的特征：</strong>锁冲突概率低，并发性高，但可能出现死锁。</p>
+<p>上表中有一个主键索引（id）和一个普通索引（email），sql语句基于索引查询命中两条记录。此时行锁锁定了两条记录，当其他事务访问该表时，被锁定的记录不能被访问，其它记录能被访问。</p>
 <p>打开两个窗口 A 和 B，在 A 中根据 id 更新一条记录，再在 B 中也执行相同的SQL语句：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-e7cb6996c72c83c495ee940ffd6964a2_720w.jpg" alt="img"></p>
-<p>窗口 A 先修改了 id 为3的用户信息后，还未提交事务，窗口 B 再更新同一条记录，数据库就提示 <code>Lock wait timeout exceeded; try restarting transaction</code>，由于窗口 A 迟迟未提交事务，导致锁一直未被释放，出现了锁冲突。窗口 B 一直在等待锁释放，所以出现了超过锁定超时的警告了。</p>
+<p>窗口 A 先修改了 id 为3的用户信息后，还未提交事务，窗口 B 再更新同一条记录，数据库提示 <code>Lock wait timeout exceeded; try restarting transaction</code>。由于窗口 A 未提交事务，导致锁一直未被释放，出现了锁冲突。窗口 B 一直等待锁的释放，所以出现了超过锁定超时的警告了。</p>
 <p>此时如果更新 id 为3它旁边的记录会怎样呢？我们新打开一个窗口更新 id 为2的记录。</p>
 <p><img src="https://pic1.zhimg.com/80/v2-2b69c74a17cfe1ef6b0f29cca0ee130c_720w.jpg" alt="img"></p>
 <p>在窗口B中更新 id 为3的记录报错，但在窗口 C 中可以更新 id 为2的记录，说明此时锁定了id为 3 的记录但未锁定其它记录。</p>
 <p>在 InnoDB 中， 行锁是基于索引实现的。如果某个加锁操作未使用索引，那么该锁就会退化为表锁。</p>
-<h4 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h4><p>表锁就是一锁锁一整张表。在表被锁定期间，其他事务不能操作该表，必须等该表的锁被释放后再操作。<strong>表锁响应的是非索引字段，即全表扫描</strong>，全表扫描时锁定整张表。</p>
+<h4 id="表锁"><a href="#表锁" class="headerlink" title="表锁"></a>表锁</h4><p>表锁锁一整张表。在表被锁定期间，其他事务不能操作该表，必须等该表的锁被释放后再操作。<strong>表锁响应的是非索引字段，即全表扫描</strong>，全表扫描时锁定整张表。</p>
 <p><img src="https://pic3.zhimg.com/80/v2-54fde24a455d14e96d364f633f87b680_720w.jpg" alt="img"></p>
 <p>表锁每次都锁整张表，所以表锁的锁冲突概率高，表锁不会出现死锁。</p>
 <p>打开两个窗口 A 和 B，在 A 中更新一条记录，条件为<strong>非索引字段</strong>，不提交事务，再在 B 中任意再更新一条记录：</p>
@@ -415,13 +414,13 @@
 <p>记录锁锁的是表中的某<strong>一条</strong>记录，记录锁的出现条件<strong>必须是精准命中索引并且索引是唯一索引</strong>，如主键id。</p>
 <p><img src="https://pic2.zhimg.com/80/v2-e7cb6996c72c83c495ee940ffd6964a2_720w.jpg" alt="img"></p>
 <p>图中 id 是唯一索引，此时锁的就是一条记录，命中索引为唯一索引，此时使用的锁就是记录锁。</p>
-<p>通过<strong>主键索引与唯一索引</strong> UPDATE 数据时，也会对该行数据加记录锁：</p>
+<p>通过<strong>主键索引或唯一索引</strong> UPDATE 数据时，也会对该行数据加记录锁：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- id 列为主键列或唯一索引列</span></span><br><span class="line"><span class="keyword">UPDATE</span> <span class="keyword">SET</span> age = <span class="number">50</span> <span class="keyword">WHERE</span> <span class="keyword">id</span> = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
 
 
 <p>需要注意：</p>
 <ul>
-<li><p>记录锁必须使用唯一索引或主键，否则记录锁会退化成临键锁。</p>
+<li><p>记录锁必须使用主键索引或唯一索引，否则记录锁会退化成临键锁。</p>
 </li>
 <li><p>查询语句必须为精准匹配（<code>=</code>），不能为 <code>&gt;、&lt;、like</code>等，否则记录锁会退化成临键锁。</p>
 </li>
@@ -446,7 +445,7 @@
 </ul>
 <p>在普通索引跟唯一索引中，数据间隙的分析，数据行是优先根据普通索引排序，再根据唯一索引排序。</p>
 <h4 id="临键锁-Next-Key-Lock"><a href="#临键锁-Next-Key-Lock" class="headerlink" title="临键锁 (Next-Key Lock)"></a>临键锁 (Next-Key Lock)</h4><p>mysql 的行锁默认就是临键锁，临键锁由记录锁和间隙锁共同实现。间隙锁的触发条件是命中索引，范围查询没有匹配的记录。而临键锁恰好相反，临键锁的触发条件也是<strong>查询条件命中索引，但临键锁匹配到了记录</strong>。</p>
-<p>间隙锁锁定了一个左开右闭的区间，而临键锁锁定了当前记录的区间和下一个记录的区间：</p>
+<p><strong>间隙锁锁定了一个左开右闭的区间，而临键锁锁定了当前记录的区间和下一个记录的区间：</strong></p>
 <p><img src="https://pic1.zhimg.com/80/v2-0a82d8e24b998db426e0363e6140343f_720w.jpg" alt="img"></p>
 <p><img src="https://picb.zhimg.com/80/v2-2693531707b096359a778852d943c12b_720w.jpg" alt="img"></p>
 <p>数据库中只有三条数据1、5、7，当修改范围为<code>(1， 8]</code>时，间隙锁锁定的区间为<code>(1,+∞)</code>，锁定了查询的范围和查询范围的下一个范围区间。在数据库中是不存在id 为8的记录，如果查询条件是<code>&lt;=8</code>，也是锁定8到后面的区间。</p>
