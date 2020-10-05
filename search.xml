@@ -1,6 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>详解collections工具库</title>
+    <url>/2020/10/05/%E8%AF%A6%E8%A7%A3collections%E5%B7%A5%E5%85%B7%E5%BA%93/</url>
+    <content><![CDATA[<p>整理自<a href="https://zhuanlan.zhihu.com/p/110476502" target="_blank" rel="noopener">承志：Python——详解collections工具库</a></p>
+<h4 id="defaultdict"><a href="#defaultdict" class="headerlink" title="defaultdict"></a>defaultdict</h4><p>defaultdict 解决的是 dict 中最常见的问题：<strong>key 为空</strong>的情况。</p>
+<p>通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> key <span class="keyword">in</span> dict:</span><br><span class="line">    <span class="keyword">return</span> dict[key]</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+<p>当然，这是最笨的方法，dict 为我们提供了带默认值的 get 方法：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">return</span> dict.get(key, <span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+<p>这样，如果 key 不存在 dict 里，会自动返回设置好的默认值。省去了很多麻烦的判断，但仍然存在问题：比如当 key 存在重复，我们希望将 key 相同的 value 存进一个list当中，而不是只保留一个。这种情况下写成代码就会比较复杂：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    <span class="keyword">if</span> k <span class="keyword">in</span> d:</span><br><span class="line">        d[k].append(v)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        d[k] = [v]</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="number">1</span>: [<span class="number">3</span>, <span class="number">4</span>], <span class="number">2</span>: [<span class="number">1</span>, <span class="number">5</span>], <span class="number">3</span>: [<span class="number">7</span>]&#125;</span><br></pre></td></tr></table></figure>
+<p>由于 dict 的 value 是一个 list，所以仍要判断是否为空，不能直接使用默认值，间接操作当然可以：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    cur = d.get(k, [])</span><br><span class="line">    cur.append(v)</span><br><span class="line">    d[k] = cur</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="number">1</span>: [<span class="number">3</span>, <span class="number">4</span>], <span class="number">2</span>: [<span class="number">1</span>, <span class="number">5</span>], <span class="number">3</span>: [<span class="number">7</span>]&#125;</span><br></pre></td></tr></table></figure>
+<p>这和使用if区别不大，我们可以使用 collections 当中的<strong>defaultdict</strong>：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = defaultdict(list)</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    d[k].append(v)</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line">&gt;&gt;&gt; defaultdict(&lt;class 'list'&gt;, &#123;1: [3, 4], 2: [1, 5], 3: [7]&#125;)</span><br></pre></td></tr></table></figure>
+<p>使用 defaultdict 后，如果key不存在，容器会自动返回预先设置的默认值。defaultdict传入的默认值可以是类型或方法。如果想传入int，那么默认值会被设置成int()的结果，也就是0，如果我们想要自定义或者修改，可以传入一个方法：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line"></span><br><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = defaultdict(<span class="keyword">lambda</span>: <span class="number">3</span>)</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    d[k] += v</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; defaultdict(&lt;class 'int'&gt;, &#123;1: 7, 2: 6, 3: 7&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h4><p>deque是双端队列。对于queue来说，只允许在队尾插入元素，在队首弹出元素。而deque的队首和队尾都支持元素的插入和弹出。比普通的队列更加灵活。</p>
+<p>在日常的使用中用到双端队列的算法不太多。大多数情况下使用deque主要有两个原因：</p>
+<ol>
+<li><p>deque受到GIL的管理，它是线程安全的。而list则没有GIL锁，因此线程不安全。在并发场景下，list可能会导致一致性问题，而deque不会。</p>
+</li>
+<li><p>deque支持固定长度，当长度满了之后，如果继续append，它会自动弹出最早插入的数据。</p>
+</li>
+</ol>
+<p>当我们拥有海量的数据，但不知道数据的数量，如果想要保留最后出现的指定数量的数据时，就可以使用deque。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> deque</span><br><span class="line">dque = deque(maxlen=<span class="number">10</span>)</span><br><span class="line"><span class="comment"># 假设我们想要从文件当中获取最后10条数据</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> f.read():</span><br><span class="line">    dque.append(i)</span><br></pre></td></tr></table></figure>
+<h4 id="namedtuple"><a href="#namedtuple" class="headerlink" title="namedtuple"></a>namedtuple</h4><p>在常见的面向对象当中，通常都是定义类，再通过类的构造函数来创建实例。元编程指的是我们定义元类，元类创建出来的不是实例，而是类。如果用模具和成品来分别比喻类和实例的话，元类相当于是模具的模具。</p>
+<p>namedtuple是一个元类，通过它可以非常方便地定义类。</p>
+<p>如果定义一个学生类，有name、score、age这三个字段：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name=None, score=None, age=None)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.score = score</span><br><span class="line">        self.age = age</span><br></pre></td></tr></table></figure>
+<p>使用namedtuple可以简化代码：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> namedtuple</span><br><span class="line"></span><br><span class="line">Student = namedtuple(<span class="string">'Student'</span>, [<span class="string">'name'</span>, <span class="string">'score'</span>, <span class="string">'age'</span>])</span><br><span class="line">student = Student(name=<span class="string">'xiaoming'</span>, score=<span class="number">99</span>, age=<span class="number">10</span>)</span><br><span class="line">print(student.name)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>xiaoming</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>深入理解数据库行锁与表锁</title>
     <url>/2020/09/02/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%8C%E9%94%81%E4%B8%8E%E8%A1%A8%E9%94%81/</url>
     <content><![CDATA[<p>整理自<a href="https://zhuanlan.zhihu.com/p/52678870" target="_blank" rel="noopener">加耀：深入理解数据库行锁与表锁</a></p>
@@ -167,9 +205,16 @@
 <li><p>支持范围查找</p>
 </li>
 </ol>
-<h5 id="5-B-树"><a href="#5-B-树" class="headerlink" title="5.B+树"></a>5.B+树</h5><p>B 树和 B+树有什么不同呢？</p>
-<p>第一，B 树一个节点里存的是数据，而 B+树存储的是索引（地址），所以 B 树里一个节点存不了很多数据，但 B+树一个节点能存很多索引，B+树的叶子节点存所有数据。</p>
-<p>第二，B+树的叶子节点用了一个链表串联起来，便于范围查找。</p>
+<h5 id="5-B-树"><a href="#5-B-树" class="headerlink" title="5.B+树"></a>5.B+树</h5><h6 id="B-树和-B-树的区别："><a href="#B-树和-B-树的区别：" class="headerlink" title="B 树和 B+树的区别："></a>B 树和 B+树的区别：</h6><p><img src="https://images2015.cnblogs.com/blog/576154/201609/576154-20160907130956629-1833512478.png" alt="img"></p>
+<p>第一，B+ 树中只有叶子节点会带有指向记录的指针（ROWID），而B树则所有节点都带有，在内部节点出现的索引项不会再出现在叶子节点中。B 树一个节点里存的是数据，而 B+树存储的是索引（地址），所以 B 树里一个节点存不了很多数据，但 B+树一个节点能存很多索引，B+树的叶子节点存所有数据。</p>
+<p>第二，B+ 树中所有叶子节点通过指针连接，便于范围查找；而B树不会。</p>
+<h6 id="B-树的优点："><a href="#B-树的优点：" class="headerlink" title="B+树的优点："></a>B+树的优点：</h6><ol>
+<li><p>非叶子节点不会带上ROWID，因此一个块中能容纳更多的索引项。可以降低树的高度，并且一个内部节点可以定位更多的叶子节点。</p>
+</li>
+<li><p>叶子节点之间通过指针来连接，范围扫描将十分简单，而对于B树来说，则需要在叶子节点和内部节点不停的往返移动。</p>
+</li>
+</ol>
+<h6 id="B树的优点："><a href="#B树的优点：" class="headerlink" title="B树的优点："></a>B树的优点：</h6><p>对于在内部节点的数据，可直接得到，不必根据叶子节点来定位。</p>
 <p><img src="https://pic3.zhimg.com/80/v2-bda6661499c51dcff63eb12fd4b3795d_720w.png" alt="img"></p>
 <p><strong>B+树节点存储的是索引，在单个节点存储容量有限的情况下，单节点也能存储大量索引，使得整个 B+树高度降低，减少了磁盘 IO。其次，B+树的叶子节点是真正数据存储的地方，叶子节点用链表连接，链表本身就有序，在数据范围查找时效率更高。因此 Mysql 的索引用的就是 B+树，B+树在查找效率、范围查找中都有着非常不错的性能。</strong></p>
 <h4 id="二、Innodb-引擎和-Myisam-引擎的实现"><a href="#二、Innodb-引擎和-Myisam-引擎的实现" class="headerlink" title="二、Innodb 引擎和 Myisam 引擎的实现"></a>二、Innodb 引擎和 Myisam 引擎的实现</h4><p>Mysql 底层数据引擎最常见的是 Innodb 引擎和 Myisam 引擎，B+树作为 Mysql 的索引的数据结构非常合适，但是数据和索引如何组织起来也需要一番设计，设计理念的不同也导致了 Innodb 和 Myisam 的出现。</p>

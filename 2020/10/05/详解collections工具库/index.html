@@ -79,14 +79,14 @@
 
 
 
-<meta name="description" content="可迭代对象和迭代器序列可以迭代的原因：iter 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：  检查对象是否实现了 __ iter__ 方法，实现了就调用它，获取一个迭代器。  没有实现 __ iter__ 方法，但实现了 __ getitem__ 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开">
+<meta name="description" content="整理自承志：Python——详解collections工具库 defaultdictdefaultdict 解决的是 dict 中最常见的问题：key 为空的情况。 通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如： 1234if key in dict:    return dic">
 <meta property="og:type" content="article">
-<meta property="og:title" content="对可迭代对象、迭代器和生成器的理解">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:title" content="详解collections工具库">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/10/05/%E8%AF%A6%E8%A7%A3collections%E5%B7%A5%E5%85%B7%E5%BA%93/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="可迭代对象和迭代器序列可以迭代的原因：iter 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：  检查对象是否实现了 __ iter__ 方法，实现了就调用它，获取一个迭代器。  没有实现 __ iter__ 方法，但实现了 __ getitem__ 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开">
-<meta property="article:published_time" content="2020-03-23T13:53:46.000Z">
-<meta property="article:modified_time" content="2020-03-23T13:54:39.991Z">
+<meta property="og:description" content="整理自承志：Python——详解collections工具库 defaultdictdefaultdict 解决的是 dict 中最常见的问题：key 为空的情况。 通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如： 1234if key in dict:    return dic">
+<meta property="article:published_time" content="2020-10-05T18:39:46.000Z">
+<meta property="article:modified_time" content="2020-10-05T19:07:28.904Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
@@ -119,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/03/23/对可迭代对象、迭代器和生成器的理解/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/10/05/详解collections工具库/"/>
 
 
 
 
 
-  <title>对可迭代对象、迭代器和生成器的理解 | Qianyi Zhang's blog</title>
+  <title>详解collections工具库 | Qianyi Zhang's blog</title>
   
 
 
@@ -287,7 +287,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/10/05/%E8%AF%A6%E8%A7%A3collections%E5%B7%A5%E5%85%B7%E5%BA%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -304,7 +304,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">对可迭代对象、迭代器和生成器的理解</h1>
+          <h1 class="post-title" itemprop="name headline">详解collections工具库</h1>
         
 
         <div class="post-meta">
@@ -316,8 +316,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-23T09:53:46-04:00">
-                2020-03-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-05T14:39:46-04:00">
+                2020-10-05
               </time>
             
 
@@ -354,62 +354,36 @@
       
 
       
-        <h5 id="可迭代对象和迭代器"><a href="#可迭代对象和迭代器" class="headerlink" title="可迭代对象和迭代器"></a>可迭代对象和迭代器</h5><p>序列可以迭代的原因：<strong>iter</strong> 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：</p>
+        <p>整理自<a href="https://zhuanlan.zhihu.com/p/110476502" target="_blank" rel="noopener">承志：Python——详解collections工具库</a></p>
+<h4 id="defaultdict"><a href="#defaultdict" class="headerlink" title="defaultdict"></a>defaultdict</h4><p>defaultdict 解决的是 dict 中最常见的问题：<strong>key 为空</strong>的情况。</p>
+<p>通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> key <span class="keyword">in</span> dict:</span><br><span class="line">    <span class="keyword">return</span> dict[key]</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+<p>当然，这是最笨的方法，dict 为我们提供了带默认值的 get 方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> dict.get(key, <span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
+<p>这样，如果 key 不存在 dict 里，会自动返回设置好的默认值。省去了很多麻烦的判断，但仍然存在问题：比如当 key 存在重复，我们希望将 key 相同的 value 存进一个list当中，而不是只保留一个。这种情况下写成代码就会比较复杂：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    <span class="keyword">if</span> k <span class="keyword">in</span> d:</span><br><span class="line">        d[k].append(v)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        d[k] = [v]</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="number">1</span>: [<span class="number">3</span>, <span class="number">4</span>], <span class="number">2</span>: [<span class="number">1</span>, <span class="number">5</span>], <span class="number">3</span>: [<span class="number">7</span>]&#125;</span><br></pre></td></tr></table></figure>
+<p>由于 dict 的 value 是一个 list，所以仍要判断是否为空，不能直接使用默认值，间接操作当然可以：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    cur = d.get(k, [])</span><br><span class="line">    cur.append(v)</span><br><span class="line">    d[k] = cur</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="number">1</span>: [<span class="number">3</span>, <span class="number">4</span>], <span class="number">2</span>: [<span class="number">1</span>, <span class="number">5</span>], <span class="number">3</span>: [<span class="number">7</span>]&#125;</span><br></pre></td></tr></table></figure>
+<p>这和使用if区别不大，我们可以使用 collections 当中的<strong>defaultdict</strong>：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = defaultdict(list)</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    d[k].append(v)</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line">&gt;&gt;&gt; defaultdict(&lt;class 'list'&gt;, &#123;1: [3, 4], 2: [1, 5], 3: [7]&#125;)</span><br></pre></td></tr></table></figure>
+<p>使用 defaultdict 后，如果key不存在，容器会自动返回预先设置的默认值。defaultdict传入的默认值可以是类型或方法。如果想传入int，那么默认值会被设置成int()的结果，也就是0，如果我们想要自定义或者修改，可以传入一个方法：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line"></span><br><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = defaultdict(<span class="keyword">lambda</span>: <span class="number">3</span>)</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    d[k] += v</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; defaultdict(&lt;class 'int'&gt;, &#123;1: 7, 2: 6, 3: 7&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h4><p>deque是双端队列。对于queue来说，只允许在队尾插入元素，在队首弹出元素。而deque的队首和队尾都支持元素的插入和弹出。比普通的队列更加灵活。</p>
+<p>在日常的使用中用到双端队列的算法不太多。大多数情况下使用deque主要有两个原因：</p>
 <ol>
-<li><p>检查对象是否实现了 __ <strong>iter__</strong> 方法，实现了就调用它，获取一个迭代器。</p>
+<li><p>deque受到GIL的管理，它是线程安全的。而list则没有GIL锁，因此线程不安全。在并发场景下，list可能会导致一致性问题，而deque不会。</p>
 </li>
-<li><p>没有实现 __ <strong>iter__</strong> 方法，但实现了 __ <strong>getitem__</strong> 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开始）获取元素。</p>
-</li>
-<li><p>如果前两步都失败，Python抛出 TypeError 异常，通常会提示“C object is not iterable”，其中 C 是目标对象所属的类。</p>
+<li><p>deque支持固定长度，当长度满了之后，如果继续append，它会自动弹出最早插入的数据。</p>
 </li>
 </ol>
-<p>由此可以明确可迭代对象（Iterable）： 使用 iter 内置函数可以获取迭代器（Iterator）的对象。即对象实现了能返回迭代器的 __ <strong>iter__</strong> 方法或实现了 __ <strong>getitem__</strong> 方法，而且其参数是从零开始的索引。</p>
-<p>一个实现 __ <strong>getitem__</strong> 的demo：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__getitem__</span><span class="params">(self, item)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.text[item]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o1 = Test(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o1:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>下面来看一个实现 __ <strong>iter__</strong> 的例子。因为用到了迭代器，所以先明确一下迭代器的用法。 标准的迭代器接口有两个方法：  </p>
-<ol>
-<li><p>__ <strong>next__</strong> ：返回下一个可用的元素，如果没有元素了就抛出 <strong>StopIteration</strong> 异常。</p>
-</li>
-<li><p>__ <strong>iter__</strong> ：返回 self，以便在应该使用可迭代对象的地方使用迭代器，例如 for 循环。</p>
-</li>
-</ol>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> Eg2Iterator(self.text) <span class="comment"># 获取一个迭代器</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2Iterator</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text</span><br><span class="line">        self.index = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__next__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            subtext = self.text[self.index]</span><br><span class="line">        <span class="keyword">except</span> IndexError:</span><br><span class="line">            <span class="keyword">raise</span> StopIteration()</span><br><span class="line">        self.index +=<span class="number">1</span></span><br><span class="line">        <span class="keyword">return</span> subtext</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o2 = Eg2(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o2:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>我们明确可迭代的对象和迭代器之间的关系：</p>
-<ol>
-<li><p>Python 从可迭代对象中获取迭代器。</p>
-</li>
-<li><p>__ <strong>iter__</strong> 方法从我们自己创建的迭代器类中获取迭代器，而__ <strong>getitem__</strong> 方法是python内部自动创建迭代器。</p>
-</li>
-</ol>
-<p>我们来了解一下使用更符合 Python 的方式实现 Eg2类。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> self.text:</span><br><span class="line">            <span class="keyword">yield</span> item</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-<p>这里使用了 <strong>yield</strong> 关键字， 只要 Python 函数体中有 yield 关键字，该函数就是生成器函数。调用生成器函数时会返回一个生成器对象。也就是说生成器函数是生成器工厂。 上述代码还可以使用yield from进一步简化：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> self.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>还可以使用生成器表达式</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg5</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> (item <span class="keyword">for</span> item <span class="keyword">in</span> self.text) <span class="comment"># 生成器表达式</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o5 = Eg5(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o5:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-
-<p>总结：</p>
-<ol>
-<li><p>可迭代对象（Iterable）要么实现了能返回迭代器的 __ <strong>iter__</strong> 方法，要么实现了 __ <strong>getitem__</strong> 方法而且其参数是从零开始的索引。</p>
-</li>
-<li><p>迭代器（Iterator）是这样的对象：实现了无参数的 __ <strong>next__</strong> 方法，返回下一个元素，如果没有元素就抛出 StopIteration 异常；并且实现 __ <strong>iter__</strong> 方法，返回迭代器本身。</p>
-</li>
-<li><p>生成器是带有 yield 关键字的函数。调用生成器函数时，会返回一个生成器对象。</p>
-</li>
-<li><p>生成器表达式是创建生成器的简洁句法，这样无需先定义函数再调用。</p>
-</li>
-<li><p>什么是迭代器模式？按需一次获取一个数据项。</p>
-</li>
-<li><p>生成器和迭代器有什么不同？</p>
-<p>相同点：所有生成器都是迭代器，因为生成器完全实现了迭代器接口。</p>
-<p>不同点：迭代器用于从集合中取出元素；生成器用于凭空生成元素。</p>
-</li>
-</ol>
-<h5 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h5><p>迭代是处理大量数据的好方法。以列表为例，迭代存在两个问题。第一，列表中的元素太多将大量占用内存。第二，我们有时候只需要使用一次数据，如果用列表把数据全部保存起来，将会造成内存浪费。</p>
-<p>生成器是创建迭代器的工具。它们像常规函数一样撰写，但是在需要返回数据时使用yield语句。每当对它调用next()函数，生成器从它上次停止的地方重新开始（它会记住所有的数据值和上次执行的语句）。</p>
+<p>当我们拥有海量的数据，但不知道数据的数量，如果想要保留最后出现的指定数量的数据时，就可以使用deque。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> deque</span><br><span class="line">dque = deque(maxlen=<span class="number">10</span>)</span><br><span class="line"><span class="comment"># 假设我们想要从文件当中获取最后10条数据</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> f.read():</span><br><span class="line">    dque.append(i)</span><br></pre></td></tr></table></figure>
+<h4 id="namedtuple"><a href="#namedtuple" class="headerlink" title="namedtuple"></a>namedtuple</h4><p>在常见的面向对象当中，通常都是定义类，再通过类的构造函数来创建实例。元编程指的是我们定义元类，元类创建出来的不是实例，而是类。如果用模具和成品来分别比喻类和实例的话，元类相当于是模具的模具。</p>
+<p>namedtuple是一个元类，通过它可以非常方便地定义类。</p>
+<p>如果定义一个学生类，有name、score、age这三个字段：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name=None, score=None, age=None)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.score = score</span><br><span class="line">        self.age = age</span><br></pre></td></tr></table></figure>
+<p>使用namedtuple可以简化代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> namedtuple</span><br><span class="line"></span><br><span class="line">Student = namedtuple(<span class="string">'Student'</span>, [<span class="string">'name'</span>, <span class="string">'score'</span>, <span class="string">'age'</span>])</span><br><span class="line">student = Student(name=<span class="string">'xiaoming'</span>, score=<span class="number">99</span>, age=<span class="number">10</span>)</span><br><span class="line">print(student.name)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>xiaoming</span><br></pre></td></tr></table></figure>
 
       
     </div>
@@ -469,8 +443,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/" rel="next" title="Python的property动态属性">
-                <i class="fa fa-chevron-left"></i> Python的property动态属性
+              <a href="/2020/09/02/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%8C%E9%94%81%E4%B8%8E%E8%A1%A8%E9%94%81/" rel="next" title="深入理解数据库行锁与表锁">
+                <i class="fa fa-chevron-left"></i> 深入理解数据库行锁与表锁
               </a>
             
           </div>
@@ -478,10 +452,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/03/23/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B/" rel="prev" title="进程和线程">
-                进程和线程 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -650,7 +620,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#可迭代对象和迭代器"><span class="nav-number">1.</span> <span class="nav-text">可迭代对象和迭代器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#生成器"><span class="nav-number">2.</span> <span class="nav-text">生成器</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#defaultdict"><span class="nav-number">1.</span> <span class="nav-text">defaultdict</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#deque"><span class="nav-number">2.</span> <span class="nav-text">deque</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#namedtuple"><span class="nav-number">3.</span> <span class="nav-text">namedtuple</span></a></li></ol></div>
             
 
           </div>
