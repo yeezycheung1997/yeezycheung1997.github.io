@@ -79,14 +79,14 @@
 
 
 
-<meta name="description" content="整理自承志：Python——详解collections工具库 defaultdictdefaultdict 解决的是 dict 中最常见的问题：key 为空的情况。 通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如： 1234if key in dict:    return dic">
+<meta name="description" content="整理自帅地：进程之间究竟有哪些通信方式？如何通信？ 管道举例：netstat -tulnp | grep 8080 “ | ”是管道，作用是把前一条命令的输出作为后一条命令的输入。 在这里就是把 netstat -tulnp 的输出结果作为 grep 8080 这条命令的输入。 如果两个进程要通信，就可以使用管道。因为这条竖线没有名字，所以这种通信方式称为匿名管道。 这种通信方式是单向的，只能把第">
 <meta property="og:type" content="article">
-<meta property="og:title" content="详解collections工具库">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/10/05/%E8%AF%A6%E8%A7%A3collections%E5%B7%A5%E5%85%B7%E5%BA%93/index.html">
+<meta property="og:title" content="进程的通信方式">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/10/09/%E8%BF%9B%E7%A8%8B%E7%9A%84%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="整理自承志：Python——详解collections工具库 defaultdictdefaultdict 解决的是 dict 中最常见的问题：key 为空的情况。 通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如： 1234if key in dict:    return dic">
-<meta property="article:published_time" content="2020-10-05T18:39:46.000Z">
-<meta property="article:modified_time" content="2020-10-05T19:07:28.904Z">
+<meta property="og:description" content="整理自帅地：进程之间究竟有哪些通信方式？如何通信？ 管道举例：netstat -tulnp | grep 8080 “ | ”是管道，作用是把前一条命令的输出作为后一条命令的输入。 在这里就是把 netstat -tulnp 的输出结果作为 grep 8080 这条命令的输入。 如果两个进程要通信，就可以使用管道。因为这条竖线没有名字，所以这种通信方式称为匿名管道。 这种通信方式是单向的，只能把第">
+<meta property="article:published_time" content="2020-10-09T14:25:03.000Z">
+<meta property="article:modified_time" content="2020-10-09T14:48:45.994Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="Python">
 <meta name="twitter:card" content="summary">
@@ -119,13 +119,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/10/05/详解collections工具库/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/10/09/进程的通信方式/"/>
 
 
 
 
 
-  <title>详解collections工具库 | Qianyi Zhang's blog</title>
+  <title>进程的通信方式 | Qianyi Zhang's blog</title>
   
 
 
@@ -287,7 +287,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/10/05/%E8%AF%A6%E8%A7%A3collections%E5%B7%A5%E5%85%B7%E5%BA%93/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/10/09/%E8%BF%9B%E7%A8%8B%E7%9A%84%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -304,7 +304,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">详解collections工具库</h1>
+          <h1 class="post-title" itemprop="name headline">进程的通信方式</h1>
         
 
         <div class="post-meta">
@@ -316,8 +316,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-05T14:39:46-04:00">
-                2020-10-05
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-09T10:25:03-04:00">
+                2020-10-09
               </time>
             
 
@@ -354,36 +354,33 @@
       
 
       
-        <p>整理自<a href="https://zhuanlan.zhihu.com/p/110476502" target="_blank" rel="noopener">承志：Python——详解collections工具库</a></p>
-<h4 id="defaultdict"><a href="#defaultdict" class="headerlink" title="defaultdict"></a>defaultdict</h4><p>defaultdict 解决的是 dict 中最常见的问题：<strong>key 为空</strong>的情况。</p>
-<p>通常在 dict 中获取元素时，都要考虑 key 为空的情况。如果不考虑这点，获取一个不存在的 key 会导致异常。我们可以在每次 get 之前写一个if判断，比如：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> key <span class="keyword">in</span> dict:</span><br><span class="line">    <span class="keyword">return</span> dict[key]</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">None</span></span><br></pre></td></tr></table></figure>
-<p>当然，这是最笨的方法，dict 为我们提供了带默认值的 get 方法：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> dict.get(key, <span class="literal">None</span>)</span><br></pre></td></tr></table></figure>
-<p>这样，如果 key 不存在 dict 里，会自动返回设置好的默认值。省去了很多麻烦的判断，但仍然存在问题：比如当 key 存在重复，我们希望将 key 相同的 value 存进一个list当中，而不是只保留一个。这种情况下写成代码就会比较复杂：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    <span class="keyword">if</span> k <span class="keyword">in</span> d:</span><br><span class="line">        d[k].append(v)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        d[k] = [v]</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="number">1</span>: [<span class="number">3</span>, <span class="number">4</span>], <span class="number">2</span>: [<span class="number">1</span>, <span class="number">5</span>], <span class="number">3</span>: [<span class="number">7</span>]&#125;</span><br></pre></td></tr></table></figure>
-<p>由于 dict 的 value 是一个 list，所以仍要判断是否为空，不能直接使用默认值，间接操作当然可以：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = &#123;&#125;</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    cur = d.get(k, [])</span><br><span class="line">    cur.append(v)</span><br><span class="line">    d[k] = cur</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="number">1</span>: [<span class="number">3</span>, <span class="number">4</span>], <span class="number">2</span>: [<span class="number">1</span>, <span class="number">5</span>], <span class="number">3</span>: [<span class="number">7</span>]&#125;</span><br></pre></td></tr></table></figure>
-<p>这和使用if区别不大，我们可以使用 collections 当中的<strong>defaultdict</strong>：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = defaultdict(list)</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    d[k].append(v)</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line">&gt;&gt;&gt; defaultdict(&lt;class 'list'&gt;, &#123;1: [3, 4], 2: [1, 5], 3: [7]&#125;)</span><br></pre></td></tr></table></figure>
-<p>使用 defaultdict 后，如果key不存在，容器会自动返回预先设置的默认值。defaultdict传入的默认值可以是类型或方法。如果想传入int，那么默认值会被设置成int()的结果，也就是0，如果我们想要自定义或者修改，可以传入一个方法：</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict</span><br><span class="line"></span><br><span class="line">data = [(<span class="number">1</span>, <span class="number">3</span>), (<span class="number">2</span>, <span class="number">1</span>), (<span class="number">1</span>, <span class="number">4</span>), (<span class="number">2</span>, <span class="number">5</span>), (<span class="number">3</span>, <span class="number">7</span>)]</span><br><span class="line">d = defaultdict(<span class="keyword">lambda</span>: <span class="number">3</span>)</span><br><span class="line"><span class="keyword">for</span> k, v <span class="keyword">in</span> data:</span><br><span class="line">    d[k] += v</span><br><span class="line"></span><br><span class="line">print(d)</span><br><span class="line"></span><br><span class="line">&gt;&gt;&gt; defaultdict(&lt;class 'int'&gt;, &#123;1: 7, 2: 6, 3: 7&#125;)</span><br></pre></td></tr></table></figure>
-<h4 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h4><p>deque是双端队列。对于queue来说，只允许在队尾插入元素，在队首弹出元素。而deque的队首和队尾都支持元素的插入和弹出。比普通的队列更加灵活。</p>
-<p>在日常的使用中用到双端队列的算法不太多。大多数情况下使用deque主要有两个原因：</p>
-<ol>
-<li><p>deque受到GIL的管理，它是线程安全的。而list则没有GIL锁，因此线程不安全。在并发场景下，list可能会导致一致性问题，而deque不会。</p>
-</li>
-<li><p>deque支持固定长度，当长度满了之后，如果继续append，它会自动弹出最早插入的数据。</p>
-</li>
-</ol>
-<p>当我们拥有海量的数据，但不知道数据的数量，如果想要保留最后出现的指定数量的数据时，就可以使用deque。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> deque</span><br><span class="line">dque = deque(maxlen=<span class="number">10</span>)</span><br><span class="line"><span class="comment"># 假设我们想要从文件当中获取最后10条数据</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> f.read():</span><br><span class="line">    dque.append(i)</span><br></pre></td></tr></table></figure>
-<h4 id="namedtuple"><a href="#namedtuple" class="headerlink" title="namedtuple"></a>namedtuple</h4><p>在常见的面向对象当中，通常都是定义类，再通过类的构造函数来创建实例。元编程指的是我们定义元类，元类创建出来的不是实例，而是类。如果用模具和成品来分别比喻类和实例的话，元类相当于是模具的模具。</p>
-<p>namedtuple是一个元类，通过它可以非常方便地定义类。</p>
-<p>如果定义一个学生类，有name、score、age这三个字段：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name=None, score=None, age=None)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.score = score</span><br><span class="line">        self.age = age</span><br></pre></td></tr></table></figure>
-<p>使用namedtuple可以简化代码：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> namedtuple</span><br><span class="line"></span><br><span class="line">Student = namedtuple(<span class="string">'Student'</span>, [<span class="string">'name'</span>, <span class="string">'score'</span>, <span class="string">'age'</span>])</span><br><span class="line">student = Student(name=<span class="string">'xiaoming'</span>, score=<span class="number">99</span>, age=<span class="number">10</span>)</span><br><span class="line">print(student.name)</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>xiaoming</span><br></pre></td></tr></table></figure>
+        <p>整理自<a href="https://blog.csdn.net/m0_37907797/article/details/103188294" target="_blank" rel="noopener">帅地：进程之间究竟有哪些通信方式？如何通信？</a></p>
+<h4 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h4><p>举例：<br><code>netstat -tulnp | grep 8080</code></p>
+<p>“ | ”是管道，作用是把前一条命令的输出作为后一条命令的输入。</p>
+<p>在这里就是把 <code>netstat -tulnp</code> 的输出结果作为 <code>grep 8080</code> 这条命令的输入。</p>
+<p>如果两个进程要通信，就可以使用管道。因为这条<strong>竖线</strong>没有名字，所以这种通信方式称为<strong>匿名管道</strong>。</p>
+<p>这种通信方式是<strong>单向</strong>的，只能把第一个命令的输出作为第二个命令的输入。如果进程双向通信，那么要创建两个管道。</p>
+<p>有匿名管道，那也有命名管道：</p>
+<p><code>mkfifo  test</code><br>这条命令创建了一个名为 <code>test</code> 的命名管道。</p>
+<p>接下来用一个进程向这个管道写数据，用·另一个进程把里面的数据读出来。<br><code>echo &quot;this is a pipe&quot; &gt; test   // 写数据</code></p>
+<p>如果管道的内容未被读出，那么<code>echo</code>命令会一直阻塞，只有当另一进程把管道的内容读出时<code>echo</code>命令才会结束：<br><code>cat test  // 读数据</code>  </p>
+<p>读取线程的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost 桌面]# cat &lt; test</span><br><span class="line">this is a pipe</span><br></pre></td></tr></table></figure>
+<p>写入线程的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost 桌面]# mkfifo test</span><br><span class="line">[root@localhost 桌面]# echo &quot;this is a pipe&quot; &gt; test</span><br><span class="line">[root@localhost 桌面]# mkfifo test</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，test管道内的数据被读取了。<code>echo</code>命令也结束了。</p>
+<p>管道的通知机制类似于缓存，就像一个进程把数据放在某个缓存区域，然后等待另一进程去拿，并且<strong>管道是单向传输的</strong>。</p>
+<p>这种通信方式效率低下：a 进程给 b 进程传输数据，a 进程只能等待 b 进程取完数据后才能返回。</p>
+<p>所以管道不适合频繁通信的进程。管道的优点是简单，能够保证数据已经真的被其他进程拿走。</p>
+<h4 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h4><p>能不能把进程的数据放在某个内存之后就马上让进程返回呢？无需等待其他进程来取就返回呢？</p>
+<p>消息队列的通信模式可以解决上述问题。a 进程给 b 进程发送消息，只需要把消息放在对应的消息队列里就行了，b 进程需要的时候再去对应的<br>消息队列里取出来。</p>
+<p>如果 a 进程发送的数据占的内存比较大，并且两个进程间的通信特别频繁的话，消息队列模型就不适合了。因为 a 发送的数据很大的话，意味<strong>发送消息（拷贝）</strong>的过程要花很多时间来读内存。</p>
+<h4 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h4><p>共享内存可以很好地解决拷贝消耗时间的问题。</p>
+<p>可能有人会问，每个进程有自己的独立内存，为什么两个进程可以共享一块内存呢？</p>
+<p>因为系统加载一个进程的时候，分配给进程的内存不是<strong>实际物理内存</strong>，而是<strong>虚拟内存空间</strong>。我们可以让<strong>两个进程各自拿出一块虚拟地址空间来，然后映射到相同的物理内存中</strong>。这样，两个进程虽然有着独立的虚拟内存空间，但有一部分却是映射到相同的物理内存，这就完成了内存共享机制了。</p>
+<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>共享内存最大的问题是<strong>多进程竞争内存</strong>的问题，比如线程安全问题。信号量可以解决这个问题。</p>
+<p>信号量的本质是计数器，用来实现进程间的互斥与同步。例如信号量的初始值是 1，a 进程访问内存1，信号量的值设为 0；进程b 访问内存1，看到信号量的值为 0，就知道有进程正在访问内存1了，此时进程 b 无法访问内存1。因此信号量也是进程间的通信方式。</p>
 
       
     </div>
@@ -443,8 +440,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/09/02/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E8%A1%8C%E9%94%81%E4%B8%8E%E8%A1%A8%E9%94%81/" rel="next" title="深入理解数据库行锁与表锁">
-                <i class="fa fa-chevron-left"></i> 深入理解数据库行锁与表锁
+              <a href="/2020/10/07/Python%E9%98%9F%E5%88%97/" rel="next" title="Python队列">
+                <i class="fa fa-chevron-left"></i> Python队列
               </a>
             
           </div>
@@ -452,10 +449,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/10/07/Python%E9%98%9F%E5%88%97/" rel="prev" title="Python队列">
-                Python队列 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -624,7 +617,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#defaultdict"><span class="nav-number">1.</span> <span class="nav-text">defaultdict</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#deque"><span class="nav-number">2.</span> <span class="nav-text">deque</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#namedtuple"><span class="nav-number">3.</span> <span class="nav-text">namedtuple</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#管道"><span class="nav-number">1.</span> <span class="nav-text">管道</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#消息队列"><span class="nav-number">2.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#共享内存"><span class="nav-number">3.</span> <span class="nav-text">共享内存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#信号量"><span class="nav-number">4.</span> <span class="nav-text">信号量</span></a></li></ol></div>
             
 
           </div>

@@ -1,6 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>进程的通信方式</title>
+    <url>/2020/10/09/%E8%BF%9B%E7%A8%8B%E7%9A%84%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F/</url>
+    <content><![CDATA[<p>整理自<a href="https://blog.csdn.net/m0_37907797/article/details/103188294" target="_blank" rel="noopener">帅地：进程之间究竟有哪些通信方式？如何通信？</a></p>
+<h4 id="管道"><a href="#管道" class="headerlink" title="管道"></a>管道</h4><p>举例：<br><code>netstat -tulnp | grep 8080</code></p>
+<p>“ | ”是管道，作用是把前一条命令的输出作为后一条命令的输入。</p>
+<p>在这里就是把 <code>netstat -tulnp</code> 的输出结果作为 <code>grep 8080</code> 这条命令的输入。</p>
+<p>如果两个进程要通信，就可以使用管道。因为这条<strong>竖线</strong>没有名字，所以这种通信方式称为<strong>匿名管道</strong>。</p>
+<p>这种通信方式是<strong>单向</strong>的，只能把第一个命令的输出作为第二个命令的输入。如果进程双向通信，那么要创建两个管道。</p>
+<p>有匿名管道，那也有命名管道：</p>
+<p><code>mkfifo  test</code><br>这条命令创建了一个名为 <code>test</code> 的命名管道。</p>
+<p>接下来用一个进程向这个管道写数据，用·另一个进程把里面的数据读出来。<br><code>echo &quot;this is a pipe&quot; &gt; test   // 写数据</code></p>
+<p>如果管道的内容未被读出，那么<code>echo</code>命令会一直阻塞，只有当另一进程把管道的内容读出时<code>echo</code>命令才会结束：<br><code>cat test  // 读数据</code>  </p>
+<p>读取线程的结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@localhost 桌面]# cat &lt; test</span><br><span class="line">this is a pipe</span><br></pre></td></tr></table></figure>
+<p>写入线程的结果：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@localhost 桌面]# mkfifo test</span><br><span class="line">[root@localhost 桌面]# echo &quot;this is a pipe&quot; &gt; test</span><br><span class="line">[root@localhost 桌面]# mkfifo test</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，test管道内的数据被读取了。<code>echo</code>命令也结束了。</p>
+<p>管道的通知机制类似于缓存，就像一个进程把数据放在某个缓存区域，然后等待另一进程去拿，并且<strong>管道是单向传输的</strong>。</p>
+<p>这种通信方式效率低下：a 进程给 b 进程传输数据，a 进程只能等待 b 进程取完数据后才能返回。</p>
+<p>所以管道不适合频繁通信的进程。管道的优点是简单，能够保证数据已经真的被其他进程拿走。</p>
+<h4 id="消息队列"><a href="#消息队列" class="headerlink" title="消息队列"></a>消息队列</h4><p>能不能把进程的数据放在某个内存之后就马上让进程返回呢？无需等待其他进程来取就返回呢？</p>
+<p>消息队列的通信模式可以解决上述问题。a 进程给 b 进程发送消息，只需要把消息放在对应的消息队列里就行了，b 进程需要的时候再去对应的<br>消息队列里取出来。</p>
+<p>如果 a 进程发送的数据占的内存比较大，并且两个进程间的通信特别频繁的话，消息队列模型就不适合了。因为 a 发送的数据很大的话，意味<strong>发送消息（拷贝）</strong>的过程要花很多时间来读内存。</p>
+<h4 id="共享内存"><a href="#共享内存" class="headerlink" title="共享内存"></a>共享内存</h4><p>共享内存可以很好地解决拷贝消耗时间的问题。</p>
+<p>可能有人会问，每个进程有自己的独立内存，为什么两个进程可以共享一块内存呢？</p>
+<p>因为系统加载一个进程的时候，分配给进程的内存不是<strong>实际物理内存</strong>，而是<strong>虚拟内存空间</strong>。我们可以让<strong>两个进程各自拿出一块虚拟地址空间来，然后映射到相同的物理内存中</strong>。这样，两个进程虽然有着独立的虚拟内存空间，但有一部分却是映射到相同的物理内存，这就完成了内存共享机制了。</p>
+<h4 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h4><p>共享内存最大的问题是<strong>多进程竞争内存</strong>的问题，比如线程安全问题。信号量可以解决这个问题。</p>
+<p>信号量的本质是计数器，用来实现进程间的互斥与同步。例如信号量的初始值是 1，a 进程访问内存1，信号量的值设为 0；进程b 访问内存1，看到信号量的值为 0，就知道有进程正在访问内存1了，此时进程 b 无法访问内存1。因此信号量也是进程间的通信方式。</p>
+]]></content>
+      <tags>
+        <tag>Python</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Python队列</title>
     <url>/2020/10/07/Python%E9%98%9F%E5%88%97/</url>
     <content><![CDATA[<p>队列是一种只允许在一端进行插入操作，在另一端进行删除操作的线性表。</p>
