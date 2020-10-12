@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="操作系统," />
 
 
 
@@ -79,12 +79,24 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Qianyi Zhang&#39;s blog">
-<meta property="og:url" content="https://yeezycheung1997.github.io/archives/2020/page/3/index.html">
+<meta name="description" content="整理自小林coding：大厂面试爱问的「调度算法」，20 张图一举拿下 操作系统的三大调度机制：  进程调度算法 页面置换算法 磁盘调度算法   进程调度算法进程调度算法也称 CPU 调度算法，因为 CPU 调度进程。 当 CPU 空闲时，操作系统就选择内存中的某个就绪状态的进程，分配给 CPU。 何时发生 CPU 调度呢？ 进程从运行状态 -&gt; 等待状态 「非抢占式调度」 进程从运行状态">
+<meta property="og:type" content="article">
+<meta property="og:title" content="操作系统的三大调度机制">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/10/12/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%B8%89%E5%A4%A7%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
+<meta property="og:description" content="整理自小林coding：大厂面试爱问的「调度算法」，20 张图一举拿下 操作系统的三大调度机制：  进程调度算法 页面置换算法 磁盘调度算法   进程调度算法进程调度算法也称 CPU 调度算法，因为 CPU 调度进程。 当 CPU 空闲时，操作系统就选择内存中的某个就绪状态的进程，分配给 CPU。 何时发生 CPU 调度呢？ 进程从运行状态 -&gt; 等待状态 「非抢占式调度」 进程从运行状态">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-71def7ed00e38e93b6508fa38d73f427_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-7a0a41db8d07c20ada29e37c15e412e6_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-aade0ab1b10cbdbc5722e7964fee9a29_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-34f27ca9e98f60450061d689f11dabc0_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-05b95be53f47428ca6f5f8ab0b313b49_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-5ea155d8d6eb0f1d48afd347b5c7cc2f_720w.jpg">
+<meta property="article:published_time" content="2020-10-12T14:24:44.000Z">
+<meta property="article:modified_time" content="2020-10-12T16:02:52.223Z">
 <meta property="article:author" content="Qianyi Zhang">
+<meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic4.zhimg.com/80/v2-71def7ed00e38e93b6508fa38d73f427_720w.jpg">
 
 
 
@@ -114,13 +126,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/archives/2020/page/3/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/10/12/操作系统的三大调度机制/"/>
 
 
 
 
 
-  <title>归档 | Qianyi Zhang's blog</title>
+  <title>操作系统的三大调度机制 | Qianyi Zhang's blog</title>
   
 
 
@@ -139,7 +151,7 @@
     
   
 
-  <div class="container sidebar-position-left page-archive">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
     <a href="https://github.com/yeezycheung1997" target="_blank" rel="noopener" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 
@@ -268,152 +280,260 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block archive">
-    <div id="posts" class="posts-collapse">
-      <span class="archive-move-on"></span>
+  <div id="posts" class="posts-expand">
+    
 
-      <span class="archive-page-counter">
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/10/12/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%B8%89%E5%A4%A7%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Qianyi Zhang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://upload.cc/i1/2020/03/11/XoIZC7.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Qianyi Zhang's blog">
+    </span>
+
+    
+      <header class="post-header">
+
         
         
+          <h1 class="post-title" itemprop="name headline">操作系统的三大调度机制</h1>
         
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-12T10:24:44-04:00">
+                2020-10-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
           
-        
-        嗯..! 目前共计 23 篇日志。 继续努力。
-      </span>
 
-      
-
-        
-        
-        
-
-        
           
-          <div class="collection-title">
-            <h1 class="archive-year" id="archive-year-2020">2020</h1>
-          </div>
-        
-        
+            
+          
 
-        
+          
+          
 
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+          
 
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2020/03/12/Flask%E5%85%A5%E9%97%A8/" itemprop="url">
-              
-                <span itemprop="name">Flask入门</span>
-              
-            </a>
-        
-      </h2>
+          
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2020-03-12T09:40:39-04:00"
-              content="2020-03-12" >
-          03-12
-        </time>
-      </div>
+          
 
-    </header>
-  </article>
+        </div>
+      </header>
+    
 
-
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-
-        
-        
-        
-
-        
-        
-
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2020/03/12/%E5%85%B3%E4%BA%8EPython-name/" itemprop="url">
-              
-                <span itemprop="name">关于Python __name__</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2020-03-12T08:54:30-04:00"
-              content="2020-03-12" >
-          03-12
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
-
       
 
-        
-        
-        
-
-        
-        
-
-        
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <h2 class="post-title">
-        
-            <a class="post-title-link" href="/2020/03/11/SQLAlchemy%E7%9A%84%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/" itemprop="url">
-              
-                <span itemprop="name">SQLAlchemy的基本使用</span>
-              
-            </a>
-        
-      </h2>
-
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2020-03-11T09:49:55-04:00"
-              content="2020-03-11" >
-          03-11
-        </time>
-      </div>
-
-    </header>
-  </article>
-
-
+      
+        <p>整理自<a href="https://zhuanlan.zhihu.com/p/225162322" target="_blank" rel="noopener">小林coding：大厂面试爱问的「调度算法」，20 张图一举拿下</a></p>
+<p>操作系统的三大调度机制：</p>
+<ul>
+<li>进程调度算法</li>
+<li>页面置换算法</li>
+<li>磁盘调度算法</li>
+</ul>
+<p><img src="https://pic4.zhimg.com/80/v2-71def7ed00e38e93b6508fa38d73f427_720w.jpg" alt="img"></p>
+<h4 id="进程调度算法"><a href="#进程调度算法" class="headerlink" title="进程调度算法"></a>进程调度算法</h4><p>进程调度算法也称 CPU 调度算法，因为 CPU 调度进程。</p>
+<p>当 CPU 空闲时，操作系统就选择内存中的某个就绪状态的进程，分配给 CPU。</p>
+<h5 id="何时发生-CPU-调度呢？"><a href="#何时发生-CPU-调度呢？" class="headerlink" title="何时发生 CPU 调度呢？"></a>何时发生 CPU 调度呢？</h5><ol>
+<li>进程从运行状态 -&gt; 等待状态 「非抢占式调度」</li>
+<li>进程从运行状态 -&gt; 就绪状态 「抢占式调度」</li>
+<li>进程从等待状态 -&gt; 就绪状态 「抢占式调度」</li>
+<li>进程从运行状态 -&gt; 终止状态 「非抢占式调度」</li>
+</ol>
+<p><strong>非抢占式调度：当进程正在运行时，它会一直运行，直到该进程完成或发生某个事件而被阻塞时，进程进入等待或终止状态，把 CPU 让给其他进程。</strong></p>
+<p><strong>抢占式调度：当进程正在运行时，可以被打断，进程进入就绪状态，把 CPU 让给其他进程。</strong></p>
+<p>抢占的原则有三种：时间片原则、优先权原则、短作业优先原则。</p>
+<h5 id="为什么第-3-种情况会发生-CPU-调度呢？"><a href="#为什么第-3-种情况会发生-CPU-调度呢？" class="headerlink" title="为什么第 3 种情况会发生 CPU 调度呢？"></a>为什么第 3 种情况会发生 CPU 调度呢？</h5><p>假设有一个进程处于等待状态，它的优先级较高。如果该进程等待的事件发生了，它会转到就绪状态，如果调度算法是以优先级进行的，那么该进程会立刻抢占正在运行的进程，发生了 CPU 调度。</p>
+<p>第 2 种状态通常是时间片到的情况，因为时间片到了会发生中断，就绪进程会抢占正在运行的进程，占用 CPU。</p>
+<p>调度算法影响的是等待时间（进程在就绪队列中等待调度的时间总和），而不影响进程使用 CPU 的时间和 I/O 时间。</p>
+<p>常见的调度算法：</p>
+<ul>
+<li>先来先服务调度算法</li>
+<li>最短作业优先调度算法</li>
+<li>高响应比优先调度算法</li>
+<li>时间片轮转调度算法</li>
+<li>最高优先级调度算法</li>
+<li>多级反馈队列调度算法</li>
+</ul>
+<h5 id="先来先服务调度算法"><a href="#先来先服务调度算法" class="headerlink" title="先来先服务调度算法"></a>先来先服务调度算法</h5><p>最简单的调度算法：<strong>非抢占式的先来先服务（First Come First Severd, FCFS）算法</strong>。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-7a0a41db8d07c20ada29e37c15e412e6_720w.jpg" alt="img"></p>
+<p>先来后到，每次从就绪队列选择最先进入队列的进程，然后一直运行，直到进程退出或被阻塞，才会继续从队列中选择第一个进程接着运行。</p>
+<p>但如果一个长作业先运行，那么后面的短作业等待的时间就会很长，不利于短作业。因此FCFS 对长作业有利，适用于 CPU 繁忙型作业的系统，不适用于 I/O 繁忙型作业的系统。</p>
+<h5 id="最短作业优先调度算法"><a href="#最短作业优先调度算法" class="headerlink" title="最短作业优先调度算法"></a>最短作业优先调度算法</h5><p>最短作业优先（Shortest Job First, SJF）：<strong>优先选择运行时间最短的进程运行，有助于提高系统的吞吐量</strong>。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-aade0ab1b10cbdbc5722e7964fee9a29_720w.jpg" alt="img"></p>
+<p>这显然对长作业不利，容易造成一种极端现象：一个长作业在就绪队列等待运行，但就绪队列有非常多的短作业，会使得长作业不断地往后推，等待时间变长，长作业长期不会被运行。</p>
+<h5 id="高响应比优先调度算法"><a href="#高响应比优先调度算法" class="headerlink" title="高响应比优先调度算法"></a>高响应比优先调度算法</h5><p>「先来先服务调度算法」和「最短作业优先调度算法」都没有很好地权衡短作业和长作业。高响应比优先 （Highest Response Ratio Next, HRRN）调度算法权衡了短作业和长作业。</p>
+<p>每次进行进程调度时，先计算「响应比优先级」，再把「响应比优先级」最高的进程投入运行，「响应比优先级」的计算公式：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-34f27ca9e98f60450061d689f11dabc0_720w.jpg" alt="img"></p>
+<p>从上面的公式可知：</p>
+<ul>
+<li>如果两个进程的「等待时间」相同时，「要求服务时间」越短，「响应比」就越高，这样短作业进程容易被选中运行。</li>
+<li>如果两个进程「要求的服务时间」相同时，「等待时间」越长，「响应比」就越高，这兼顾了长作业进程。进程的响应比随时间等待的增加而提高，当其等待时间足够长时，其响应比便可以升到很高，从而获得运行的机会。</li>
+</ul>
+<h5 id="时间片轮转调度算法"><a href="#时间片轮转调度算法" class="headerlink" title="时间片轮转调度算法"></a>时间片轮转调度算法</h5><p>最古老、最简单、最公平且使用最广的算法：时间片轮转（Round Robin, RR）调度算法。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-05b95be53f47428ca6f5f8ab0b313b49_720w.jpg" alt="img"></p>
+<p><strong>每个进程被分配一个时间段，称为时间片（Quantum），即允许该进程在该时间段中运行。</strong></p>
+<ul>
+<li>如果时间片用完，进程还在运行，当前进程从 CPU 释放出来，CPU 分配给新进程。</li>
+<li>如果当前进程在时间片结束前阻塞或结束，CPU 立即切换新进程。</li>
+</ul>
+<p>时间片的长度很关键：</p>
+<ul>
+<li>时间片太短会导致过多的进程上下文切换，降低 CPU 效率。</li>
+<li>时间片太长会引起短作业进程的响应时间变长。通常时间片设为 20ms~50ms 这是一个比较合理的折中值。</li>
+</ul>
+<h5 id="最高优先级调度算法"><a href="#最高优先级调度算法" class="headerlink" title="最高优先级调度算法"></a>最高优先级调度算法</h5><p>时间片轮转算法假设所有的进程同等重要，各个进程运行的时间都一样。</p>
+<p>但是，多用户计算机系统希望调度是有优先级的，即调度程序能<strong>从就绪队列中选择最高优先级的进程来运行，称为最高优先级（Highest Priority First，HPF）调度算法</strong>。</p>
+<p>进程的优先级分为静态优先级和动态优先级：</p>
+<ul>
+<li>静态优先级：创建进程时就已经确定了优先级，整个运行时间优先级都不变。</li>
+<li>动态优先级：根据进程的动态变化调整优先级。比如进程运行时间增加，则降低其优先级；进程等待时间（就绪队列的等待时间）增加，则升高其优先级，也就是随着时间的推移增加等待进程的优先级。</li>
+</ul>
+<p>该算法也有两种处理优先级高的方法，非抢占式和抢占式：</p>
+<ul>
+<li>非抢占式：当就绪队列中出现优先级高的进程，运行完当前进程，再选择优先级高的进程。</li>
+<li>抢占式：当就绪队列中出现优先级高的进程，当前进程挂起，调度优先级高的进程运行。</li>
+</ul>
+<p>但缺点是可能导致低优先级的进程永远不会运行。</p>
+<h5 id="多级反馈队列调度算法"><a href="#多级反馈队列调度算法" class="headerlink" title="多级反馈队列调度算法"></a>多级反馈队列调度算法</h5><p>多级反馈队列（Multilevel Feedback Queue）调度算法是时间片轮转算法和最高优先级算法的综合和发展。</p>
+<p>顾名思义：</p>
+<ul>
+<li>「多级」表示有多个队列，每个队列优先级从高到低、优先级越高时间片越短。</li>
+<li>「反馈」表示如果有新的进程加入优先级高的队列时，立刻停止当前正在运行的进程，转而去运行优先级高的队列。</li>
+</ul>
+<p><img src="https://pic4.zhimg.com/80/v2-5ea155d8d6eb0f1d48afd347b5c7cc2f_720w.jpg" alt="img"></p>
+<p>通过上图可知：</p>
+<ul>
+<li>设置了多个队列，每个队列有不同的优先级，每个队列优先级从高到低，优先级越高时间片越短。</li>
+<li>新进程被放入第一级队列的末尾，按先来先服务的原则排队等待调度，如果在第一级队列规定的时间片没运行完成，则将其转入到第二级队列的末尾，以此类推，直至完成。</li>
+<li>当较高优先级的队列为空，才调度较低优先级的队列中的进程运行。如果进程运行时，有新进程进入较高优先级的队列，则停止当前运行的进程并将其移入到原队列末尾，接着让较高优先级的进程运行。</li>
+</ul>
+<p>可以发现，短作业可能在第一级队列被处理完。对于长作业，如果在第一级队列处理不完，就移入下一级队列等待被执行，虽然等待的时间变长了，但是运行时间（时间片）也更长了，该算法很好地兼顾了长短作业，同时有较好的响应时间。</p>
 
       
-
     </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>Donate comment here</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Qianyi Zhang 微信支付"/>
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Qianyi Zhang 支付宝"/>
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/10/10/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="next" title="内存管理">
+                <i class="fa fa-chevron-left"></i> 内存管理
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
-
-  
-  <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/archives/2020/page/2/">&lt;</a><a class="page-number" href="/archives/2020/">1</a><a class="page-number" href="/archives/2020/page/2/">2</a><span class="page-number current">3</span>
-  </nav>
+  </article>
 
 
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -421,6 +541,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -441,8 +565,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -539,6 +672,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程调度算法"><span class="nav-number">1.</span> <span class="nav-text">进程调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#何时发生-CPU-调度呢？"><span class="nav-number">1.1.</span> <span class="nav-text">何时发生 CPU 调度呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么第-3-种情况会发生-CPU-调度呢？"><span class="nav-number">1.2.</span> <span class="nav-text">为什么第 3 种情况会发生 CPU 调度呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#先来先服务调度算法"><span class="nav-number">1.3.</span> <span class="nav-text">先来先服务调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最短作业优先调度算法"><span class="nav-number">1.4.</span> <span class="nav-text">最短作业优先调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#高响应比优先调度算法"><span class="nav-number">1.5.</span> <span class="nav-text">高响应比优先调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#时间片轮转调度算法"><span class="nav-number">1.6.</span> <span class="nav-text">时间片轮转调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最高优先级调度算法"><span class="nav-number">1.7.</span> <span class="nav-text">最高优先级调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#多级反馈队列调度算法"><span class="nav-number">1.8.</span> <span class="nav-text">多级反馈队列调度算法</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -680,6 +829,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
