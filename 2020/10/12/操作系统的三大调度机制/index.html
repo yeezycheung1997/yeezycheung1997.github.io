@@ -91,8 +91,21 @@
 <meta property="og:image" content="https://pic1.zhimg.com/80/v2-34f27ca9e98f60450061d689f11dabc0_720w.jpg">
 <meta property="og:image" content="https://pic2.zhimg.com/80/v2-05b95be53f47428ca6f5f8ab0b313b49_720w.jpg">
 <meta property="og:image" content="https://pic4.zhimg.com/80/v2-5ea155d8d6eb0f1d48afd347b5c7cc2f_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-91fbe24a235aeb687d4cc4f119909c39_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-2e3da8116c767b7c758d51ff4c51b75e_720w.png">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-e5642bb6598acdfbf480271bcefab293_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-258a887fb00a2fa2fc51b86198ad8497_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-d86110332f4ba13790b294071b76d83a_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-c06e25b31d6398bf29fa7ae2674c1904_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-4e6860bff8332933b7b622cf66732858_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-d92b24929b94f84efa7df372f5be6773_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-50aa5594db8476fbbed4fe25ae7bd2f3_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-9dd22790bd0160466562ee50a0e3d853_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-3d438d8a18c81a75ee4ace4786c49472_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-a920d723af7f8028ffb5e116346a0c39_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-fea446b2b43b51275522d6618438c450_720w.jpg">
 <meta property="article:published_time" content="2020-10-12T14:24:44.000Z">
-<meta property="article:modified_time" content="2020-10-12T16:02:52.223Z">
+<meta property="article:modified_time" content="2020-10-12T19:06:06.599Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
@@ -446,6 +459,120 @@
 <li>当较高优先级的队列为空，才调度较低优先级的队列中的进程运行。如果进程运行时，有新进程进入较高优先级的队列，则停止当前运行的进程并将其移入到原队列末尾，接着让较高优先级的进程运行。</li>
 </ul>
 <p>可以发现，短作业可能在第一级队列被处理完。对于长作业，如果在第一级队列处理不完，就移入下一级队列等待被执行，虽然等待的时间变长了，但是运行时间（时间片）也更长了，该算法很好地兼顾了长短作业，同时有较好的响应时间。</p>
+<h4 id="内存页面置换算法"><a href="#内存页面置换算法" class="headerlink" title="内存页面置换算法"></a>内存页面置换算法</h4><p>在了解内存页面置换算法前，先了解一下<strong>缺页异常（缺页中断）</strong>。</p>
+<p>当 CPU 访问的页面不在物理内存时，便会产生一个缺页中断，请求操作系统将所缺页调入到物理内存。</p>
+<p>缺页中断与一般中断的区别：</p>
+<ul>
+<li>缺页中断在指令执行「期间」产生和处理中断信号；一般中断在一条指令执行「完成」后检查和处理中断信号。</li>
+<li>缺页中断返回到该指令的开始重新执行「该指令」；一般中断返回到该指令的「下一个指令」执行。</li>
+</ul>
+<p>缺页中断的处理流程：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-91fbe24a235aeb687d4cc4f119909c39_720w.jpg" alt="img"></p>
+<p>1.CPU 访问一条 Load M 指令，然后 CPU 去找 M 对应的页表项。<br>2.如果该页表项的状态位是「有效的」，CPU 就直接访问物理内存。如果状态位是「无效的」，CPU 会发送缺页中断请求。<br>3.操作系统收到了缺页中断，执行缺页中断处理函数，去查找该页面在磁盘中的位置。<br>4.找到磁盘中对应的页面后，需要把该页面换入到物理内存中，但在换入前需要在物理内存中找空闲页，如果找到空闲页，就把页面换入到物理内存中。<br>5.页面从磁盘换入到物理内存完成后，则把页表项中的状态位修改为「有效的」。<br>6.最后，CPU 重新执行导致缺页异常的指令。</p>
+<p>上面过程的第 4 步是能在物理内存找到空闲页的情况，那如果找不到呢？</p>
+<p>找不到空闲页的话，就说明此时内存已满。需要页面置换算法选择一个物理页，如果该物理页被修改过（<a href="https://baike.baidu.com/item/%E8%84%8F%E9%A1%B5" target="_blank" rel="noopener">脏页</a>），则把它换出到磁盘，然后把该被置换出去的页表项的状态改成「无效的」，最后把正在访问的页面装入到该物理页中。</p>
+<p>页表项通常有如下字段：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-2e3da8116c767b7c758d51ff4c51b75e_720w.png" alt="img"></p>
+<ul>
+<li>状态位：表示该页是否有效，是否在物理内存中，供程序访问时参考。</li>
+<li>访问字段：记录该页在一段时间内被访问的次数，供页面置换算法选择出页面时参考。</li>
+<li><strong>修改位：表示该页在调入内存后是否被修改过，由于内存中的每一页都在磁盘上保留一份副本。未被修改的话在置换该页时就无需将该页写回到磁盘上，以减少系统的开销；被修改的话则将该页重写到磁盘上，保证磁盘中保留的始终是最新的副本。</strong></li>
+<li>硬盘地址：用于指出该页在硬盘上的地址，通常是物理块号，供调入该页时使用。</li>
+</ul>
+<p>虚拟内存的管理流程：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-e5642bb6598acdfbf480271bcefab293_720w.jpg" alt="img"></p>
+<p><strong>页面置换算法的功能是当出现缺页异常，需调入新页面而内存已满时，选择被置换的物理页面。也就是说选择一个物理页面换出到磁盘，再把需要访问的页面换入到物理页。</strong></p>
+<p>其算法目标是尽可能减少页面的换入换出的次数，常见的页面置换算法有：</p>
+<ul>
+<li>最佳页面置换算法（OPT）</li>
+<li>先进先出置换算法（FIFO）</li>
+<li>最近最久未使用的置换算法（LRU）</li>
+<li>时钟页面置换算法（Lock）</li>
+<li>最不常用置换算法（LFU）</li>
+</ul>
+<h5 id="最佳页面置换算法"><a href="#最佳页面置换算法" class="headerlink" title="最佳页面置换算法"></a>最佳页面置换算法</h5><p>最佳页面置换算法基本思路是<strong>置换在「未来」最长时间不访问的页面</strong>。</p>
+<p>该算法计算内存中每个逻辑页面的「下一次」访问时间，然后比较选择未来最长时间不访问的页面。</p>
+<p>假如一开始有 3 个空闲的物理页，然后有请求的页面序列，那它的置换过程如下：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-258a887fb00a2fa2fc51b86198ad8497_720w.jpg" alt="img"></p>
+<p>在这个请求的页面序列中，缺页共发生了 7 次（空闲页换入 3 次 + 最优页面置换 4 次），页面置换共发生了 4 次。</p>
+<p>这很理想，但实际上无法实现，因为程序访问页面是动态的，我们无法预知每个页面在「下一次」访问前的等待时间。</p>
+<p>所以，<strong>最佳页面置换算法作用是为了衡量某算法的效率，某算法效率越接近该算法的效率，就说明某算法高效。</strong></p>
+<h5 id="先进先出置换算法"><a href="#先进先出置换算法" class="headerlink" title="先进先出置换算法"></a>先进先出置换算法</h5><p>既然我们无法预知页面在下一次访问前所需的等待时间，那就可以<strong>选择在内存驻留时间很长的页面进行置换</strong>，这就是先进先出置换的思想。</p>
+<p>还是以前面的请求的页面序列为例，假设使用先进先出置换算法，过程如下：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-d86110332f4ba13790b294071b76d83a_720w.jpg" alt="img"></p>
+<p>在这个请求的页面序列中，缺页共发生了 10 次，页面置换共发生了 7 次，比最佳页面置换算法性能差了很多。</p>
+<h5 id="最近最久未使用的置换算法"><a href="#最近最久未使用的置换算法" class="headerlink" title="最近最久未使用的置换算法"></a>最近最久未使用的置换算法</h5><p>最近最久未使用（LRU）的置换算法的基本思路是，发生缺页时，<strong>选择最长时间未被访问的页面进行置换</strong>。该算法假设已经很久未使用的页面很有可能在未来较长的一段时间内仍未被使用。</p>
+<p>该算法近似最优置换算法：</p>
+<ul>
+<li>最优置换算法是通过「未来」的使用情况推测要淘汰的页面</li>
+<li>LRU 则是通过「历史」的使用情况推测要淘汰的页面</li>
+</ul>
+<p>还是以前面的请求的页面序列为例，假设使用最近最久未使用的置换算法，过程如下：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-c06e25b31d6398bf29fa7ae2674c1904_720w.jpg" alt="img"></p>
+<p>在这个请求的页面序列中，缺页共发生了 9 次，页面置换共发生了 6 次，跟先进先出置换算法比较起来，性能提高了一些。</p>
+<p>LRU 在理论上可以实现，但代价很高。为了完全实现 LRU，需要在内存中维护一个所有页面的链表，最近最多使用的页面在表头，最近最少使用的页面在表尾。</p>
+<p>困难的是，在每次访问内存时都必须要更新「整个链表」。在链表中找到一个页面，删除它，然后把它移动到表头是一个非常费时的操作。</p>
+<p>LRU 看上去不错，但由于开销较大，实际应用中较少使用。</p>
+<h5 id="时钟页面置换算法"><a href="#时钟页面置换算法" class="headerlink" title="时钟页面置换算法"></a>时钟页面置换算法</h5><p>有没有一种即能优化置换的次数，也能方便实现的算法呢？</p>
+<p>时钟页面置换算法就可以两者兼得，它跟 LRU 近似，又是对 FIFO 的一种改进。</p>
+<p>该算法的思路是，把所有的页面都保存在一个类似钟面的「环形链表」中，一个表针指向最老的页面。</p>
+<p>当发生缺页中断时，算法首先检查表针指向的页面：</p>
+<p>如果它的访问位位是 0 就淘汰该页面，并把新的页面插入这个位置，然后把表针前移一个位置；<br>如果访问位是 1 就清除访问位，并把表针前移一个位置，重复这个过程直到找到了一个访问位为 0 的页面为止；<br>我画了一副时钟页面置换算法的工作流程图，你可以在下方看到：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-4e6860bff8332933b7b622cf66732858_720w.jpg" alt="img"></p>
+<h5 id="最不常用算法（LFU）"><a href="#最不常用算法（LFU）" class="headerlink" title="最不常用算法（LFU）"></a>最不常用算法（LFU）</h5><p><strong>当发生缺页中断时，选择「访问次数」最少的那个页面，将其淘汰。</strong></p>
+<p>该算法对每个页面设置一个「访问计数器」，每当一个页面被访问时，该页面的访问计数器就加 1。在发生缺页中断时，淘汰计数器值最小的那个页面。</p>
+<p>看似简单，每个页面加一个计数器就能实现，但我们需要考虑效率和硬件成本。</p>
+<p>增加一个计数器的硬件成本较高，另外通过计数器查找哪个页面访问次数最小，就要查找链表。如果链表很长，查找非常耗时，效率不高。</p>
+<p>LFU 算法只考虑了频率问题，没考虑时间问题。有些页面在很久之前访问频率很高，但最近已经没有访问了；而当前频繁访问的页面由于没有那些页面访问的次数高，在发生缺页中断时，就有可能误伤当前刚开始频繁访问，但访问次数还不高的页面。</p>
+<p>该问题的解决办法是定期减少访问的次数，比如当发生时间中断时，把过去时间访问的页面的访问次数除以 2。也就是说随着时间的流失，以前访问次数高的页面会慢慢减少，加大了被置换的概率。</p>
+<h4 id="磁盘调度算法"><a href="#磁盘调度算法" class="headerlink" title="磁盘调度算法"></a>磁盘调度算法</h4><p>磁盘调度算法为了提高磁盘的访问性能，一般通过优化磁盘的访问请求顺序来做到的。</p>
+<p>寻道的时间是磁盘访问最耗时的部分，如果请求顺序优化得当，可以节省一些不必要的寻道时间，从而提高磁盘的访问性能。</p>
+<p>假设有下面一个请求序列，每个数字代表磁道的位置：</p>
+<p>98，183，37，122，14，124，65，67</p>
+<p>初始磁头当前的位置是在第 53 磁道。</p>
+<p>接下来分别对以上序列，举每个调度算法的例子，常见的磁盘调度算法有：</p>
+<ul>
+<li>先来先服务算法</li>
+<li>最短寻道时间优先算法</li>
+<li>扫描算法算法</li>
+<li>循环扫描算法</li>
+<li>LOOK 与 C-LOOK 算法</li>
+</ul>
+<h5 id="先来先服务（First-Come，First-Served，FCFS）"><a href="#先来先服务（First-Come，First-Served，FCFS）" class="headerlink" title="先来先服务（First-Come，First-Served，FCFS）"></a>先来先服务（First-Come，First-Served，FCFS）</h5><p>磁盘的写入顺序是从左到右，如下图：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-d92b24929b94f84efa7df372f5be6773_720w.jpg" alt="img"></p>
+<p>先来先服务算法总共移动了 640 个磁道的距离。该算法简单粗暴，但如果有大量进程竞争使用磁盘，请求访问的磁道会很分散，因此该算法在性能上很差，因为寻道时间过长。</p>
+<h5 id="最短寻道时间优先（Shortest-Seek-First，SSF）"><a href="#最短寻道时间优先（Shortest-Seek-First，SSF）" class="headerlink" title="最短寻道时间优先（Shortest Seek First，SSF）"></a>最短寻道时间优先（Shortest Seek First，SSF）</h5><p>该算法的工作方式是优先选择从当前磁头位置所需寻道时间最短的请求，还是以这个序列为例子：</p>
+<p>98，183，37，122，14，124，65，67</p>
+<p>根据距离磁头（53 位置）最近的请求的算法，具体的请求会是下列从左到右的顺序：</p>
+<p>65，67，37，14，98，122，124，183</p>
+<p><img src="https://pic4.zhimg.com/80/v2-50aa5594db8476fbbed4fe25ae7bd2f3_720w.jpg" alt="img"></p>
+<p>磁头移动的总距离是 236 磁道，相比先来先服务性能提高了不少。</p>
+<p>但该算法可能存在某些请求的饥饿，因为本次例子是静态的序列，看不出问题。假设是一个动态的请求，如果后续的请求都是小于 183<br>磁道的，那么 183 磁道可能永远不会被响应，产生了饥饿现象。产生饥饿的原因是磁头在一小块区域来回移动。</p>
+<h5 id="扫描算法"><a href="#扫描算法" class="headerlink" title="扫描算法"></a>扫描算法</h5><p>最短寻道时间优先算法会产生饥饿的原因在于：磁头有可能在一个小区域内来回得移动。</p>
+<p>为了防止这个问题，可以规定：磁头在一个方向上移动，访问所有未完成的请求，直到磁头到达该方向上的最后的磁道，才调换方向，这就是扫描（Scan）算法。</p>
+<p>这种算法也叫做电梯算法，比如电梯保持按一个方向移动，直到在那个方向上没有请求为止，然后改变方向。</p>
+<p>还是以这个序列为例子，磁头的初始位置是 53：</p>
+<p>98，183，37，122，14，124，65，67</p>
+<p>那么，假设扫描调度算先朝磁道号减少的方向移动，具体请求则会是下列从左到右的顺序：</p>
+<p>37，14，0，65，67，98，122，124，183</p>
+<p><img src="https://pic4.zhimg.com/80/v2-9dd22790bd0160466562ee50a0e3d853_720w.jpg" alt="img"></p>
+<p>磁头先响应左边的请求，直到到达最左端（ 0 磁道）后，才开始反向移动，响应右边的请求。</p>
+<p>扫描调度算法性能较好，不会产生饥饿现象，但是存在这样的问题，中间部分的磁道会比较占便宜，中间部分相比其他部分响应的频率会比较多，也就是说每个磁道的响应频率存在差异。</p>
+<h5 id="循环扫描算法"><a href="#循环扫描算法" class="headerlink" title="循环扫描算法"></a>循环扫描算法</h5><p>扫描算法使得每个磁道响应的频率存在差异，那么要优化这个问题的话，可以总是按相同的方向进行扫描，使得每个磁道的响应频率基本一致。</p>
+<p>循环扫描（Circular Scan, CSCAN ）规定：只有磁头朝某个特定方向移动时，才处理磁道访问请求，而返回时直接快速移动至最靠边缘的磁道，也就是复位磁头，这个过程是很快的，并且返回中途不处理任何请求，该算法的特点，就是磁道只响应一个方向上的请求。</p>
+<p>还是以这个序列为例子，磁头的初始位置是 53：</p>
+<p>98，183，37，122，14，124，65，67</p>
+<p>那么，假设循环扫描调度算先朝磁道增加的方向移动，具体请求会是下列从左到右的顺序：</p>
+<p>65，67，98，122，124，183，199，0，14，37</p>
+<p><img src="https://pic3.zhimg.com/80/v2-3d438d8a18c81a75ee4ace4786c49472_720w.jpg" alt="img"></p>
+<p>磁头先响应了右边的请求，直到碰到了最右端的磁道 199，就立即回到磁盘的开始处（磁道 0），但这个返回的途中是不响应任何请求的，直到到达最开始的磁道后，才继续顺序响应右边的请求。</p>
+<p>循环扫描算法相比于扫描算法，对于各个位置磁道响应频率相对比较平均。</p>
+<h5 id="LOOK-与-C-LOOK算法"><a href="#LOOK-与-C-LOOK算法" class="headerlink" title="LOOK 与 C-LOOK算法"></a>LOOK 与 C-LOOK算法</h5><p>我们前面说到的扫描算法和循环扫描算法，都是磁头移动到磁盘「最始端或最末端」才开始调换方向。</p>
+<p>那这其实是可以优化的，优化的思路就是磁头在移动到「最远的请求」位置，然后立即反向移动。</p>
+<p>那针对 SCAN 算法的优化则叫 LOOK 算法，它的工作方式，磁头在每个方向上仅仅移动到最远的请求位置，然后立即反向移动，而不需要移动到磁盘的最始端或最末端，反向移动的途中会响应请求。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-a920d723af7f8028ffb5e116346a0c39_720w.jpg" alt="img"></p>
+<p>而针 C-SCAN 算法的优化则叫 C-LOOK，它的工作方式，磁头在每个方向上仅仅移动到最远的请求位置，然后立即反向移动，而不需要移动到磁盘的最始端或最末端，反向移动的途中不会响应请求。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-fea446b2b43b51275522d6618438c450_720w.jpg" alt="img"></p>
 
       
     </div>
@@ -682,7 +809,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程调度算法"><span class="nav-number">1.</span> <span class="nav-text">进程调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#何时发生-CPU-调度呢？"><span class="nav-number">1.1.</span> <span class="nav-text">何时发生 CPU 调度呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么第-3-种情况会发生-CPU-调度呢？"><span class="nav-number">1.2.</span> <span class="nav-text">为什么第 3 种情况会发生 CPU 调度呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#先来先服务调度算法"><span class="nav-number">1.3.</span> <span class="nav-text">先来先服务调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最短作业优先调度算法"><span class="nav-number">1.4.</span> <span class="nav-text">最短作业优先调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#高响应比优先调度算法"><span class="nav-number">1.5.</span> <span class="nav-text">高响应比优先调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#时间片轮转调度算法"><span class="nav-number">1.6.</span> <span class="nav-text">时间片轮转调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最高优先级调度算法"><span class="nav-number">1.7.</span> <span class="nav-text">最高优先级调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#多级反馈队列调度算法"><span class="nav-number">1.8.</span> <span class="nav-text">多级反馈队列调度算法</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程调度算法"><span class="nav-number">1.</span> <span class="nav-text">进程调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#何时发生-CPU-调度呢？"><span class="nav-number">1.1.</span> <span class="nav-text">何时发生 CPU 调度呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#为什么第-3-种情况会发生-CPU-调度呢？"><span class="nav-number">1.2.</span> <span class="nav-text">为什么第 3 种情况会发生 CPU 调度呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#先来先服务调度算法"><span class="nav-number">1.3.</span> <span class="nav-text">先来先服务调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最短作业优先调度算法"><span class="nav-number">1.4.</span> <span class="nav-text">最短作业优先调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#高响应比优先调度算法"><span class="nav-number">1.5.</span> <span class="nav-text">高响应比优先调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#时间片轮转调度算法"><span class="nav-number">1.6.</span> <span class="nav-text">时间片轮转调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最高优先级调度算法"><span class="nav-number">1.7.</span> <span class="nav-text">最高优先级调度算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#多级反馈队列调度算法"><span class="nav-number">1.8.</span> <span class="nav-text">多级反馈队列调度算法</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存页面置换算法"><span class="nav-number">2.</span> <span class="nav-text">内存页面置换算法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#最佳页面置换算法"><span class="nav-number">2.1.</span> <span class="nav-text">最佳页面置换算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#先进先出置换算法"><span class="nav-number">2.2.</span> <span class="nav-text">先进先出置换算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最近最久未使用的置换算法"><span class="nav-number">2.3.</span> <span class="nav-text">最近最久未使用的置换算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#时钟页面置换算法"><span class="nav-number">2.4.</span> <span class="nav-text">时钟页面置换算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最不常用算法（LFU）"><span class="nav-number">2.5.</span> <span class="nav-text">最不常用算法（LFU）</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#磁盘调度算法"><span class="nav-number">3.</span> <span class="nav-text">磁盘调度算法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#先来先服务（First-Come，First-Served，FCFS）"><span class="nav-number">3.1.</span> <span class="nav-text">先来先服务（First-Come，First-Served，FCFS）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#最短寻道时间优先（Shortest-Seek-First，SSF）"><span class="nav-number">3.2.</span> <span class="nav-text">最短寻道时间优先（Shortest Seek First，SSF）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#扫描算法"><span class="nav-number">3.3.</span> <span class="nav-text">扫描算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#循环扫描算法"><span class="nav-number">3.4.</span> <span class="nav-text">循环扫描算法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#LOOK-与-C-LOOK算法"><span class="nav-number">3.5.</span> <span class="nav-text">LOOK 与 C-LOOK算法</span></a></li></ol></li></ol></div>
             
 
           </div>
