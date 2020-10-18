@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="操作系统," />
 
 
 
@@ -79,17 +79,28 @@
 
 
 
-<meta name="description" content="美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。   百度翻译API链接：http:&#x2F;&#x2F;api.fanyi.baidu.com&#x2F;doc&#x2F;21 下面是官方给的Python3的demo 12345678910111213141516171819202122232425262728293031323334353637383940414243">
+<meta name="description" content="整理自小林coding：进程、线程基础知识全家桶，30 张图一套带走  进程代码是一个存储在硬盘的静态文件，编译代码会生成二进制可执行文件。当可执行文件运行后，它被装载到内存中，CPU 执行程序中的每一条指令。这个运行中的程序就是进程。 假设有一个读取硬盘文件数据的程序被执行了，当运行到读取文件的指令时，会去从硬盘读取数据。但硬盘的读写速度非常慢，如果此时 CPU 傻傻地等硬盘返回数据的话，那 C">
 <meta property="og:type" content="article">
-<meta property="og:title" content="百度翻译PythonAPI的简单使用">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/04/12/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91PythonAPI%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:title" content="进程和线程（新）">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/10/13/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%EF%BC%88%E6%96%B0%EF%BC%89/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。   百度翻译API链接：http:&#x2F;&#x2F;api.fanyi.baidu.com&#x2F;doc&#x2F;21 下面是官方给的Python3的demo 12345678910111213141516171819202122232425262728293031323334353637383940414243">
-<meta property="article:published_time" content="2020-04-12T12:55:02.000Z">
-<meta property="article:modified_time" content="2020-04-12T13:02:26.258Z">
+<meta property="og:description" content="整理自小林coding：进程、线程基础知识全家桶，30 张图一套带走  进程代码是一个存储在硬盘的静态文件，编译代码会生成二进制可执行文件。当可执行文件运行后，它被装载到内存中，CPU 执行程序中的每一条指令。这个运行中的程序就是进程。 假设有一个读取硬盘文件数据的程序被执行了，当运行到读取文件的指令时，会去从硬盘读取数据。但硬盘的读写速度非常慢，如果此时 CPU 傻傻地等硬盘返回数据的话，那 C">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-173719595a7e633939679ec099470920_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-0e15e9b8bd206b6ac79749661fd005dc_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-22ab0d940d620da72daea688a298475d_720w.jpg">
+<meta property="og:image" content="https://pic1.zhimg.com/80/v2-a7b1f905d6ad3a2c3b1cd5de042a54c4_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-6e581c27d56c5df1f98bec8521d2b14b_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-18c3b8aa5a26209dea6abcfebc27198b_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-4e60d744e3f29eb62a3c42682d4c1b86_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-5d20327a5305f347bb76a3c571f43b33_720w.jpg">
+<meta property="og:image" content="https://pic3.zhimg.com/80/v2-52bef604640dac2e7975a4ff0efe4d5a_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-9cbca9f3c903c3bbfdaf330e95bf2835_720w.jpg">
+<meta property="article:published_time" content="2020-10-13T13:51:18.000Z">
+<meta property="article:modified_time" content="2020-10-14T15:03:09.576Z">
 <meta property="article:author" content="Qianyi Zhang">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-173719595a7e633939679ec099470920_720w.jpg">
 
 
 
@@ -119,13 +130,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/04/12/百度翻译PythonAPI的简单使用/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/10/13/进程和线程（新）/"/>
 
 
 
 
 
-  <title>百度翻译PythonAPI的简单使用 | Qianyi Zhang's blog</title>
+  <title>进程和线程（新） | Qianyi Zhang's blog</title>
   
 
 
@@ -287,7 +298,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/04/12/%E7%99%BE%E5%BA%A6%E7%BF%BB%E8%AF%91PythonAPI%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/10/13/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%EF%BC%88%E6%96%B0%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -304,7 +315,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">百度翻译PythonAPI的简单使用</h1>
+          <h1 class="post-title" itemprop="name headline">进程和线程（新）</h1>
         
 
         <div class="post-meta">
@@ -316,8 +327,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-04-12T08:55:02-04:00">
-                2020-04-12
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-13T09:51:18-04:00">
+                2020-10-13
               </time>
             
 
@@ -354,14 +365,150 @@
       
 
       
-        <p>美国疫情一天比一天严重了，回国的计划也被打乱了。现在有大把的时间来写一写Python简单的小demo来娱乐一下。  </p>
-<p>百度翻译API链接：<a href="http://api.fanyi.baidu.com/doc/21" target="_blank" rel="noopener">http://api.fanyi.baidu.com/doc/21</a></p>
-<p>下面是官方给的Python3的demo</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#百度通用翻译API,不包含词典、tts语音合成等资源，如有相关需求请联系translate_api@baidu.com</span></span><br><span class="line"><span class="comment"># coding=utf-8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> http.client</span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> urllib</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"></span><br><span class="line">appid = <span class="string">''</span>  <span class="comment"># 填写你的appid</span></span><br><span class="line">secretKey = <span class="string">''</span>  <span class="comment"># 填写你的密钥</span></span><br><span class="line"></span><br><span class="line">httpClient = <span class="literal">None</span></span><br><span class="line">myurl = <span class="string">'/api/trans/vip/translate'</span></span><br><span class="line"></span><br><span class="line">fromLang = <span class="string">'auto'</span>   <span class="comment">#原文语种</span></span><br><span class="line">toLang = <span class="string">'zh'</span>   <span class="comment">#译文语种</span></span><br><span class="line">salt = random.randint(<span class="number">32768</span>, <span class="number">65536</span>)</span><br><span class="line">q= <span class="string">'apple'</span></span><br><span class="line">sign = appid + q + str(salt) + secretKey</span><br><span class="line">sign = hashlib.md5(sign.encode()).hexdigest()</span><br><span class="line">myurl = myurl + <span class="string">'?appid='</span> + appid + <span class="string">'&amp;q='</span> + urllib.parse.quote(q) + <span class="string">'&amp;from='</span> + fromLang + <span class="string">'&amp;to='</span> + toLang + <span class="string">'&amp;salt='</span> + str(</span><br><span class="line">salt) + <span class="string">'&amp;sign='</span> + sign</span><br><span class="line"></span><br><span class="line"><span class="keyword">try</span>:</span><br><span class="line">    httpClient = http.client.HTTPConnection(<span class="string">'api.fanyi.baidu.com'</span>)</span><br><span class="line">    httpClient.request(<span class="string">'GET'</span>, myurl)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># response是HTTPResponse对象</span></span><br><span class="line">    response = httpClient.getresponse()</span><br><span class="line">    result_all = response.read().decode(<span class="string">"utf-8"</span>)</span><br><span class="line">    result = json.loads(result_all)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">print</span> (result)</span><br><span class="line"></span><br><span class="line"><span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">    <span class="keyword">print</span> (e)</span><br><span class="line"><span class="keyword">finally</span>:</span><br><span class="line">    <span class="keyword">if</span> httpClient:</span><br><span class="line">        httpClient.close()</span><br><span class="line"></span><br><span class="line">------------------------------------</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>&#123;<span class="string">'from'</span>: <span class="string">'en'</span>, <span class="string">'to'</span>: <span class="string">'zh'</span>, <span class="string">'trans_result'</span>: [&#123;<span class="string">'src'</span>: <span class="string">'apple'</span>, <span class="string">'dst'</span>: <span class="string">'苹果'</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
-
-<p>简单地用面向对象方式改写一下：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaiduTranslate</span>:</span></span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, q)</span>:</span></span><br><span class="line">       self.q = q</span><br><span class="line">       self.__appid = <span class="string">''</span>  <span class="comment"># appid</span></span><br><span class="line">       self.__secretKey = <span class="string">''</span>  <span class="comment"># 密钥</span></span><br><span class="line">       self.__myurl = <span class="string">"http://api.fanyi.baidu.com/api/trans/vip/translate"</span></span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">def</span> <span class="title">run</span><span class="params">(self)</span>:</span></span><br><span class="line">       fromLang = <span class="string">'auto'</span>  <span class="comment"># 原文语种</span></span><br><span class="line">       toLang = <span class="string">'zh'</span>  <span class="comment"># 译文语种</span></span><br><span class="line">       salt = random.randint(<span class="number">32768</span>, <span class="number">65536</span>)  <span class="comment"># 随机数</span></span><br><span class="line">       sign = self.__appid + self.q + str(salt) + self.__secretKey</span><br><span class="line">       sign = hashlib.md5(sign.encode()).hexdigest()  <span class="comment"># "appid+q+salt+密钥 的MD5值"</span></span><br><span class="line"></span><br><span class="line">       params = &#123;<span class="string">'appid'</span>: self.__appid, <span class="string">'q'</span>: self.q, <span class="string">'from'</span>: fromLang, <span class="string">'to'</span>: toLang, <span class="string">'salt'</span>: salt, <span class="string">'sign'</span>: sign&#125;</span><br><span class="line">       r = requests.get(self.__myurl, params=params)</span><br><span class="line">       print(r.url)</span><br><span class="line">       dict_json = json.loads(r.content.decode())</span><br><span class="line">       print(<span class="string">"查询的英文单词: "</span>, dict_json[<span class="string">'trans_result'</span>][<span class="number">0</span>][<span class="string">'src'</span>])</span><br><span class="line">       print(<span class="string">"结果为: "</span>, dict_json[<span class="string">'trans_result'</span>][<span class="number">0</span>][<span class="string">'dst'</span>])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">   bt = BaiduTranslate(<span class="string">'sunflower'</span>)</span><br><span class="line">   bt.run()</span><br><span class="line"></span><br><span class="line">------------------------------------</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>查询的英文单词:  sunflower</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>结果为:  向日葵</span><br></pre></td></tr></table></figure>
-<p>难度系数为0，非常简单。之所以选择官方的api是因为我爬网页版的百度翻译爬不到了，具体原因之后有时间会解决。</p>
+        <p>整理自<a href="https://zhuanlan.zhihu.com/p/158965214" target="_blank" rel="noopener">小林coding：进程、线程基础知识全家桶，30 张图一套带走</a></p>
+<p><img src="https://pic1.zhimg.com/80/v2-173719595a7e633939679ec099470920_720w.jpg" alt="img"></p>
+<h4 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h4><p>代码是一个存储在硬盘的静态文件，编译代码会生成二进制可执行文件。当可执行文件运行后，它被装载到内存中，CPU 执行程序中的每一条指令。这个运行中的程序就是进程。</p>
+<p>假设有一个读取硬盘文件数据的程序被执行了，当运行到读取文件的指令时，会去从硬盘读取数据。但硬盘的读写速度非常慢，如果此时 CPU 傻傻地等硬盘返回数据的话，那 CPU 的利用率极低。</p>
+<p>当进程从硬盘读取数据时，CPU 不需要阻塞等待数据的返回，而是去执行别的进程。当硬盘数据返回时，CPU 收到中断，再继续运行这个进程。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-0e15e9b8bd206b6ac79749661fd005dc_720w.jpg" alt="img"></p>
+<p>这种<strong>多个程序、交替执行</strong>的思想，就是 CPU 管理多个进程的初步想法。</p>
+<p>一个支持多进程的系统，CPU 会从当前进程快速切换至新进程，每个进程各运行几十或几百毫秒。</p>
+<p>单核的 CPU 在某一瞬间只能运行一个进程。但在 1 秒钟期间，它可能会运行多个进程，这样就产生并行的错觉，实际上这是并发。</p>
+<h5 id="并发和并行有什么区别？"><a href="#并发和并行有什么区别？" class="headerlink" title="并发和并行有什么区别？"></a>并发和并行有什么区别？</h5><p><img src="https://pic2.zhimg.com/80/v2-22ab0d940d620da72daea688a298475d_720w.jpg" alt="img"></p>
+<h5 id="进程与程序的关系的类比"><a href="#进程与程序的关系的类比" class="headerlink" title="进程与程序的关系的类比"></a>进程与程序的关系的类比</h5><p>晚饭时间，一对情侣饿了。男生在网上找了菜谱，买了鸡肉、辣椒、香料等材料，然后边看菜谱边学边做菜。</p>
+<p><img src="https://pic1.zhimg.com/80/v2-a7b1f905d6ad3a2c3b1cd5de042a54c4_720w.jpg" alt="img"></p>
+<p>突然，女生说想喝可乐，男生只好暂停做菜，并在菜谱上标记做到哪一步骤，记录状态信息。</p>
+<p>然后男生听从女生的指令买了一瓶可乐，回到厨房继续做菜。</p>
+<p><strong>CPU 从当前进程（做菜）切换到新进程（买可乐），在切换前必须要记录当前进程中运行的状态信息，以备下次切换回来的时候能恢复执行。</strong></p>
+<p>所以进程有着<strong>运行 - 暂停 - 运行</strong>的活动规律。</p>
+<h5 id="进程的状态"><a href="#进程的状态" class="headerlink" title="进程的状态"></a>进程的状态</h5><p>进程有着<strong>运行 - 暂停 - 运行</strong>的活动规律。<strong>一个进程不是自始至终连续不停地运行，它与并发执行中的其他进程的执行相互制约。</strong></p>
+<p>它有时处于运行状态；有时由于某种原因暂停运行处于等待状态；当使它暂停的原因消失后，它又进入准备运行状态。</p>
+<p>所以，<strong>进程至少具备三种基本状态：运行状态、就绪状态、阻塞状态</strong>。</p>
+<p><img src="https://pic4.zhimg.com/80/v2-6e581c27d56c5df1f98bec8521d2b14b_720w.jpg" alt="img"></p>
+<ul>
+<li>运行状态（Runing）：该时刻进程占用 CPU</li>
+<li>就绪状态（Ready）：有运行的条件，但因为其他进程正在运行而暂时耽搁运行</li>
+<li>阻塞状态（Blocked）：该进程正在等待某一事件发生（如等待输入/输出操作的完成）而暂时停止运行。此时即使给它 CPU 控制权，它也无法运行</li>
+</ul>
+<p>进程另外两个基本状态：</p>
+<ul>
+<li>创建状态（new）：进程正在被创建时的状态</li>
+<li>结束状态（Exit）：进程正在从系统中消失时的状态</li>
+</ul>
+<p>一个完整的进程状态的变迁：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-18c3b8aa5a26209dea6abcfebc27198b_720w.jpg" alt="img"></p>
+<ul>
+<li><p>NULL -&gt; 创建状态：新进程被创建时的第一个状态</p>
+</li>
+<li><p>创建状态 -&gt; 就绪状态：当进程被创建完成并初始化后，一切就绪准备运行时，变为就绪状态</p>
+</li>
+<li><p>就绪状态 -&gt; 运行状态：处于就绪状态的进程被操作系统的进程调度器选中后，分配给 CPU 并运行该进程</p>
+</li>
+<li><p>运行状态 -&gt; 结束状态：当进程已经运行完成或出错时，会被操作系统作结束状态处理</p>
+</li>
+<li><p>运行状态 -&gt; 就绪状态：处于运行状态的进程在运行过程中，由于运行的时间片用完，操作系统把该进程变为就绪状态，并从就绪状态选一个新的进程运行</p>
+</li>
+<li><p>运行状态 -&gt; 阻塞状态：当进程请求某个事件且必须等待时，例如请求 I/O 事件</p>
+</li>
+<li><p>阻塞状态 -&gt; 就绪状态：当进程要等待的事件完成时，它从阻塞状态变到就绪状态</p>
+</li>
+</ul>
+<p>如果有大量处于阻塞状态的进程，进程会占用有限的物理内存空间，这是一种浪费物理内存的行为。所以，通常把阻塞状态的进程的物理内存空间换出到硬盘，等需要再次运行时，再从硬盘换入到物理内存。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-4e60d744e3f29eb62a3c42682d4c1b86_720w.jpg" alt="img"></p>
+<p>这样就需要一个新的状态，来<strong>描述进程没有占用实际的物理内存空间的情况，这个状态就是挂起状态。这跟阻塞状态是不一样，阻塞状态是等待某个事件的返回。</strong></p>
+<p>另外，挂起状态可以分为两种：</p>
+<ul>
+<li>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现；</li>
+<li>就绪挂起状态：进程在外存（硬盘），但只要进入内存，即刻立刻运行；</li>
+</ul>
+<p>这两种挂起状态加上前面的五种状态，就变成了七种状态变迁：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-5d20327a5305f347bb76a3c571f43b33_720w.jpg" alt="img"></p>
+<p>导致进程挂起的原因不只是因为进程使用的内存空间不在物理内存，还包括：</p>
+<ul>
+<li>通过 sleep 让进程间歇性挂起，其工作原理是设置一个定时器，到期后唤醒进程。</li>
+<li>用户希望挂起一个程序的执行，比如在 Linux 中用 Ctrl+Z 挂起进程。</li>
+</ul>
+<h5 id="进程的控制结构"><a href="#进程的控制结构" class="headerlink" title="进程的控制结构"></a>进程的控制结构</h5><p>进程控制块（process control block，PCB）是用来描述进程的。<strong>PCB 是进程存在的唯一标识。一个进程的存在，必然会有一个 PCB，如果进程消失那么 PCB 也会随之消失</strong>。</p>
+<h5 id="PCB-包含什么信息呢？"><a href="#PCB-包含什么信息呢？" class="headerlink" title="PCB 包含什么信息呢？"></a>PCB 包含什么信息呢？</h5><h6 id="进程描述信息："><a href="#进程描述信息：" class="headerlink" title="进程描述信息："></a>进程描述信息：</h6><ul>
+<li>进程标识符：标识各个进程，每个进程有且只有一个唯一的标识符</li>
+<li>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务</li>
+</ul>
+<h6 id="进程控制和管理信息："><a href="#进程控制和管理信息：" class="headerlink" title="进程控制和管理信息："></a>进程控制和管理信息：</h6><ul>
+<li>进程当前状态，如 new、ready、running、waiting 或 blocked 等</li>
+<li>进程优先级：进程抢占 CPU 时的优先级</li>
+</ul>
+<h6 id="资源分配清单："><a href="#资源分配清单：" class="headerlink" title="资源分配清单："></a>资源分配清单：</h6><ul>
+<li>有关内存地址空间或虚拟地址空间的信息，所打开文件的列表和所使用的 I/O 设备信息。</li>
+</ul>
+<h6 id="CPU-相关信息："><a href="#CPU-相关信息：" class="headerlink" title="CPU 相关信息："></a>CPU 相关信息：</h6><ul>
+<li>CPU 中各个寄存器的值，当进程被切换时，CPU 的状态信息都会被保存在相应的 PCB 中，以便进程重新执行时，能从断点处继续执行。</li>
+</ul>
+<h5 id="各个-PCB-是如何组织的呢？"><a href="#各个-PCB-是如何组织的呢？" class="headerlink" title="各个 PCB 是如何组织的呢？"></a>各个 PCB 是如何组织的呢？</h5><p>各个 PCB 通常通过链表组织，把具有相同状态的进程链在一起，组成各种队列。比如：</p>
+<ul>
+<li>将所有处于就绪状态的进程链在一起，称为就绪队列。</li>
+<li>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列。</li>
+</ul>
+<p>对于运行队列在单核 CPU 系统中只有一个运行指针，因为单核 CPU 在某个时间，只能运行一个程序。</p>
+<p>那么，就绪队列和阻塞队列链表的组织形式如下图：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-52bef604640dac2e7975a4ff0efe4d5a_720w.jpg" alt="img"></p>
+<p>除了链表的组织方式，还有索引方式：将同一状态的进程组织在一个索引表中，索引表项指向相应的 PCB，不同状态对应不同的索引表。</p>
+<p>一般会选择链表，因为进程创建，销毁等调度会导致进程状态发生变化，链表能够更加灵活地插入和删除。</p>
+<h5 id="进程的控制"><a href="#进程的控制" class="headerlink" title="进程的控制"></a>进程的控制</h5><p>熟知了进程的状态变迁和进程的 PCB 后，再来看看进程的创建、终止、阻塞、唤醒的过程，也就是进程的控制。</p>
+<h6 id="创建进程"><a href="#创建进程" class="headerlink" title="创建进程"></a>创建进程</h6><p>操作系统允许进程创建子进程，允许子进程继承父进程所拥有的资源。当子进程被终止时，其在父进程继承的资源应当还给父进程。终止父进程的同时也会终止其所有的子进程。</p>
+<p>创建进程的过程如下：</p>
+<ul>
+<li>为新进程分配一个唯一的进程标识号，并申请一个空白的 PCB。PCB 是有限的，若申请失败则创建失败</li>
+<li>为进程分配资源，此时如果资源不足，进程进入等待状态，以等待资源</li>
+<li>初始化 PCB</li>
+<li>如果进程的调度队列能够接纳新进程，那就将进程插入到就绪队列，等待被调度运行</li>
+</ul>
+<h6 id="终止进程"><a href="#终止进程" class="headerlink" title="终止进程"></a>终止进程</h6><p>进程有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）。</p>
+<p>终止进程的过程如下：</p>
+<ul>
+<li>查找需要终止的进程的 PCB</li>
+<li>如果处于运行状态，则立即终止该进程的运行，并将 CPU 分配给其他进程</li>
+<li>如果其还有子进程，将其所有子进程终止</li>
+<li>将该进程所拥有的全部资源都归还给父进程或操作系统</li>
+<li>将其从 PCB 所在队列中删除</li>
+</ul>
+<h6 id="阻塞进程"><a href="#阻塞进程" class="headerlink" title="阻塞进程"></a>阻塞进程</h6><p>当进程需要等待某一事件完成时，它可以调用阻塞语句把自己阻塞等待。而一旦被阻塞等待，它只能由另一个进程唤醒。</p>
+<p>阻塞进程的过程如下：</p>
+<ul>
+<li>查找需要被阻塞进程标识号对应的 PCB</li>
+<li>如果该进程为运行状态，则保护其现场，将其状态转为阻塞状态，停止运行</li>
+<li>将该 PCB 插入的阻塞队列中去</li>
+</ul>
+<h6 id="唤醒进程"><a href="#唤醒进程" class="headerlink" title="唤醒进程"></a>唤醒进程</h6><p>进程由「运行」转变为「阻塞」状态是由于进程必须等待某一事件的完成，所以处于阻塞状态的进程是绝对不可能叫醒自己的。</p>
+<p>如果某进程正在等待 I/O 事件，需由别的进程发消息给它，则只有当该进程所期待的事件出现时，才由发现者进程用唤醒语句叫醒它。</p>
+<p>唤醒进程的过程如下：</p>
+<ul>
+<li>在该事件的阻塞队列中找到相应进程的 PCB</li>
+<li>将其从阻塞队列中移出，并置其状态为就绪状态</li>
+<li>把该 PCB 插入到就绪队列中，等待调度程序调度</li>
+</ul>
+<p>进程的阻塞和唤醒是一对功能相反的语句，如果某个进程调用了阻塞语句，则必有一个与之对应的唤醒语句。</p>
+<h5 id="进程的上下文切换"><a href="#进程的上下文切换" class="headerlink" title="进程的上下文切换"></a>进程的上下文切换</h5><p>各个进程之间是共享 CPU 资源，进程之间需要切换，让不同的进程在 CPU 执行。当前进程切换到新进程运行，称为进程的上下文切换。</p>
+<h6 id="CPU-上下文切换"><a href="#CPU-上下文切换" class="headerlink" title="CPU 上下文切换"></a>CPU 上下文切换</h6><p>大多数操作系统都是多任务，通常支持大于 CPU 数量的任务同时运行。实际上，这些任务并不是同时运行的，只是因为系统在很短的时间内，让各个任务分别在 CPU 运行，造成了同时运行的错觉。</p>
+<p>任务是交给 CPU 运行的，那么在每个任务运行前，CPU 需要知道任务从哪里加载，又从哪里开始运行。</p>
+<p>所以，操作系统需要帮 CPU 设置好 <strong>CPU 寄存器和程序计数器</strong>。</p>
+<p>CPU 寄存器是 CPU 内部一个容量小，但是速度极快的内存（缓存）。程序计数器则是用来存储 CPU 正在执行的指令位置、或者即将执行的下一条指令位置。</p>
+<p>所以说，CPU 寄存器和程序计数器是 CPU 在运行任何任务前，所必须依赖的环境，这些环境就叫做 CPU 上下文。</p>
+<p>CPU 上下文切换就是先把前一个任务的 CPU 上下文（CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置，运行新任务。</p>
+<p>系统内核会存储保持下来的上下文信息，当此任务再次被分配给 CPU 运行时，CPU 会重新加载这些上下文，这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行。</p>
+<p>上面说到所谓的「任务」，主要包含进程、线程和中断。所以，可以根据任务的不同，把 CPU 上下文切换分成：进程上下文切换、线程上下文切换和中断上下文切换。</p>
+<p>进程的上下文切换到底是切换什么呢？<br>进程是由内核管理和调度的，所以进程的切换只能发生在内核态。</p>
+<p>所以，进程的上下文切换不仅包含了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、寄存器等内核空间的资源。</p>
+<p>通常，会把交换的信息保存在进程的 PCB，当要运行另外一个进程的时候，我们需要从这个进程的 PCB 取出上下文，然后恢复到 CPU 中，这使得这个进程可以继续执行，如下图所示：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-9cbca9f3c903c3bbfdaf330e95bf2835_720w.jpg" alt="img"></p>
+<p>大家需要注意，进程的上下文开销是很关键的，我们希望它的开销越小越好，这样可以使得进程可以把更多时间花费在执行程序上，而不是耗费在上下文切换。</p>
+<p>发生进程上下文切换有哪些场景？</p>
+<ul>
+<li>为了保证所有进程可以得到公平调度，CPU 时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。这样，当某个进程的时间片耗尽了，进程就从运行状态变为就绪状态，系统从就绪队列选择另外一个进程运行；</li>
+<li>进程在系统资源不足（比如内存不足）时，要等到资源满足后才可以运行，这个时候进程也会被挂起，并由系统调度其他进程运行；</li>
+<li>当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时，自然也会重新调度；</li>
+<li>当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程来运行；</li>
+<li>发生硬件中断时，CPU 上的进程会被中断挂起，转而执行内核中的中断服务程序；<br>以上，就是发生进程上下文切换的常见场景了。</li>
+</ul>
 
       
     </div>
@@ -408,7 +555,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag"><i class="fa fa-tag"></i> Python</a>
+            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
           
         </div>
       
@@ -421,8 +568,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/03/24/Python%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%BF%9B%E9%98%B6/" rel="next" title="Python多线程进阶">
-                <i class="fa fa-chevron-left"></i> Python多线程进阶
+              <a href="/2020/10/12/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%B8%89%E5%A4%A7%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6/" rel="next" title="操作系统的三大调度机制">
+                <i class="fa fa-chevron-left"></i> 操作系统的三大调度机制
               </a>
             
           </div>
@@ -430,10 +577,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/04/16/Nginx%E5%85%A5%E9%97%A8/" rel="prev" title="Nginx入门">
-                Nginx入门 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -485,8 +628,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -583,6 +735,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程"><span class="nav-number">1.</span> <span class="nav-text">进程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#并发和并行有什么区别？"><span class="nav-number">1.1.</span> <span class="nav-text">并发和并行有什么区别？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程与程序的关系的类比"><span class="nav-number">1.2.</span> <span class="nav-text">进程与程序的关系的类比</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的状态"><span class="nav-number">1.3.</span> <span class="nav-text">进程的状态</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的控制结构"><span class="nav-number">1.4.</span> <span class="nav-text">进程的控制结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#PCB-包含什么信息呢？"><span class="nav-number">1.5.</span> <span class="nav-text">PCB 包含什么信息呢？</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#进程描述信息："><span class="nav-number">1.5.1.</span> <span class="nav-text">进程描述信息：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#进程控制和管理信息："><span class="nav-number">1.5.2.</span> <span class="nav-text">进程控制和管理信息：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#资源分配清单："><span class="nav-number">1.5.3.</span> <span class="nav-text">资源分配清单：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#CPU-相关信息："><span class="nav-number">1.5.4.</span> <span class="nav-text">CPU 相关信息：</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#各个-PCB-是如何组织的呢？"><span class="nav-number">1.6.</span> <span class="nav-text">各个 PCB 是如何组织的呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的控制"><span class="nav-number">1.7.</span> <span class="nav-text">进程的控制</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#创建进程"><span class="nav-number">1.7.1.</span> <span class="nav-text">创建进程</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#终止进程"><span class="nav-number">1.7.2.</span> <span class="nav-text">终止进程</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#阻塞进程"><span class="nav-number">1.7.3.</span> <span class="nav-text">阻塞进程</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#唤醒进程"><span class="nav-number">1.7.4.</span> <span class="nav-text">唤醒进程</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的上下文切换"><span class="nav-number">1.8.</span> <span class="nav-text">进程的上下文切换</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#CPU-上下文切换"><span class="nav-number">1.8.1.</span> <span class="nav-text">CPU 上下文切换</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
