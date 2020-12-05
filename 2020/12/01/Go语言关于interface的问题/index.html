@@ -79,15 +79,17 @@
 
 
 
-<meta name="description" content="整理自Stefno：深度解密Go语言之关于 interface 的10个问题 Go 语言与鸭子类型的关系 If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.  Duck Typing，鸭子类型，是动态语言的一种对象推断策略。它更关注对象能如何被使用，而不是对象">
+<meta name="description" content="整理自Stefno：深度解密Go语言之关于 interface 的10个问题 1. Go 语言与鸭子类型的关系 If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.  Duck Typing，鸭子类型，是动态语言的一种对象推断策略。它更关注对象能如何被使用，而不">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Go语言关于interface的问题">
 <meta property="og:url" content="https://yeezycheung1997.github.io/2020/12/01/Go%E8%AF%AD%E8%A8%80%E5%85%B3%E4%BA%8Einterface%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="整理自Stefno：深度解密Go语言之关于 interface 的10个问题 Go 语言与鸭子类型的关系 If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.  Duck Typing，鸭子类型，是动态语言的一种对象推断策略。它更关注对象能如何被使用，而不是对象">
+<meta property="og:description" content="整理自Stefno：深度解密Go语言之关于 interface 的10个问题 1. Go 语言与鸭子类型的关系 If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.  Duck Typing，鸭子类型，是动态语言的一种对象推断策略。它更关注对象能如何被使用，而不">
 <meta property="og:image" content="https://pic4.zhimg.com/80/v2-f4033f68d3268ef5ff56fce81458e2ef_720w.jpg">
+<meta property="og:image" content="https://pic4.zhimg.com/80/v2-bc0aa5b14afe88a8e689eb6d84647e1f_720w.jpg">
+<meta property="og:image" content="https://pic2.zhimg.com/80/v2-5a60802192a5be81a5ba1f83aad34dfd_720w.jpg">
 <meta property="article:published_time" content="2020-12-01T16:53:00.000Z">
-<meta property="article:modified_time" content="2020-12-01T16:53:36.758Z">
+<meta property="article:modified_time" content="2020-12-01T19:06:52.028Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="Go">
 <meta name="twitter:card" content="summary">
@@ -357,7 +359,7 @@
 
       
         <p>整理自<a href="https://zhuanlan.zhihu.com/p/63649977" target="_blank" rel="noopener">Stefno：深度解密Go语言之关于 interface 的10个问题</a></p>
-<h4 id="Go-语言与鸭子类型的关系"><a href="#Go-语言与鸭子类型的关系" class="headerlink" title="Go 语言与鸭子类型的关系"></a>Go 语言与鸭子类型的关系</h4><blockquote>
+<h4 id="1-Go-语言与鸭子类型的关系"><a href="#1-Go-语言与鸭子类型的关系" class="headerlink" title="1. Go 语言与鸭子类型的关系"></a>1. Go 语言与鸭子类型的关系</h4><blockquote>
 <p>If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.</p>
 </blockquote>
 <p><code>Duck Typing</code>，鸭子类型，是动态语言的一种对象推断策略。它更关注对象能如何被使用，而不是对象的类型本身。Go 语言作为一门静态语言，它通过接口的方式完美支持鸭子类型。</p>
@@ -382,7 +384,7 @@
 <p>变量绑定的类型是不确定的，在运行期间才能确定函数和方法可以接收任何类型的参数，且调用时不检查参数类型,不需要实现接口</p>
 </blockquote>
 <p>鸭子类型是动态语言的风格，在该风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由它”当前方法和属性的集合”决定。Go 作为一种静态语言，通过接口实现了鸭子类型，实际上是 Go 的编译器作了隐匿的转换工作。</p>
-<h4 id="值接收者和指针接收者的区别"><a href="#值接收者和指针接收者的区别" class="headerlink" title="值接收者和指针接收者的区别"></a>值接收者和指针接收者的区别</h4><h5 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h5><p><strong>方法能给用户自定义的类型添加新的行为。它和函数的区别在于方法有一个接收者，添加了接收者的函数就变成了方法。接收者可以是值接收者或指针接收者。</strong></p>
+<h4 id="2-值接收者和指针接收者的区别"><a href="#2-值接收者和指针接收者的区别" class="headerlink" title="2. 值接收者和指针接收者的区别"></a>2. 值接收者和指针接收者的区别</h4><h5 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h5><p><strong>方法能给用户自定义的类型添加新的行为。它和函数的区别在于方法有一个接收者，添加了接收者的函数就变成了方法。接收者可以是值接收者或指针接收者。</strong></p>
 <p><strong>在调用方法时，值类型既能调用<code>值接收者</code>的方法，也能调用<code>指针接收者</code>的方法；指针类型既能调用<code>指针接收者</code>的方法，也能<code>调用值接收者</code>的方法。也就是说，不管方法的接收者是什么类型，该类型的值和指针都可以调用，不必严格符合接收者的类型。</strong></p>
 <p>举个例子：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Person <span class="keyword">struct</span> &#123;</span><br><span class="line">    age <span class="keyword">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p Person)</span> <span class="title">howOld</span><span class="params">()</span> <span class="title">int</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> p.age</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Person)</span> <span class="title">growUp</span><span class="params">()</span></span> &#123;</span><br><span class="line">    p.age += <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// qcrao 是值类型</span></span><br><span class="line">    qcrao := Person&#123;age: <span class="number">18</span>&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 值类型 调用接收者也是值类型的方法</span></span><br><span class="line">    fmt.Println(qcrao.howOld())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 值类型 调用接收者是指针类型的方法</span></span><br><span class="line">    qcrao.growUp()</span><br><span class="line">    fmt.Println(qcrao.howOld())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ----------------------</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// stefno 是指针类型</span></span><br><span class="line">    stefno := &amp;Person&#123;age: <span class="number">100</span>&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指针类型 调用接收者是值类型的方法</span></span><br><span class="line">    fmt.Println(stefno.howOld())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指针类型 调用接收者也是指针类型的方法</span></span><br><span class="line">    stefno.growUp()</span><br><span class="line">    fmt.Println(stefno.howOld())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -424,7 +426,7 @@
 <ul>
 <li><p>当实现了一个接收者是值类型的方法，就可以自动生成一个接收者是对应指针类型的方法，因为两者都是值类型的方法，不影响接收者。</p>
 </li>
-<li><p>当实现了一个接收者是指针类型的方法，如果也自动生成一个接收者是值类型的方法，原本希望对接收者的改变（通过指针实现），现在无法实现，因为值类型会产生一个拷贝，不会真正影响调用者。</p>
+<li><p>当实现了一个接收者是指针类型的方法，如果也自动生成一个接收者是值类型的方法，原本希望对接收者的改变（通过指针实现）则无法实现。因为值类型会产生一个拷贝，不会真正影响调用者。</p>
 </li>
 <li><p>如果实现了接收者是值类型的方法，会隐含地也实现了接收者是指针类型的方法。</p>
 </li>
@@ -437,12 +439,40 @@
 </ul>
 <p>使用指针作为方法的接收者的理由：</p>
 <ul>
-<li>方法能够修改接收者指向的值</li>
-<li>避免在每次调用方法时复制该值。如果值的类型是大型结构体，这样会更高效</li>
+<li><p>方法能够修改接收者指向的值</p>
+</li>
+<li><p>避免在每次调用方法时复制该值。如果值的类型是大型结构体，这样会更高效</p>
+</li>
 </ul>
 <p>是使用值接收者还是指针接收者，不是由该方法是否修改了接收者来决定，而应该基于该类型的<code>本质</code>。</p>
-<p>如果类型具备“原始的本质”，它的成员都是由 Go 的原始类型，如字符串，整型值等，那就定义值接收者类型的方法。像引用类型如 slice，map，interface，channel，这些类型比较特殊，声明他们的时候，实际上是创建了一个 header， 对于他们也是直接定义值接收者类型的方法。这样，调用函数时，是直接 copy 了这些类型的 header，而 header 本身就是为复制设计的。</p>
+<p>如果类型具备“原始的本质”，该类型的成员都是 Go 的原始类型，如字符串，整型值等，那就定义值接收者类型的方法。像引用类型如 slice，map，interface，channel，声明这些类型时，实际上创建了一个 header， 对于他们也是直接定义值接收者类型的方法。这样调用函数时，是直接 copy 了这些类型的 header，而 header 本身就是为复制设计的。</p>
 <p>如果类型具备非原始的本质，不能被安全地复制，这种类型总是应该被共享，那就定义指针接收者的方法。比如 go 源码里的文件结构体（struct File）就不应该被复制，应该只有一份实体。(去看《Go 语言实战》5.3 那一节。)</p>
+<h4 id="3-iface-和-eface-的区别"><a href="#3-iface-和-eface-的区别" class="headerlink" title="3. iface 和 eface 的区别"></a>3. iface 和 eface 的区别</h4><p>iface 和 eface 是 Go 中描述接口的底层结构体：</p>
+<ul>
+<li><p>iface 描述的接口包含方法</p>
+</li>
+<li><p>eface 是不包含任何方法的空接口：<code>interface{}</code></p>
+</li>
+</ul>
+<p>源码：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> iface <span class="keyword">struct</span> &#123;</span><br><span class="line">    tab  *itab</span><br><span class="line">    data unsafe.Pointer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> itab <span class="keyword">struct</span> &#123;</span><br><span class="line">    inter  *interfacetype</span><br><span class="line">    _type  *_type</span><br><span class="line">    link   *itab</span><br><span class="line">    hash   <span class="keyword">uint32</span> <span class="comment">// copy of _type.hash. Used for type switches.</span></span><br><span class="line">    bad    <span class="keyword">bool</span>   <span class="comment">// type does not implement interface</span></span><br><span class="line">    inhash <span class="keyword">bool</span>   <span class="comment">// has this itab been added to hash?</span></span><br><span class="line">    unused [<span class="number">2</span>]<span class="keyword">byte</span></span><br><span class="line">    fun    [<span class="number">1</span>]<span class="keyword">uintptr</span> <span class="comment">// variable sized</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>iface 内部维护两个指针：</p>
+<ul>
+<li><p>tab 指向一个 itab 实体，它表示接口的类型以及赋给这个接口的实体类型</p>
+</li>
+<li><p>data 指向接口具体的值，一般而言是一个指向堆内存的指针</p>
+</li>
+</ul>
+<p>itab 结构体中，<code>_type</code> 字段描述了实体的类型，包括内存对齐方式，大小等；inter 字段则描述了接口的类型。fun 字段放置和接口方法对应的具体数据类型的方法地址，实现接口调用方法的动态分派，一般在每次给接口赋值发生转换时会更新此表，或者直接拿缓存的 itab。</p>
+<p>为什么 fun 数组的大小为 1，要是接口定义了多个方法怎么办？实际上，这里存储的是第一个方法的函数指针，如果有更多的方法，在它之后的内存空间里继续存储。从汇编角度来看，通过增加地址就能获取到这些函数指针，没什么影响。这些方法是按照函数名称的字典序进行排列的。</p>
+<p>再看一下 interfacetype 类型，它描述的是接口的类型：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> interfacetype <span class="keyword">struct</span> &#123;</span><br><span class="line">    typ     _type</span><br><span class="line">    pkgpath name</span><br><span class="line">    mhdr    []imethod</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>_type 实际上是描述 Go 语言中各种数据类型的结构体。我们注意到，这里还包含一个 mhdr 字段，表示接口所定义的函数列表， pkgpath 记录定义了接口的包名。</p>
+<p>这里通过一张图来看下 iface 结构体的全貌：<br><img src="https://pic4.zhimg.com/80/v2-bc0aa5b14afe88a8e689eb6d84647e1f_720w.jpg" alt="img"></p>
+<p>eface 的源码：</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> eface <span class="keyword">struct</span> &#123;</span><br><span class="line">    _type *_type</span><br><span class="line">    data  unsafe.Pointer</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相比 iface，eface 就很简单了。只维护了一个 _type 字段，表示空接口所承载的具体的实体类型。data 描述了具体的值。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-5a60802192a5be81a5ba1f83aad34dfd_720w.jpg" alt="img"></p>
 
       
     </div>
@@ -511,6 +541,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/12/05/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/" rel="prev" title="Redis的持久化机制">
+                Redis的持久化机制 <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -591,7 +625,7 @@
               
                 <a href="/archives/%7C%7C%20archive">
               
-                  <span class="site-state-item-count">25</span>
+                  <span class="site-state-item-count">26</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -604,7 +638,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -679,7 +713,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Go-语言与鸭子类型的关系"><span class="nav-number">1.</span> <span class="nav-text">Go 语言与鸭子类型的关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#值接收者和指针接收者的区别"><span class="nav-number">2.</span> <span class="nav-text">值接收者和指针接收者的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#方法"><span class="nav-number">2.1.</span> <span class="nav-text">方法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#值接收者和指针接收者"><span class="nav-number">2.2.</span> <span class="nav-text">值接收者和指针接收者</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#两者分别在何时使用"><span class="nav-number">2.3.</span> <span class="nav-text">两者分别在何时使用</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Go-语言与鸭子类型的关系"><span class="nav-number">1.</span> <span class="nav-text">1. Go 语言与鸭子类型的关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-值接收者和指针接收者的区别"><span class="nav-number">2.</span> <span class="nav-text">2. 值接收者和指针接收者的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#方法"><span class="nav-number">2.1.</span> <span class="nav-text">方法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#值接收者和指针接收者"><span class="nav-number">2.2.</span> <span class="nav-text">值接收者和指针接收者</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#两者分别在何时使用"><span class="nav-number">2.3.</span> <span class="nav-text">两者分别在何时使用</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-iface-和-eface-的区别"><span class="nav-number">3.</span> <span class="nav-text">3. iface 和 eface 的区别</span></a></li></ol></div>
             
 
           </div>

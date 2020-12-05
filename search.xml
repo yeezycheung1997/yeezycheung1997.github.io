@@ -1,10 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Redis的持久化机制</title>
+    <url>/2020/12/05/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</url>
+    <content><![CDATA[<p>整理自<a href="https://zhuanlan.zhihu.com/p/106997927" target="_blank" rel="noopener">Redis的持久化机制(RDB、AOF)</a></p>
+<h2 id="1-为什么需要持久化？"><a href="#1-为什么需要持久化？" class="headerlink" title="1. 为什么需要持久化？"></a>1. 为什么需要持久化？</h2><p>Redis是内存数据库，会将数据存储在内存里。一旦Redis服务器进程退出或运行Redis服务器的计算机停机，Redis服务器中的数据就会丢失。</p>
+<p><strong>为了避免数据丢失，Redis提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。</strong></p>
+<p>Redis提供了2种持久化方式：</p>
+<ol>
+<li>RDB持久化</li>
+<li>AOF持久化</li>
+</ol>
+<h2 id="2-RDB持久化"><a href="#2-RDB持久化" class="headerlink" title="2. RDB持久化"></a>2. RDB持久化</h2><p>RDB持久化：将某个时间点上Redis中的数据保存到一个RDB文件中，如下所示：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-d477adb19e5dc7ca72211c25c8b368e1_720w.jpg" alt="img"></p>
+<p>该文件是一个经过压缩的二进制文件，通过该文件可以还原生成RDB文件时Redis中的数据，如下所示：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-483dda2e7139aafbe4c0c95cf1a8891e_720w.jpg" alt="img"></p>
+<h3 id="2-1-创建RDB文件"><a href="#2-1-创建RDB文件" class="headerlink" title="2.1 创建RDB文件"></a>2.1 创建RDB文件</h3><p>Redis提供了2个命令来创建RDB文件：<code>SAVE</code> 和 <code>BGSAVE</code>。</p>
+<p>SAVE命令会阻塞Redis服务器进程，直到RDB文件创建完毕为止。在服务器进程阻塞期间，服务器不能处理任何命令请求，如下所示：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-533b8dcca3075e0c773cc1303d0f04ed_720w.jpg" alt="img"></p>
+<p>BGSAVE命令会派生出一个子进程，由子进程负责创建RDB文件，服务器进程（父进程）继续处理命令请求，如下所示：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-ff9360549e3991cc17df9accf286169b_720w.jpg" alt="img"></p>
+<p>推荐使用BGSAVE命令，因为该命令可以在不阻塞服务器进程的情况下执行。</p>
+<p>我们可以手动执行该命令，如上所示。但还是推荐配置Redis服务器配置文件的save选项，让服务器每隔一段时间自动执行一次BGSAVE命令。</p>
+<p>save选项有多个保存条件，其中任意一个条件被满足，服务器就会执行BGSAVE命令。</p>
+<p>save选项设置的默认条件：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-0aa8c6475ab870cc4aa5658ee1d6e9e5_720w.jpg" alt="img"></p>
+<p>默认的配置条件：</p>
+<ul>
+<li>服务器在900s（15分钟）内，对数据库进行了至少1次修改</li>
+<li>服务器在300s（5分钟）内，对数据库进行了至少10次修改</li>
+<li>服务器在60s（1分钟）内，对数据库进行了至少10000次修改</li>
+</ul>
+<p>当满足条件执行BGSAVE命令时，输出日志如下图所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-b712556dc9ac6b31130eaf5fd10b7c50_720w.png" alt="img"></p>
+<p>生成的RDB文件会根据Redis配置文件中的名称和路径来保存，相关的2个配置如下所示：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-c90e2e95bff1082447883877ab392699_720w.jpg" alt="img"></p>
+<p>最终生成的RDB文件：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-a25615bcf3c99f850ee915644bf68487_720w.jpg" alt="img"></p>
+<h3 id="2-2-载入RDB文件"><a href="#2-2-载入RDB文件" class="headerlink" title="2.2 载入RDB文件"></a>2.2 载入RDB文件</h3><p>载入RDB文件的目的：为了Redis服务器进程重启后还原之前存储在Redis中的数据。</p>
+<p>Redis没有专门的命令载入RDB文件，Redis服务器启动时自动执行。</p>
+<p>Redis服务器启动时是否会载入RDB文件取决于<strong>服务器是否启用了AOF持久化功能</strong>：</p>
+<ol>
+<li>如果AOF持久化功能关闭，服务器使用RDB文件还原数据。</li>
+<li>如果AOF持久化功能开启，服务器优先使用AOF文件还原数据。</li>
+</ol>
+<p><img src="https://pic1.zhimg.com/80/v2-02846b978a016f3888191ac4c2a55dd0_720w.jpg" alt="img"></p>
+<p>默认情况下，Redis服务器的AOF持久化功能是关闭的，所以Redis服务器在启动时会载入RDB文件，</p>
+<p>启动日志如下所示：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-b50e388e533e68935ca61a53713fd0cf_720w.jpg" alt="img"></p>
+<h3 id="2-3-服务器状态"><a href="#2-3-服务器状态" class="headerlink" title="2.3 服务器状态"></a>2.3 服务器状态</h3><p>创建和载入RDB文件，服务器可能存在的状态有以下3种：</p>
+<ol>
+<li>当执行SAVE命令时，Redis服务器被阻塞，此时客户端发送的所有命令请求都被阻塞。只有服务器执行完SAVE命令后，客户端发送的命令请求才会被处理。</li>
+<li>当执行BGSAVE命令时，Redis服务器不被阻塞，Redis服务器可以继续处理客户端发送的命令请求。</li>
+<li>服务器在载入RDB文件期间，一直处于阻塞状态直到RDB文件载入成功。</li>
+</ol>
+<h2 id="3-AOF持久化"><a href="#3-AOF持久化" class="headerlink" title="3. AOF持久化"></a>3. AOF持久化</h2><p>AOF持久化是<strong>通过保存Redis服务器执行的写命令来记录数据库数据的</strong>。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-420d66c1596a1271dc3b7426d32b496e_720w.jpg" alt="img"></p>
+<p>默认情况下，AOF持久化功能是关闭的。可以修改下图所示的配置打开：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-7a2641ac6682b6064331f1595d869779_720w.jpg" alt="img"></p>
+<p>假设Redis中未存储任何数据，执行如下所示的命令：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-66ada753cd94512c3e498bc4ddc1ca1b_720w.jpg" alt="img"></p>
+<p>然后可以发现Redis服务器生成了一个名为<code>appendonly.aof</code>的文件。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-cb937b6b6c1aa4e98083c6dfd3fd7a29_720w.jpg" alt="img"></p>
+<p>打开该文件，可以看到上面执行的3个写命令都存储在该文件中：</p>
+<p><img src="https://pic4.zhimg.com/80/v2-19c21104282b30f01baf0bcd47c167a7_720w.jpg" alt="img"></p>
+<h3 id="3-1-AOF持久化的实现"><a href="#3-1-AOF持久化的实现" class="headerlink" title="3.1 AOF持久化的实现"></a>3.1 AOF持久化的实现</h3><p>当AOF持久化功能处于打开状态，Redis服务器在执行完一个写命令后，会以协议格式（如上面截图中AOF文件里保存写命令的格式）将被执行的写命令追加到服务器状态的AOF缓冲区的末尾，然后Redis服务器根据配置文件中appendfsync选项的值来决定何时将AOF缓冲区中的内容写入和同步到AOF文件里。</p>
+<p>appendfsync选项有以下3个值：</p>
+<ol>
+<li>always<br>从安全性来说，always最安全（丢失数据最少）。即使出现故障停机，数据库只会丢失一个事件循环中所产生的命令数据。<br>从效率来说，always效率最慢。因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，并且同步AOF文件。</li>
+<li>everysec<br>从安全性来说，everysec模式下，即使出现故障停机，数据库只会丢失一秒钟的命令数据。<br>从效率来说，everysec模式足够快，因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，并且每隔一秒就要在子线程中对AOF文件进行同步。</li>
+<li>no<br>从安全性来说，no模式下，如果出现故障停机，数据库会丢失上次同步AOF文件之后的所有写命令数据，具有不确定性，因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，至于何时对AOF文件进行同步，则由操作系统控制。<br>从效率来说，no模式和everysec模式的效率差不多。</li>
+</ol>
+<p>appendfsync选项的默认值是everysec，也推荐使用这个值，因为既保证了效率又保证了安全性。</p>
+<p><img src="https://pic3.zhimg.com/80/v2-c16dbb5154ad5a9daf8913171be4630a_720w.jpg" alt="img"></p>
+<h3 id="3-2-载入AOF文件"><a href="#3-2-载入AOF文件" class="headerlink" title="3.2 载入AOF文件"></a>3.2 载入AOF文件</h3><p>AOF文件包含了重建数据库所需的所有写命令，所以Redis服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就能还原Redis服务器关闭之前的数据。</p>
+<p>Redis读取AOF文件并还原数据库的详细步骤如下：</p>
+<ol>
+<li>创建一个不带网络连接的伪客户端<br>因为Redis的命令只能在客户端上下文中执行，而载入AOF文件时所使用的命令直接来源于AOF文件而不是网络连接，所以服务器使用了一个没有网络连接的伪客户端来执行AOF文件保存的写命令。<br>伪客户端执行命令的效果和带网络连接的客户端执行命令的效果完全一样。</li>
+<li>从AOF文件中分析并读取出一条写命令。</li>
+<li>使用伪客户端执行被读取出的写命令。</li>
+<li>一直执行步骤2和步骤3，直到AOF文件中的所有写命令都被执行完毕。</li>
+</ol>
+<p>以上步骤如下图所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-499981ec15682b4316a2d1bc3a944d34_720w.jpg" alt="img"></p>
+<p>如果Redis服务器开启了AOF持久化功能，那么Redis服务器在启动时会载入AOF文件，</p>
+<p>启动日志如下所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-8e7f6c21345e673bb7f1914b6fc1cbac_720w.jpg" alt="img"></p>
+<h3 id="3-3-AOF重写"><a href="#3-3-AOF重写" class="headerlink" title="3.3 AOF重写"></a>3.3 AOF重写</h3><p>因为AOF持久化是通过保存被执行的写命令来记录数据库数据的，所以随着Redis服务器运行时间的增加，AOF文件中的内容会越来越多，文件的体积会越来越大，如果不做控制，会有以下2点坏处：</p>
+<ol>
+<li><p>过多的占用服务器磁盘空间，可能会对Redis服务器甚至整个宿主计算机造成影响。</p>
+</li>
+<li><p>AOF文件的体积越大，使用AOF文件来进行数据库还原所需的时间就越多。</p>
+</li>
+</ol>
+<p>举个例子，在客户端执行如下命令：</p>
+<p><img src="https://pic2.zhimg.com/80/v2-84b8800abe3224d21f4cd8fcf9229561_720w.jpg" alt="img"></p>
+<p>为了记录这个list键的状态，AOF文件就需要保存上面执行的6条命令。</p>
+<p>为了解决AO文件体积越来越大的问题，Redis提供了AOF文件重写功能，即Redis服务器会创建一个新的AOF文件来替代现有的AOF文件，新旧两个AOF文件所保存的数据库数据相同，但新AOF文件不会包含任何浪费空间的冗余命令，所以新AOF文件的体积通常会比旧AOF文件的体积要小很多。</p>
+<h3 id="3-3-1-AOF重写的实现原理"><a href="#3-3-1-AOF重写的实现原理" class="headerlink" title="3.3.1 AOF重写的实现原理"></a>3.3.1 AOF重写的实现原理</h3><p>AOF文件重写无需对现有的AOF文件进行任何读取、分析或写入操作，而是通过读取服务器当前的数据库数据来实现的。</p>
+<p>仍然以上面的list键为例，旧的AOF文件保存了6条命令来记录list键的状态，但list键的结果是“C” “D” “E” “F” “G”这样的数据，所以AOF文件重写时，可以用一条<code>RPUSH list “C” &quot;D&quot; &quot;E&quot; &quot;F&quot; &quot;G&quot;</code>命令代替之前的六条命令，将保存list键所需的命令从六条减少为一条。</p>
+<p>如果Redis服务器存储的键值对足够多，AOF文件重写生成的新AOF文件会减少很多的冗余命令，大大减小了AOF文件的体积。</p>
+<p><strong>AOF文件重写功能的实现原理：首先从数据库中读取键现在的值，然后用一条命令去记录键值对，代替之前记录这个键值对的多条命令。</strong></p>
+<h3 id="3-3-2-AOF后台重写"><a href="#3-3-2-AOF后台重写" class="headerlink" title="3.3.2 AOF后台重写"></a>3.3.2 AOF后台重写</h3><p>因为AOF文件重写会进行大量的文件写入操作，所以执行这个操作的线程将被长时间阻塞。</p>
+<p>因为Redis服务器使用单个线程来处理命令请求，如果由服务器进程直接执行该操作，那么在重写AOF文件期间，服务器将无法处理客户端发送过来的命令请求。</p>
+<p>为了避免上述问题，Redis将AOF文件重写功能放到子进程里执行，这样做有以下2个好处：</p>
+<ol>
+<li><p>子进程进行AOF文件重写期间，服务器进程（父进程）可以继续处理命令请求。</p>
+</li>
+<li><p>子进程带有服务器进程的数据副本，使用子进程而不是线程，可以在避免使用锁的情况下，保证数据的安全性。</p>
+</li>
+</ol>
+<p>AOF后台重写的步骤如下所示：</p>
+<ol>
+<li><p>服务器进程创建子进程，子进程开始AOF文件重写</p>
+</li>
+<li><p>从创建子进程开始，服务器进程执行的所有写命令不仅要写入AOF缓冲区，还要写入AOF重写缓冲区。</p>
+<p>写入AOF缓冲区的目的是为了同步到原有的AOF文件。</p>
+<p>写入AOF重写缓冲区的目的是因为子进程在进行AOF文件重写期间，服务器进程还在继续处理命令请求，<br>而新的命令可能会对现有的数据库进行修改，从而使得服务器当前的数据库数据和重写后的AOF文件所保存的数据库数据不一致。</p>
+</li>
+<li><p>子进程完成AOF重写工作，向父进程发送一个信号，父进程在接收到该信号后，会执行以下操作：</p>
+<ol>
+<li><p>将AOF重写缓冲区中的所有内容写入到新AOF文件中，这样就保证了新AOF文件所保存的数据库数据和服务器当前的数据库数据是一致的。</p>
+</li>
+<li><p>对新的AOF文件进行改名，原子地覆盖现有的AOF文件，完成新旧两个AOF文件的替换。</p>
+</li>
+</ol>
+</li>
+</ol>
+<p>Redis提供了<code>BGREWRITEAOF</code>命令来执行以上步骤，如下图所示：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-991242e17d16e01e97b8be28a9b55ae4_720w.png" alt="img"></p>
+<p>执行完成后，打开appendonly.aof文件，发现保存list键的命令从六条变为了一条：</p>
+<p><img src="https://pic3.zhimg.com/80/v2-533dd929ac693841cc5a638145e763ee_720w.jpg" alt="img"></p>
+<p>除了手动执行<code>BGREWRITEAOF</code>命令外，Redis还提供了2个配置项用来自动执行<code>BGREWRITEAOF</code>命令：</p>
+<blockquote>
+<p>auto-aof-rewrite-percentage 100<br>auto-aof-rewrite-min-size 64mb</p>
+</blockquote>
+<p><img src="https://pic3.zhimg.com/80/v2-b258c3322723f2d407793b05472d4f4e_720w.jpg" alt="img"></p>
+<p>该配置表示，当AOF文件的体积大于64MB，并且AOF文件的体积比上一次重写之后的体积大了至少一倍（100%），Redis将自动执行<code>BGREWRITEAOF</code>命令。</p>
+<h2 id="4-RDB持久化、AOF持久化的区别"><a href="#4-RDB持久化、AOF持久化的区别" class="headerlink" title="4. RDB持久化、AOF持久化的区别"></a>4. RDB持久化、AOF持久化的区别</h2><p>Redis提供的2种持久化方法的区别的可以总结为以下4点：</p>
+<ol>
+<li><p>实现方式</p>
+</li>
+<li><p>文件体积</p>
+</li>
+<li><p>安全性</p>
+</li>
+<li><p>优先级</p>
+</li>
+</ol>
+<h3 id="4-1-实现方式"><a href="#4-1-实现方式" class="headerlink" title="4.1 实现方式"></a>4.1 实现方式</h3><p>RDB持久化是通过将某个时间点Redis服务器存储的数据保存到RDB文件中来实现持久化的。</p>
+<p>AOF持久化是通过将Redis服务器执行的所有写命令保存到AOF文件中来实现持久化的。</p>
+<h3 id="4-2-文件体积"><a href="#4-2-文件体积" class="headerlink" title="4.2 文件体积"></a>4.2 文件体积</h3><p>由上述实现方式可知，RDB持久化记录的是结果，AOF持久化记录的是过程，所以AOF持久化生成的AOF文件会有体积越来越大的问题，Redis提供了AOF重写功能来减小AOF文件体积。</p>
+<h3 id="4-3-安全性"><a href="#4-3-安全性" class="headerlink" title="4.3 安全性"></a>4.3 安全性</h3><p>AOF持久化的安全性要比RDB持久化的安全性高，即如果发生机器故障，AOF持久化要比RDB持久化丢失的数据要少。</p>
+<p>因为RDB持久化会丢失上次RDB持久化后写入的数据，而AOF持久化最多丢失1s之内写入的数据（使用默认everysec配置的话）。</p>
+<h3 id="4-4-优先级"><a href="#4-4-优先级" class="headerlink" title="4.4 优先级"></a>4.4 优先级</h3><p>由于上述的安全性问题，如果Redis服务器开启了AOF持久化功能，Redis服务器在启动时会使用AOF文件来还原数据，如果Redis服务器没有开启AOF持久化功能，Redis服务器在启动时会使用RDB文件来还原数据，所以AOF文件的优先级比RDB文件的优先级高。</p>
+]]></content>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Go语言关于interface的问题</title>
     <url>/2020/12/01/Go%E8%AF%AD%E8%A8%80%E5%85%B3%E4%BA%8Einterface%E7%9A%84%E9%97%AE%E9%A2%98/</url>
     <content><![CDATA[<p>整理自<a href="https://zhuanlan.zhihu.com/p/63649977" target="_blank" rel="noopener">Stefno：深度解密Go语言之关于 interface 的10个问题</a></p>
-<h4 id="Go-语言与鸭子类型的关系"><a href="#Go-语言与鸭子类型的关系" class="headerlink" title="Go 语言与鸭子类型的关系"></a>Go 语言与鸭子类型的关系</h4><blockquote>
+<h4 id="1-Go-语言与鸭子类型的关系"><a href="#1-Go-语言与鸭子类型的关系" class="headerlink" title="1. Go 语言与鸭子类型的关系"></a>1. Go 语言与鸭子类型的关系</h4><blockquote>
 <p>If it looks like a duck, swims like a duck, and quacks like a duck, then it probably is a duck.</p>
 </blockquote>
 <p><code>Duck Typing</code>，鸭子类型，是动态语言的一种对象推断策略。它更关注对象能如何被使用，而不是对象的类型本身。Go 语言作为一门静态语言，它通过接口的方式完美支持鸭子类型。</p>
@@ -29,7 +188,7 @@
 <p>变量绑定的类型是不确定的，在运行期间才能确定函数和方法可以接收任何类型的参数，且调用时不检查参数类型,不需要实现接口</p>
 </blockquote>
 <p>鸭子类型是动态语言的风格，在该风格中，一个对象有效的语义，不是由继承自特定的类或实现特定的接口，而是由它”当前方法和属性的集合”决定。Go 作为一种静态语言，通过接口实现了鸭子类型，实际上是 Go 的编译器作了隐匿的转换工作。</p>
-<h4 id="值接收者和指针接收者的区别"><a href="#值接收者和指针接收者的区别" class="headerlink" title="值接收者和指针接收者的区别"></a>值接收者和指针接收者的区别</h4><h5 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h5><p><strong>方法能给用户自定义的类型添加新的行为。它和函数的区别在于方法有一个接收者，添加了接收者的函数就变成了方法。接收者可以是值接收者或指针接收者。</strong></p>
+<h4 id="2-值接收者和指针接收者的区别"><a href="#2-值接收者和指针接收者的区别" class="headerlink" title="2. 值接收者和指针接收者的区别"></a>2. 值接收者和指针接收者的区别</h4><h5 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h5><p><strong>方法能给用户自定义的类型添加新的行为。它和函数的区别在于方法有一个接收者，添加了接收者的函数就变成了方法。接收者可以是值接收者或指针接收者。</strong></p>
 <p><strong>在调用方法时，值类型既能调用<code>值接收者</code>的方法，也能调用<code>指针接收者</code>的方法；指针类型既能调用<code>指针接收者</code>的方法，也能<code>调用值接收者</code>的方法。也就是说，不管方法的接收者是什么类型，该类型的值和指针都可以调用，不必严格符合接收者的类型。</strong></p>
 <p>举个例子：</p>
 <figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> Person <span class="keyword">struct</span> &#123;</span><br><span class="line">    age <span class="keyword">int</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p Person)</span> <span class="title">howOld</span><span class="params">()</span> <span class="title">int</span></span> &#123;</span><br><span class="line">    <span class="keyword">return</span> p.age</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(p *Person)</span> <span class="title">growUp</span><span class="params">()</span></span> &#123;</span><br><span class="line">    p.age += <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// qcrao 是值类型</span></span><br><span class="line">    qcrao := Person&#123;age: <span class="number">18</span>&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 值类型 调用接收者也是值类型的方法</span></span><br><span class="line">    fmt.Println(qcrao.howOld())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 值类型 调用接收者是指针类型的方法</span></span><br><span class="line">    qcrao.growUp()</span><br><span class="line">    fmt.Println(qcrao.howOld())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ----------------------</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// stefno 是指针类型</span></span><br><span class="line">    stefno := &amp;Person&#123;age: <span class="number">100</span>&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指针类型 调用接收者是值类型的方法</span></span><br><span class="line">    fmt.Println(stefno.howOld())</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 指针类型 调用接收者也是指针类型的方法</span></span><br><span class="line">    stefno.growUp()</span><br><span class="line">    fmt.Println(stefno.howOld())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -71,7 +230,7 @@
 <ul>
 <li><p>当实现了一个接收者是值类型的方法，就可以自动生成一个接收者是对应指针类型的方法，因为两者都是值类型的方法，不影响接收者。</p>
 </li>
-<li><p>当实现了一个接收者是指针类型的方法，如果也自动生成一个接收者是值类型的方法，原本希望对接收者的改变（通过指针实现），现在无法实现，因为值类型会产生一个拷贝，不会真正影响调用者。</p>
+<li><p>当实现了一个接收者是指针类型的方法，如果也自动生成一个接收者是值类型的方法，原本希望对接收者的改变（通过指针实现）则无法实现。因为值类型会产生一个拷贝，不会真正影响调用者。</p>
 </li>
 <li><p>如果实现了接收者是值类型的方法，会隐含地也实现了接收者是指针类型的方法。</p>
 </li>
@@ -84,12 +243,40 @@
 </ul>
 <p>使用指针作为方法的接收者的理由：</p>
 <ul>
-<li>方法能够修改接收者指向的值</li>
-<li>避免在每次调用方法时复制该值。如果值的类型是大型结构体，这样会更高效</li>
+<li><p>方法能够修改接收者指向的值</p>
+</li>
+<li><p>避免在每次调用方法时复制该值。如果值的类型是大型结构体，这样会更高效</p>
+</li>
 </ul>
 <p>是使用值接收者还是指针接收者，不是由该方法是否修改了接收者来决定，而应该基于该类型的<code>本质</code>。</p>
-<p>如果类型具备“原始的本质”，它的成员都是由 Go 的原始类型，如字符串，整型值等，那就定义值接收者类型的方法。像引用类型如 slice，map，interface，channel，这些类型比较特殊，声明他们的时候，实际上是创建了一个 header， 对于他们也是直接定义值接收者类型的方法。这样，调用函数时，是直接 copy 了这些类型的 header，而 header 本身就是为复制设计的。</p>
+<p>如果类型具备“原始的本质”，该类型的成员都是 Go 的原始类型，如字符串，整型值等，那就定义值接收者类型的方法。像引用类型如 slice，map，interface，channel，声明这些类型时，实际上创建了一个 header， 对于他们也是直接定义值接收者类型的方法。这样调用函数时，是直接 copy 了这些类型的 header，而 header 本身就是为复制设计的。</p>
 <p>如果类型具备非原始的本质，不能被安全地复制，这种类型总是应该被共享，那就定义指针接收者的方法。比如 go 源码里的文件结构体（struct File）就不应该被复制，应该只有一份实体。(去看《Go 语言实战》5.3 那一节。)</p>
+<h4 id="3-iface-和-eface-的区别"><a href="#3-iface-和-eface-的区别" class="headerlink" title="3. iface 和 eface 的区别"></a>3. iface 和 eface 的区别</h4><p>iface 和 eface 是 Go 中描述接口的底层结构体：</p>
+<ul>
+<li><p>iface 描述的接口包含方法</p>
+</li>
+<li><p>eface 是不包含任何方法的空接口：<code>interface{}</code></p>
+</li>
+</ul>
+<p>源码：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> iface <span class="keyword">struct</span> &#123;</span><br><span class="line">    tab  *itab</span><br><span class="line">    data unsafe.Pointer</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">type</span> itab <span class="keyword">struct</span> &#123;</span><br><span class="line">    inter  *interfacetype</span><br><span class="line">    _type  *_type</span><br><span class="line">    link   *itab</span><br><span class="line">    hash   <span class="keyword">uint32</span> <span class="comment">// copy of _type.hash. Used for type switches.</span></span><br><span class="line">    bad    <span class="keyword">bool</span>   <span class="comment">// type does not implement interface</span></span><br><span class="line">    inhash <span class="keyword">bool</span>   <span class="comment">// has this itab been added to hash?</span></span><br><span class="line">    unused [<span class="number">2</span>]<span class="keyword">byte</span></span><br><span class="line">    fun    [<span class="number">1</span>]<span class="keyword">uintptr</span> <span class="comment">// variable sized</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>iface 内部维护两个指针：</p>
+<ul>
+<li><p>tab 指向一个 itab 实体，它表示接口的类型以及赋给这个接口的实体类型</p>
+</li>
+<li><p>data 指向接口具体的值，一般而言是一个指向堆内存的指针</p>
+</li>
+</ul>
+<p>itab 结构体中，<code>_type</code> 字段描述了实体的类型，包括内存对齐方式，大小等；inter 字段则描述了接口的类型。fun 字段放置和接口方法对应的具体数据类型的方法地址，实现接口调用方法的动态分派，一般在每次给接口赋值发生转换时会更新此表，或者直接拿缓存的 itab。</p>
+<p>为什么 fun 数组的大小为 1，要是接口定义了多个方法怎么办？实际上，这里存储的是第一个方法的函数指针，如果有更多的方法，在它之后的内存空间里继续存储。从汇编角度来看，通过增加地址就能获取到这些函数指针，没什么影响。这些方法是按照函数名称的字典序进行排列的。</p>
+<p>再看一下 interfacetype 类型，它描述的是接口的类型：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> interfacetype <span class="keyword">struct</span> &#123;</span><br><span class="line">    typ     _type</span><br><span class="line">    pkgpath name</span><br><span class="line">    mhdr    []imethod</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>_type 实际上是描述 Go 语言中各种数据类型的结构体。我们注意到，这里还包含一个 mhdr 字段，表示接口所定义的函数列表， pkgpath 记录定义了接口的包名。</p>
+<p>这里通过一张图来看下 iface 结构体的全貌：<br><img src="https://pic4.zhimg.com/80/v2-bc0aa5b14afe88a8e689eb6d84647e1f_720w.jpg" alt="img"></p>
+<p>eface 的源码：</p>
+<figure class="highlight go"><table><tr><td class="code"><pre><span class="line"><span class="keyword">type</span> eface <span class="keyword">struct</span> &#123;</span><br><span class="line">    _type *_type</span><br><span class="line">    data  unsafe.Pointer</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>相比 iface，eface 就很简单了。只维护了一个 _type 字段，表示空接口所承载的具体的实体类型。data 描述了具体的值。</p>
+<p><img src="https://pic2.zhimg.com/80/v2-5a60802192a5be81a5ba1f83aad34dfd_720w.jpg" alt="img"></p>
 ]]></content>
       <tags>
         <tag>Go</tag>
