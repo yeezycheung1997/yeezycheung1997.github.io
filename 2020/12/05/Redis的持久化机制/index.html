@@ -79,12 +79,12 @@
 
 
 
-<meta name="description" content="整理自Redis的持久化机制(RDB、AOF) 1. 为什么需要持久化？Redis是内存数据库，会将数据存储在内存里。一旦Redis服务器进程退出或运行Redis服务器的计算机停机，Redis服务器中的数据就会丢失。 为了避免数据丢失，Redis提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redi">
+<meta name="description" content="整理自Redis的持久化机制(RDB、AOF) 1. 为什么需要持久化？Redis是内存数据库，数据存储在内存里。为了避免数据丢失，Redis提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。 Redis提供了2种持久化方式：  RDB持久化  AOF持久化   2. RD">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis的持久化机制">
 <meta property="og:url" content="https://yeezycheung1997.github.io/2020/12/05/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="整理自Redis的持久化机制(RDB、AOF) 1. 为什么需要持久化？Redis是内存数据库，会将数据存储在内存里。一旦Redis服务器进程退出或运行Redis服务器的计算机停机，Redis服务器中的数据就会丢失。 为了避免数据丢失，Redis提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redi">
+<meta property="og:description" content="整理自Redis的持久化机制(RDB、AOF) 1. 为什么需要持久化？Redis是内存数据库，数据存储在内存里。为了避免数据丢失，Redis提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。 Redis提供了2种持久化方式：  RDB持久化  AOF持久化   2. RD">
 <meta property="og:image" content="https://pic2.zhimg.com/80/v2-d477adb19e5dc7ca72211c25c8b368e1_720w.jpg">
 <meta property="og:image" content="https://pic3.zhimg.com/80/v2-483dda2e7139aafbe4c0c95cf1a8891e_720w.jpg">
 <meta property="og:image" content="https://pic2.zhimg.com/80/v2-533b8dcca3075e0c773cc1303d0f04ed_720w.jpg">
@@ -108,7 +108,7 @@
 <meta property="og:image" content="https://pic3.zhimg.com/80/v2-533dd929ac693841cc5a638145e763ee_720w.jpg">
 <meta property="og:image" content="https://pic3.zhimg.com/80/v2-b258c3322723f2d407793b05472d4f4e_720w.jpg">
 <meta property="article:published_time" content="2020-12-05T21:21:14.000Z">
-<meta property="article:modified_time" content="2020-12-05T21:21:37.677Z">
+<meta property="article:modified_time" content="2020-12-05T21:47:55.933Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -378,25 +378,26 @@
 
       
         <p>整理自<a href="https://zhuanlan.zhihu.com/p/106997927" target="_blank" rel="noopener">Redis的持久化机制(RDB、AOF)</a></p>
-<h2 id="1-为什么需要持久化？"><a href="#1-为什么需要持久化？" class="headerlink" title="1. 为什么需要持久化？"></a>1. 为什么需要持久化？</h2><p>Redis是内存数据库，会将数据存储在内存里。一旦Redis服务器进程退出或运行Redis服务器的计算机停机，Redis服务器中的数据就会丢失。</p>
-<p><strong>为了避免数据丢失，Redis提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。</strong></p>
+<h2 id="1-为什么需要持久化？"><a href="#1-为什么需要持久化？" class="headerlink" title="1. 为什么需要持久化？"></a>1. 为什么需要持久化？</h2><p>Redis是内存数据库，数据存储在内存里。为了避免数据丢失，Redis提供了持久化机制：<strong>将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。</strong></p>
 <p>Redis提供了2种持久化方式：</p>
 <ol>
-<li>RDB持久化</li>
-<li>AOF持久化</li>
+<li><p>RDB持久化</p>
+</li>
+<li><p>AOF持久化</p>
+</li>
 </ol>
-<h2 id="2-RDB持久化"><a href="#2-RDB持久化" class="headerlink" title="2. RDB持久化"></a>2. RDB持久化</h2><p>RDB持久化：将某个时间点上Redis中的数据保存到一个RDB文件中，如下所示：</p>
+<h2 id="2-RDB持久化"><a href="#2-RDB持久化" class="headerlink" title="2. RDB持久化"></a>2. RDB持久化</h2><p>RDB持久化：将某个时间点Redis中的数据保存到RDB文件中：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-d477adb19e5dc7ca72211c25c8b368e1_720w.jpg" alt="img"></p>
-<p>该文件是一个经过压缩的二进制文件，通过该文件可以还原生成RDB文件时Redis中的数据，如下所示：</p>
+<p>该文件是经过压缩的二进制文件，通过该文件可以还原生成RDB文件时Redis中的数据：</p>
 <p><img src="https://pic3.zhimg.com/80/v2-483dda2e7139aafbe4c0c95cf1a8891e_720w.jpg" alt="img"></p>
-<h3 id="2-1-创建RDB文件"><a href="#2-1-创建RDB文件" class="headerlink" title="2.1 创建RDB文件"></a>2.1 创建RDB文件</h3><p>Redis提供了2个命令来创建RDB文件：<code>SAVE</code> 和 <code>BGSAVE</code>。</p>
-<p>SAVE命令会阻塞Redis服务器进程，直到RDB文件创建完毕为止。在服务器进程阻塞期间，服务器不能处理任何命令请求，如下所示：</p>
+<h3 id="2-1-创建RDB文件"><a href="#2-1-创建RDB文件" class="headerlink" title="2.1 创建RDB文件"></a>2.1 创建RDB文件</h3><p>Redis提供了2个命令创建RDB文件：<code>SAVE</code> 和 <code>BGSAVE</code>。</p>
+<p><code>SAVE</code>命令会阻塞Redis服务器进程，直到RDB文件创建完毕为止。在服务器进程阻塞期间，服务器不能处理任何命令请求：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-533b8dcca3075e0c773cc1303d0f04ed_720w.jpg" alt="img"></p>
-<p>BGSAVE命令会派生出一个子进程，由子进程负责创建RDB文件，服务器进程（父进程）继续处理命令请求，如下所示：</p>
+<p><code>BGSAVE</code>命令会派生出一个子进程，由子进程负责创建RDB文件，服务器进程（父进程）继续处理命令请求：</p>
 <p><img src="https://pic4.zhimg.com/80/v2-ff9360549e3991cc17df9accf286169b_720w.jpg" alt="img"></p>
-<p>推荐使用BGSAVE命令，因为该命令可以在不阻塞服务器进程的情况下执行。</p>
-<p>我们可以手动执行该命令，如上所示。但还是推荐配置Redis服务器配置文件的save选项，让服务器每隔一段时间自动执行一次BGSAVE命令。</p>
-<p>save选项有多个保存条件，其中任意一个条件被满足，服务器就会执行BGSAVE命令。</p>
+<p>推荐使用BGSAVE命令，因为该命令可以不阻塞服务器进程。</p>
+<p>除了手动执行上述两个命令，还可以配置Redis服务器配置文件的save选项，让服务器每隔一段时间自动执行一次<code>BGSAVE</code>命令。</p>
+<p>save选项有多个保存条件，其中任意一个条件被满足，服务器就会执行<code>BGSAVE</code>命令。</p>
 <p>save选项设置的默认条件：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-0aa8c6475ab870cc4aa5658ee1d6e9e5_720w.jpg" alt="img"></p>
 <p>默认的配置条件：</p>
@@ -407,81 +408,109 @@
 </ul>
 <p>当满足条件执行BGSAVE命令时，输出日志如下图所示：</p>
 <p><img src="https://pic1.zhimg.com/80/v2-b712556dc9ac6b31130eaf5fd10b7c50_720w.png" alt="img"></p>
-<p>生成的RDB文件会根据Redis配置文件中的名称和路径来保存，相关的2个配置如下所示：</p>
+<p>生成的RDB文件会根据Redis配置文件中的名称和路径来保存：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-c90e2e95bff1082447883877ab392699_720w.jpg" alt="img"></p>
 <p>最终生成的RDB文件：</p>
 <p><img src="https://pic4.zhimg.com/80/v2-a25615bcf3c99f850ee915644bf68487_720w.jpg" alt="img"></p>
-<h3 id="2-2-载入RDB文件"><a href="#2-2-载入RDB文件" class="headerlink" title="2.2 载入RDB文件"></a>2.2 载入RDB文件</h3><p>载入RDB文件的目的：为了Redis服务器进程重启后还原之前存储在Redis中的数据。</p>
+<h3 id="2-2-载入RDB文件"><a href="#2-2-载入RDB文件" class="headerlink" title="2.2 载入RDB文件"></a>2.2 载入RDB文件</h3><p>载入RDB文件的目的是为了Redis服务器进程重启后还原之前存储在Redis中的数据。</p>
 <p>Redis没有专门的命令载入RDB文件，Redis服务器启动时自动执行。</p>
 <p>Redis服务器启动时是否会载入RDB文件取决于<strong>服务器是否启用了AOF持久化功能</strong>：</p>
 <ol>
-<li>如果AOF持久化功能关闭，服务器使用RDB文件还原数据。</li>
-<li>如果AOF持久化功能开启，服务器优先使用AOF文件还原数据。</li>
+<li><p>如果AOF持久化功能关闭，服务器使用RDB文件还原数据。</p>
+</li>
+<li><p>如果AOF持久化功能开启，服务器优先使用AOF文件还原数据。</p>
+</li>
 </ol>
 <p><img src="https://pic1.zhimg.com/80/v2-02846b978a016f3888191ac4c2a55dd0_720w.jpg" alt="img"></p>
-<p>默认情况下，Redis服务器的AOF持久化功能是关闭的，所以Redis服务器在启动时会载入RDB文件，</p>
-<p>启动日志如下所示：</p>
+<p>默认情况下，AOF持久化功能是关闭的，所以Redis服务器在启动时会载入RDB文件，</p>
+<p>启动日志如下：</p>
 <p><img src="https://pic4.zhimg.com/80/v2-b50e388e533e68935ca61a53713fd0cf_720w.jpg" alt="img"></p>
 <h3 id="2-3-服务器状态"><a href="#2-3-服务器状态" class="headerlink" title="2.3 服务器状态"></a>2.3 服务器状态</h3><p>创建和载入RDB文件，服务器可能存在的状态有以下3种：</p>
 <ol>
-<li>当执行SAVE命令时，Redis服务器被阻塞，此时客户端发送的所有命令请求都被阻塞。只有服务器执行完SAVE命令后，客户端发送的命令请求才会被处理。</li>
-<li>当执行BGSAVE命令时，Redis服务器不被阻塞，Redis服务器可以继续处理客户端发送的命令请求。</li>
-<li>服务器在载入RDB文件期间，一直处于阻塞状态直到RDB文件载入成功。</li>
+<li><p>执行<code>SAVE</code>命令，Redis服务器被阻塞。此时客户端发送的所有命令请求都被阻塞。只有服务器执行完<code>SAVE</code>命令后，客户端发送的命令请求才会被处理。</p>
+</li>
+<li><p>执行<code>BGSAVE</code>命令，Redis服务器不被阻塞，Redis服务器可以继续处理客户端发送的命令请求。</p>
+</li>
+<li><p>服务器在载入RDB文件期间，一直处于阻塞状态直到RDB文件载入成功。</p>
+</li>
 </ol>
 <h2 id="3-AOF持久化"><a href="#3-AOF持久化" class="headerlink" title="3. AOF持久化"></a>3. AOF持久化</h2><p>AOF持久化是<strong>通过保存Redis服务器执行的写命令来记录数据库数据的</strong>。</p>
 <p><img src="https://pic3.zhimg.com/80/v2-420d66c1596a1271dc3b7426d32b496e_720w.jpg" alt="img"></p>
 <p>默认情况下，AOF持久化功能是关闭的。可以修改下图所示的配置打开：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-7a2641ac6682b6064331f1595d869779_720w.jpg" alt="img"></p>
-<p>假设Redis中未存储任何数据，执行如下所示的命令：</p>
+<p>假设Redis中未存储任何数据，执行如下命令：</p>
 <p><img src="https://pic4.zhimg.com/80/v2-66ada753cd94512c3e498bc4ddc1ca1b_720w.jpg" alt="img"></p>
-<p>然后可以发现Redis服务器生成了一个名为<code>appendonly.aof</code>的文件。</p>
+<p>生成了<code>appendonly.aof</code>的文件。</p>
 <p><img src="https://pic2.zhimg.com/80/v2-cb937b6b6c1aa4e98083c6dfd3fd7a29_720w.jpg" alt="img"></p>
 <p>打开该文件，可以看到上面执行的3个写命令都存储在该文件中：</p>
 <p><img src="https://pic4.zhimg.com/80/v2-19c21104282b30f01baf0bcd47c167a7_720w.jpg" alt="img"></p>
-<h3 id="3-1-AOF持久化的实现"><a href="#3-1-AOF持久化的实现" class="headerlink" title="3.1 AOF持久化的实现"></a>3.1 AOF持久化的实现</h3><p>当AOF持久化功能处于打开状态，Redis服务器在执行完一个写命令后，会以协议格式（如上面截图中AOF文件里保存写命令的格式）将被执行的写命令追加到服务器状态的AOF缓冲区的末尾，然后Redis服务器根据配置文件中appendfsync选项的值来决定何时将AOF缓冲区中的内容写入和同步到AOF文件里。</p>
+<h3 id="3-1-AOF持久化的实现"><a href="#3-1-AOF持久化的实现" class="headerlink" title="3.1 AOF持久化的实现"></a>3.1 AOF持久化的实现</h3><p>当开启了AOF持久化功能，Redis服务器在执行完一个写命令后，会以协议格式（如上面截图中AOF文件里保存写命令的格式）将被执行的写命令追加到服务器状态的AOF缓冲区的末尾。Redis服务器根据配置文件中<code>appendfsync</code>选项决定何时将AOF缓冲区中的内容写入和同步到AOF文件里。</p>
 <p>appendfsync选项有以下3个值：</p>
 <ol>
-<li>always<br>从安全性来说，always最安全（丢失数据最少）。即使出现故障停机，数据库只会丢失一个事件循环中所产生的命令数据。<br>从效率来说，always效率最慢。因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，并且同步AOF文件。</li>
-<li>everysec<br>从安全性来说，everysec模式下，即使出现故障停机，数据库只会丢失一秒钟的命令数据。<br>从效率来说，everysec模式足够快，因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，并且每隔一秒就要在子线程中对AOF文件进行同步。</li>
-<li>no<br>从安全性来说，no模式下，如果出现故障停机，数据库会丢失上次同步AOF文件之后的所有写命令数据，具有不确定性，因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，至于何时对AOF文件进行同步，则由操作系统控制。<br>从效率来说，no模式和everysec模式的效率差不多。</li>
+<li><p>always：</p>
+<ul>
+<li><p>安全性：最安全（丢失数据最少）。即使出现故障停机，数据库只会丢失一个事件循环中所产生的命令数据。</p>
+</li>
+<li><p>效率：效率最慢。服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，并同步AOF文件。</p>
+</li>
+</ul>
+</li>
+<li><p>everysec：</p>
+<ul>
+<li><p>安全性：即使出现故障停机，数据库只会丢失一秒钟的命令数据。</p>
+</li>
+<li><p>效率：快，因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，并且每隔一秒就要在子线程中对AOF文件进行同步。</p>
+</li>
+</ul>
+</li>
+<li><p>no：</p>
+<ul>
+<li><p>安全性：如果出现故障停机，数据库会丢失上次同步AOF文件之后的所有写命令数据，具有不确定性。因为服务器在每个事件循环都要将AOF缓冲区中的所有内容写入到AOF文件，至于何时对AOF文件进行同步，则由操作系统控制。</p>
+</li>
+<li><p>效率：everysec模式的效率差不多。</p>
+</li>
+</ul>
+</li>
 </ol>
-<p>appendfsync选项的默认值是everysec，也推荐使用这个值，因为既保证了效率又保证了安全性。</p>
+<p>appendfsync选项的默认值是everysec，保证了效率和安全性。</p>
 <p><img src="https://pic3.zhimg.com/80/v2-c16dbb5154ad5a9daf8913171be4630a_720w.jpg" alt="img"></p>
 <h3 id="3-2-载入AOF文件"><a href="#3-2-载入AOF文件" class="headerlink" title="3.2 载入AOF文件"></a>3.2 载入AOF文件</h3><p>AOF文件包含了重建数据库所需的所有写命令，所以Redis服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就能还原Redis服务器关闭之前的数据。</p>
 <p>Redis读取AOF文件并还原数据库的详细步骤如下：</p>
 <ol>
-<li>创建一个不带网络连接的伪客户端<br>因为Redis的命令只能在客户端上下文中执行，而载入AOF文件时所使用的命令直接来源于AOF文件而不是网络连接，所以服务器使用了一个没有网络连接的伪客户端来执行AOF文件保存的写命令。<br>伪客户端执行命令的效果和带网络连接的客户端执行命令的效果完全一样。</li>
-<li>从AOF文件中分析并读取出一条写命令。</li>
-<li>使用伪客户端执行被读取出的写命令。</li>
-<li>一直执行步骤2和步骤3，直到AOF文件中的所有写命令都被执行完毕。</li>
-</ol>
-<p>以上步骤如下图所示：</p>
-<p><img src="https://pic1.zhimg.com/80/v2-499981ec15682b4316a2d1bc3a944d34_720w.jpg" alt="img"></p>
-<p>如果Redis服务器开启了AOF持久化功能，那么Redis服务器在启动时会载入AOF文件，</p>
-<p>启动日志如下所示：</p>
-<p><img src="https://pic1.zhimg.com/80/v2-8e7f6c21345e673bb7f1914b6fc1cbac_720w.jpg" alt="img"></p>
-<h3 id="3-3-AOF重写"><a href="#3-3-AOF重写" class="headerlink" title="3.3 AOF重写"></a>3.3 AOF重写</h3><p>因为AOF持久化是通过保存被执行的写命令来记录数据库数据的，所以随着Redis服务器运行时间的增加，AOF文件中的内容会越来越多，文件的体积会越来越大，如果不做控制，会有以下2点坏处：</p>
-<ol>
-<li><p>过多的占用服务器磁盘空间，可能会对Redis服务器甚至整个宿主计算机造成影响。</p>
+<li><p>创建一个不带网络连接的伪客户端：<br>Redis的命令只能在客户端上下文中执行，而载入AOF文件时所使用的命令直接来源于AOF文件而不是网络连接，所以服务器使用了一个没有网络连接的伪客户端来执行AOF文件保存的写命令。<br>伪客户端执行命令的效果等同于带网络连接的客户端。</p>
 </li>
-<li><p>AOF文件的体积越大，使用AOF文件来进行数据库还原所需的时间就越多。</p>
+<li><p>从AOF文件中分析并读取出一条写命令。</p>
+</li>
+<li><p>使用伪客户端执行被读取出的写命令。</p>
+</li>
+<li><p>一直执行步骤2和步骤3，直到AOF文件中的所有写命令都被执行完毕。</p>
+</li>
+</ol>
+<p><img src="https://pic1.zhimg.com/80/v2-499981ec15682b4316a2d1bc3a944d34_720w.jpg" alt="img"></p>
+<p>如果开启了AOF持久化功能，那么Redis服务器在启动时会载入AOF文件：</p>
+<p><img src="https://pic1.zhimg.com/80/v2-8e7f6c21345e673bb7f1914b6fc1cbac_720w.jpg" alt="img"></p>
+<h3 id="3-3-AOF重写"><a href="#3-3-AOF重写" class="headerlink" title="3.3 AOF重写"></a>3.3 AOF重写</h3><p>AOF持久化是通过保存被执行的写命令来记录数据库数据的，随着Redis服务器运行时间的增加，AOF文件中的内容会越来越多，文件的体积会越来越大。如果不做控制，会有以下坏处：</p>
+<ol>
+<li><p>过多的占用服务器磁盘空间，对Redis服务器造成影响。</p>
+</li>
+<li><p>AOF文件的体积越大，使用AOF文件来还原数据库所需的时间就越多。</p>
 </li>
 </ol>
 <p>举个例子，在客户端执行如下命令：</p>
 <p><img src="https://pic2.zhimg.com/80/v2-84b8800abe3224d21f4cd8fcf9229561_720w.jpg" alt="img"></p>
-<p>为了记录这个list键的状态，AOF文件就需要保存上面执行的6条命令。</p>
-<p>为了解决AO文件体积越来越大的问题，Redis提供了AOF文件重写功能，即Redis服务器会创建一个新的AOF文件来替代现有的AOF文件，新旧两个AOF文件所保存的数据库数据相同，但新AOF文件不会包含任何浪费空间的冗余命令，所以新AOF文件的体积通常会比旧AOF文件的体积要小很多。</p>
+<p>为了记录这个list的状态，AOF文件要保存上面执行的6条命令。</p>
+<p>为了解决AOF文件体积变大的问题，Redis提供了AOF文件重写功能：Redis服务器会创建一个新的AOF文件来替代现有的AOF文件，新旧两个AOF文件所保存的数据库数据相同，但新AOF文件不包含任何浪费空间的冗余命令，所以新AOF文件的体积比旧AOF文件的体积小很多。</p>
 <h3 id="3-3-1-AOF重写的实现原理"><a href="#3-3-1-AOF重写的实现原理" class="headerlink" title="3.3.1 AOF重写的实现原理"></a>3.3.1 AOF重写的实现原理</h3><p>AOF文件重写无需对现有的AOF文件进行任何读取、分析或写入操作，而是通过读取服务器当前的数据库数据来实现的。</p>
-<p>仍然以上面的list键为例，旧的AOF文件保存了6条命令来记录list键的状态，但list键的结果是“C” “D” “E” “F” “G”这样的数据，所以AOF文件重写时，可以用一条<code>RPUSH list “C” &quot;D&quot; &quot;E&quot; &quot;F&quot; &quot;G&quot;</code>命令代替之前的六条命令，将保存list键所需的命令从六条减少为一条。</p>
+<p>以上面的list为例，旧的AOF文件保存了6条命令来记录list的状态。但list的结果是“C” “D” “E” “F” “G”这样的数据，所以AOF文件重写时，用一条<code>RPUSH list “C” &quot;D&quot; &quot;E&quot; &quot;F&quot; &quot;G&quot;</code>命令代替之前的六条命令，将保存list所需的命令从六条减少为一条。</p>
 <p>如果Redis服务器存储的键值对足够多，AOF文件重写生成的新AOF文件会减少很多的冗余命令，大大减小了AOF文件的体积。</p>
 <p><strong>AOF文件重写功能的实现原理：首先从数据库中读取键现在的值，然后用一条命令去记录键值对，代替之前记录这个键值对的多条命令。</strong></p>
 <h3 id="3-3-2-AOF后台重写"><a href="#3-3-2-AOF后台重写" class="headerlink" title="3.3.2 AOF后台重写"></a>3.3.2 AOF后台重写</h3><p>因为AOF文件重写会进行大量的文件写入操作，所以执行这个操作的线程将被长时间阻塞。</p>
-<p>因为Redis服务器使用单个线程来处理命令请求，如果由服务器进程直接执行该操作，那么在重写AOF文件期间，服务器将无法处理客户端发送过来的命令请求。</p>
+<p>Redis服务器使用单线程处理命令请求，如果由服务器进程直接执行该操作，那么在重写AOF文件期间，服务器将无法处理客户端发送过来的命令请求。</p>
 <p>为了避免上述问题，Redis将AOF文件重写功能放到子进程里执行，这样做有以下2个好处：</p>
 <ol>
 <li><p>子进程进行AOF文件重写期间，服务器进程（父进程）可以继续处理命令请求。</p>
 </li>
-<li><p>子进程带有服务器进程的数据副本，使用子进程而不是线程，可以在避免使用锁的情况下，保证数据的安全性。</p>
+<li><p>子进程带有服务器进程的数据副本，使用子进程而不是线程。在避免使用锁的情况下，保证数据的安全性。</p>
 </li>
 </ol>
 <p>AOF后台重写的步骤如下所示：</p>
@@ -492,18 +521,18 @@
 <p>写入AOF缓冲区的目的是为了同步到原有的AOF文件。</p>
 <p>写入AOF重写缓冲区的目的是因为子进程在进行AOF文件重写期间，服务器进程还在继续处理命令请求，<br>而新的命令可能会对现有的数据库进行修改，从而使得服务器当前的数据库数据和重写后的AOF文件所保存的数据库数据不一致。</p>
 </li>
-<li><p>子进程完成AOF重写工作，向父进程发送一个信号，父进程在接收到该信号后，会执行以下操作：</p>
+<li><p>子进程完成AOF重写工作，向父进程发送信号，父进程接收该信号后，会执行以下操作：</p>
 <ol>
-<li><p>将AOF重写缓冲区中的所有内容写入到新AOF文件中，这样就保证了新AOF文件所保存的数据库数据和服务器当前的数据库数据是一致的。</p>
+<li><p>将AOF重写缓冲区中的所有内容写入新AOF文件中，保证了新AOF文件保存的数据和服务器数据库当前的数据一致。</p>
 </li>
-<li><p>对新的AOF文件进行改名，原子地覆盖现有的AOF文件，完成新旧两个AOF文件的替换。</p>
-</li>
-</ol>
+<li><p>将新的AOF文件覆盖现有的AOF文件，完成新旧两个AOF文件的替换。</p>
 </li>
 </ol>
-<p>Redis提供了<code>BGREWRITEAOF</code>命令来执行以上步骤，如下图所示：</p>
+</li>
+</ol>
+<p>Redis提供了<code>BGREWRITEAOF</code>命令来执行以上步骤：</p>
 <p><img src="https://pic1.zhimg.com/80/v2-991242e17d16e01e97b8be28a9b55ae4_720w.png" alt="img"></p>
-<p>执行完成后，打开appendonly.aof文件，发现保存list键的命令从六条变为了一条：</p>
+<p>执行完成后，打开appendonly.aof文件，发现保存list的命令从六条变为了一条：</p>
 <p><img src="https://pic3.zhimg.com/80/v2-533dd929ac693841cc5a638145e763ee_720w.jpg" alt="img"></p>
 <p>除了手动执行<code>BGREWRITEAOF</code>命令外，Redis还提供了2个配置项用来自动执行<code>BGREWRITEAOF</code>命令：</p>
 <blockquote>
@@ -511,23 +540,13 @@
 </blockquote>
 <p><img src="https://pic3.zhimg.com/80/v2-b258c3322723f2d407793b05472d4f4e_720w.jpg" alt="img"></p>
 <p>该配置表示，当AOF文件的体积大于64MB，并且AOF文件的体积比上一次重写之后的体积大了至少一倍（100%），Redis将自动执行<code>BGREWRITEAOF</code>命令。</p>
-<h2 id="4-RDB持久化、AOF持久化的区别"><a href="#4-RDB持久化、AOF持久化的区别" class="headerlink" title="4. RDB持久化、AOF持久化的区别"></a>4. RDB持久化、AOF持久化的区别</h2><p>Redis提供的2种持久化方法的区别的可以总结为以下4点：</p>
-<ol>
-<li><p>实现方式</p>
-</li>
-<li><p>文件体积</p>
-</li>
-<li><p>安全性</p>
-</li>
-<li><p>优先级</p>
-</li>
-</ol>
+<h2 id="4-RDB持久化、AOF持久化的区别"><a href="#4-RDB持久化、AOF持久化的区别" class="headerlink" title="4. RDB持久化、AOF持久化的区别"></a>4. RDB持久化、AOF持久化的区别</h2><p>Redis提供的2种持久化方法的区别可以总结为以下4点：</p>
 <h3 id="4-1-实现方式"><a href="#4-1-实现方式" class="headerlink" title="4.1 实现方式"></a>4.1 实现方式</h3><p>RDB持久化是通过将某个时间点Redis服务器存储的数据保存到RDB文件中来实现持久化的。</p>
 <p>AOF持久化是通过将Redis服务器执行的所有写命令保存到AOF文件中来实现持久化的。</p>
-<h3 id="4-2-文件体积"><a href="#4-2-文件体积" class="headerlink" title="4.2 文件体积"></a>4.2 文件体积</h3><p>由上述实现方式可知，RDB持久化记录的是结果，AOF持久化记录的是过程，所以AOF持久化生成的AOF文件会有体积越来越大的问题，Redis提供了AOF重写功能来减小AOF文件体积。</p>
-<h3 id="4-3-安全性"><a href="#4-3-安全性" class="headerlink" title="4.3 安全性"></a>4.3 安全性</h3><p>AOF持久化的安全性要比RDB持久化的安全性高，即如果发生机器故障，AOF持久化要比RDB持久化丢失的数据要少。</p>
+<h3 id="4-2-文件体积"><a href="#4-2-文件体积" class="headerlink" title="4.2 文件体积"></a>4.2 文件体积</h3><p>RDB记录结果，AOF记录过程。AOF持久化生成的AOF文件会有体积越来越大的问题，Redis提供了AOF重写功能来减小AOF文件体积。</p>
+<h3 id="4-3-安全性"><a href="#4-3-安全性" class="headerlink" title="4.3 安全性"></a>4.3 安全性</h3><p>AOF持久化的安全性要比RDB持久化的安全性高。如果机器故障，AOF持久化比RDB持久化丢失的数据少。</p>
 <p>因为RDB持久化会丢失上次RDB持久化后写入的数据，而AOF持久化最多丢失1s之内写入的数据（使用默认everysec配置的话）。</p>
-<h3 id="4-4-优先级"><a href="#4-4-优先级" class="headerlink" title="4.4 优先级"></a>4.4 优先级</h3><p>由于上述的安全性问题，如果Redis服务器开启了AOF持久化功能，Redis服务器在启动时会使用AOF文件来还原数据，如果Redis服务器没有开启AOF持久化功能，Redis服务器在启动时会使用RDB文件来还原数据，所以AOF文件的优先级比RDB文件的优先级高。</p>
+<h3 id="4-4-优先级"><a href="#4-4-优先级" class="headerlink" title="4.4 优先级"></a>4.4 优先级</h3><p>如果开启了AOF持久化功能，Redis服务器在启动时会使用AOF文件来还原数据，如果未开启AOF持久化功能，Redis服务器在启动时会使用RDB文件还原数据，所以AOF文件的优先级更高。</p>
 
       
     </div>
