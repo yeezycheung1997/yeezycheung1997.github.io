@@ -79,12 +79,12 @@
 
 
 
-<meta name="description" content="整理自Redis的持久化机制(RDB、AOF) 1. 为什么需要持久化？Redis 是内存数据库，数据存储在内存里。为了避免数据丢失，Redis 提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。 Redis提供了2种持久化方式：RDB 持久化和 AOF 持久化 2. RD">
+<meta name="description" content="整理自Redis的持久化机制(RDB、AOF) 为什么需要持久化？Redis 是内存数据库，数据存储在内存里。为了避免数据丢失，Redis 提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。 Redis提供了2种持久化方式：RDB 持久化和 AOF 持久化 RDB 持久化R">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis的持久化机制">
 <meta property="og:url" content="https://yeezycheung1997.github.io/2020/12/05/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="整理自Redis的持久化机制(RDB、AOF) 1. 为什么需要持久化？Redis 是内存数据库，数据存储在内存里。为了避免数据丢失，Redis 提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。 Redis提供了2种持久化方式：RDB 持久化和 AOF 持久化 2. RD">
+<meta property="og:description" content="整理自Redis的持久化机制(RDB、AOF) 为什么需要持久化？Redis 是内存数据库，数据存储在内存里。为了避免数据丢失，Redis 提供了持久化机制：将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。 Redis提供了2种持久化方式：RDB 持久化和 AOF 持久化 RDB 持久化R">
 <meta property="og:image" content="https://s3.ax1x.com/2020/12/09/r9tIDx.jpg">
 <meta property="og:image" content="https://s3.ax1x.com/2020/12/09/r9tob6.jpg">
 <meta property="og:image" content="https://s3.ax1x.com/2020/12/09/r91eAJ.jpg">
@@ -108,7 +108,7 @@
 <meta property="og:image" content="https://s3.ax1x.com/2020/12/09/r9UQmt.jpg">
 <meta property="og:image" content="https://s3.ax1x.com/2020/12/09/r9UGtS.jpg">
 <meta property="article:published_time" content="2020-12-05T21:21:14.000Z">
-<meta property="article:modified_time" content="2020-12-09T02:02:20.323Z">
+<meta property="article:modified_time" content="2020-12-09T14:44:26.064Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -378,13 +378,13 @@
 
       
         <p>整理自<a href="https://zhuanlan.zhihu.com/p/106997927" target="_blank" rel="noopener">Redis的持久化机制(RDB、AOF)</a></p>
-<h2 id="1-为什么需要持久化？"><a href="#1-为什么需要持久化？" class="headerlink" title="1. 为什么需要持久化？"></a>1. 为什么需要持久化？</h2><p>Redis 是内存数据库，数据存储在内存里。为了避免数据丢失，Redis 提供了持久化机制：<strong>将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。</strong></p>
+<h2 id="为什么需要持久化？"><a href="#为什么需要持久化？" class="headerlink" title="为什么需要持久化？"></a>为什么需要持久化？</h2><p>Redis 是内存数据库，数据存储在内存里。为了避免数据丢失，Redis 提供了持久化机制：<strong>将存储在内存中的数据保存到磁盘中，一旦Redis服务器进程退出或运行Redis服务器的计算机停机导致数据丢失时，可以快速恢复之前Redis存储在内存中的数据。</strong></p>
 <p>Redis提供了2种持久化方式：RDB 持久化和 AOF 持久化</p>
-<h2 id="2-RDB-持久化"><a href="#2-RDB-持久化" class="headerlink" title="2. RDB 持久化"></a>2. RDB 持久化</h2><p>RDB 持久化：将某个时间点 Redis 中的数据保存到RDB文件中：</p>
+<h2 id="RDB-持久化"><a href="#RDB-持久化" class="headerlink" title="RDB 持久化"></a>RDB 持久化</h2><p>RDB 持久化：将某个时间点 Redis 中的数据保存到RDB文件中：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9tIDx.jpg" alt="img"></p>
 <p>该文件是经过压缩的二进制文件，通过该文件可以还原生成 RDB 文件时 Redis 中的数据：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9tob6.jpg" alt="img"></p>
-<h3 id="2-1-创建-RDB-文件"><a href="#2-1-创建-RDB-文件" class="headerlink" title="2.1 创建 RDB 文件"></a>2.1 创建 RDB 文件</h3><p>Redis 提供了2个命令创建 RDB 文件：<code>SAVE</code> 和 <code>BGSAVE (background save)</code>。</p>
+<h3 id="创建-RDB-文件"><a href="#创建-RDB-文件" class="headerlink" title="创建 RDB 文件"></a>创建 RDB 文件</h3><p>Redis 提供了2个命令创建 RDB 文件：<code>SAVE</code> 和 <code>BGSAVE (background save)</code>。</p>
 <p><code>SAVE</code> 命令会阻塞 Redis 服务器进程，直到 RDB 文件创建完毕为止。在服务器进程阻塞期间，服务器不能处理任何命令请求：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r91eAJ.jpg" alt="img"></p>
 <p><code>BGSAVE</code> 命令会 fork 一个子进程，由子进程负责创建 RDB 文件，服务器进程（父进程）继续处理命令请求：</p>
@@ -406,7 +406,7 @@
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NuZV.jpg" alt="img"></p>
 <p>最终生成的 RDB 文件：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NliF.jpg" alt="img"></p>
-<h3 id="2-2-载入RDB文件"><a href="#2-2-载入RDB文件" class="headerlink" title="2.2 载入RDB文件"></a>2.2 载入RDB文件</h3><p>载入RDB文件的目的是为了Redis服务器进程重启后还原之前存储在Redis中的数据。</p>
+<h3 id="载入RDB文件"><a href="#载入RDB文件" class="headerlink" title="载入RDB文件"></a>载入RDB文件</h3><p>载入RDB文件的目的是为了Redis服务器进程重启后还原之前存储在Redis中的数据。</p>
 <p>Redis没有专门的命令载入RDB文件，Redis服务器启动时自动执行。</p>
 <p>Redis服务器启动时是否会载入RDB文件取决于<strong>服务器是否启用了AOF持久化功能</strong>：</p>
 <ol>
@@ -419,7 +419,7 @@
 <p>默认情况下，AOF 持久化功能是关闭的，所以 Redis 服务器在启动时会载入RDB文件。</p>
 <p>启动日志如下：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NcLt.jpg" alt="img"></p>
-<h3 id="2-3-服务器状态"><a href="#2-3-服务器状态" class="headerlink" title="2.3 服务器状态"></a>2.3 服务器状态</h3><p>创建和载入RDB文件，服务器可能存在的状态有以下3种：</p>
+<h3 id="服务器状态"><a href="#服务器状态" class="headerlink" title="服务器状态"></a>服务器状态</h3><p>创建和载入RDB文件，服务器可能存在的状态有以下3种：</p>
 <ol>
 <li><p>执行<code>SAVE</code>命令，Redis服务器被阻塞。此时客户端发送的所有命令请求都被阻塞。只有服务器执行完<code>SAVE</code>命令后，客户端发送的命令请求才会被处理。</p>
 </li>
@@ -428,7 +428,7 @@
 <li><p>服务器在载入RDB文件期间，一直处于阻塞状态直到RDB文件载入成功。</p>
 </li>
 </ol>
-<h2 id="3-AOF持久化"><a href="#3-AOF持久化" class="headerlink" title="3. AOF持久化"></a>3. AOF持久化</h2><p>AOF持久化是<strong>通过保存Redis服务器执行的写命令来记录数据库数据的</strong>。</p>
+<h2 id="AOF持久化"><a href="#AOF持久化" class="headerlink" title="AOF持久化"></a>AOF持久化</h2><p>AOF持久化是<strong>通过保存Redis服务器执行的写命令来记录数据库数据的</strong>。</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NhFS.jpg" alt="img"></p>
 <p>默认情况下，AOF持久化功能是关闭的。可以修改下图所示的配置打开：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9N4Jg.jpg" alt="img"></p>
@@ -438,7 +438,7 @@
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NLwV.jpg" alt="img"></p>
 <p>打开该文件，可以看到上面执行的3个写命令都存储在该文件中：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NOoT.jpg" alt="img"></p>
-<h3 id="3-1-AOF持久化的实现"><a href="#3-1-AOF持久化的实现" class="headerlink" title="3.1 AOF持久化的实现"></a>3.1 AOF持久化的实现</h3><p>当开启了AOF持久化功能，Redis服务器在执行完一个写命令后，会以协议格式（如上面截图中AOF文件里保存写命令的格式）将被执行的写命令追加到服务器状态的AOF缓冲区的末尾。Redis服务器根据配置文件中<code>appendfsync</code>选项决定何时将AOF缓冲区中的内容写入和同步到AOF文件里。</p>
+<h3 id="AOF持久化的实现"><a href="#AOF持久化的实现" class="headerlink" title="AOF持久化的实现"></a>AOF持久化的实现</h3><p>当开启了AOF持久化功能，Redis服务器在执行完一个写命令后，会以协议格式（如上面截图中AOF文件里保存写命令的格式）将被执行的写命令追加到服务器状态的AOF缓冲区的末尾。Redis服务器根据配置文件中<code>appendfsync</code>选项决定何时将AOF缓冲区中的内容写入和同步到AOF文件里。</p>
 <p>appendfsync选项有以下3个值：</p>
 <ol>
 <li><p>always：</p>
@@ -468,7 +468,7 @@
 </ol>
 <p>appendfsync选项的默认值是everysec，保证了效率和安全性。</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9NvYF.jpg" alt="img"></p>
-<h3 id="3-2-载入AOF文件"><a href="#3-2-载入AOF文件" class="headerlink" title="3.2 载入AOF文件"></a>3.2 载入AOF文件</h3><p>AOF文件包含了重建数据库所需的所有写命令，所以Redis服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就能还原Redis服务器关闭之前的数据。</p>
+<h3 id="载入AOF文件"><a href="#载入AOF文件" class="headerlink" title="载入AOF文件"></a>载入AOF文件</h3><p>AOF文件包含了重建数据库所需的所有写命令，所以Redis服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就能还原Redis服务器关闭之前的数据。</p>
 <p>Redis读取AOF文件并还原数据库的详细步骤如下：</p>
 <ol>
 <li><p>创建一个不带网络连接的伪客户端：<br>Redis的命令只能在客户端上下文中执行，而载入AOF文件时所使用的命令直接来源于AOF文件而不是网络连接，所以服务器使用了一个没有网络连接的伪客户端来执行AOF文件保存的写命令。<br>伪客户端执行命令的效果等同于带网络连接的客户端。</p>
@@ -483,7 +483,7 @@
 <p><img src="https://s3.ax1x.com/2020/12/09/r9USSJ.jpg" alt="img"></p>
 <p>如果开启了 AOF 持久化功能，那么 Redis 服务器在启动时会载入 AOF 文件：</p>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9U9yR.jpg" alt="img"></p>
-<h3 id="3-3-AOF-重写"><a href="#3-3-AOF-重写" class="headerlink" title="3.3 AOF 重写"></a>3.3 AOF 重写</h3><p>AOF持久化是通过保存被执行的写命令来记录数据库数据的，随着Redis服务器运行时间的增加，AOF文件中的内容会越来越多，文件的体积会越来越大。如果不做控制，会有以下坏处：</p>
+<h3 id="AOF-重写"><a href="#AOF-重写" class="headerlink" title="AOF 重写"></a>AOF 重写</h3><p>AOF持久化是通过保存被执行的写命令来记录数据库数据的，随着Redis服务器运行时间的增加，AOF文件中的内容会越来越多，文件的体积会越来越大。如果不做控制，会有以下坏处：</p>
 <ol>
 <li><p>过多的占用服务器磁盘空间，对Redis服务器造成影响。</p>
 </li>
@@ -494,11 +494,11 @@
 <p><img src="https://s3.ax1x.com/2020/12/09/r9UFw6.jpg" alt="img"></p>
 <p>为了记录这个list的状态，AOF文件要保存上面执行的6条命令。</p>
 <p>为了解决AOF文件体积变大的问题，Redis提供了AOF文件重写功能：Redis服务器会创建一个新的AOF文件来替代现有的AOF文件，新旧两个AOF文件所保存的数据库数据相同，但新AOF文件不包含任何浪费空间的冗余命令，所以新AOF文件的体积比旧AOF文件的体积小很多。</p>
-<h3 id="3-3-1-AOF重写的实现原理"><a href="#3-3-1-AOF重写的实现原理" class="headerlink" title="3.3.1 AOF重写的实现原理"></a>3.3.1 AOF重写的实现原理</h3><p><strong>AOF 文件重写无需对现有的AOF文件进行任何读取、分析或写入操作，而是通过读取服务器当前的数据库数据来实现的。</strong></p>
+<h3 id="AOF重写的实现原理"><a href="#AOF重写的实现原理" class="headerlink" title="AOF重写的实现原理"></a>AOF重写的实现原理</h3><p><strong>AOF 文件重写无需对现有的AOF文件进行任何读取、分析或写入操作，而是通过读取服务器当前的数据库数据来实现的。</strong></p>
 <p>以上面的list为例，旧的AOF文件保存了6条命令来记录list的状态。但list的结果是“C” “D” “E” “F” “G”这样的数据，所以AOF文件重写时，用一条<code>RPUSH list “C” &quot;D&quot; &quot;E&quot; &quot;F&quot; &quot;G&quot;</code>命令代替之前的六条命令，将保存list所需的命令从六条减少为一条。</p>
 <p>如果Redis服务器存储的键值对足够多，AOF文件重写生成的新AOF文件会减少很多的冗余命令，大大减小了AOF文件的体积。</p>
 <p><strong>AOF文件重写功能的实现原理：首先从数据库中读取键现在的值，然后用一条命令去记录键值对，代替之前记录这个键值对的多条命令。</strong></p>
-<h3 id="3-3-2-AOF后台重写"><a href="#3-3-2-AOF后台重写" class="headerlink" title="3.3.2 AOF后台重写"></a>3.3.2 AOF后台重写</h3><p>因为AOF文件重写会进行大量的文件写入操作，所以执行这个操作的线程将被长时间阻塞。</p>
+<h3 id="AOF后台重写"><a href="#AOF后台重写" class="headerlink" title="AOF后台重写"></a>AOF后台重写</h3><p>因为AOF文件重写会进行大量的文件写入操作，所以执行这个操作的线程将被长时间阻塞。</p>
 <p>Redis服务器使用单线程处理命令请求，如果由服务器进程直接执行该操作，那么在重写AOF文件期间，服务器将无法处理客户端发送过来的命令请求。</p>
 <p>为了避免上述问题，Redis将AOF文件重写功能放到子进程里执行，这样做有以下2个好处：</p>
 <ol>
@@ -534,13 +534,13 @@
 </blockquote>
 <p><img src="https://s3.ax1x.com/2020/12/09/r9UGtS.jpg" alt="img"></p>
 <p>该配置表示，当 AOF 文件的体积大于 64MB，并且 AOF 文件的体积比上一次重写之后的体积大了至少一倍（100%），Redis 将自动执行<code>BGREWRITEAOF</code>命令。</p>
-<h2 id="4-RDB持久化、AOF持久化的区别"><a href="#4-RDB持久化、AOF持久化的区别" class="headerlink" title="4. RDB持久化、AOF持久化的区别"></a>4. RDB持久化、AOF持久化的区别</h2><p>Redis提供的2种持久化方法的区别可以总结为以下4点：</p>
-<h3 id="4-1-实现方式"><a href="#4-1-实现方式" class="headerlink" title="4.1 实现方式"></a>4.1 实现方式</h3><p>RDB 持久化是通过将某个时间点 Redis 服务器存储的数据保存到 RDB 文件中来实现持久化的。</p>
+<h2 id="RDB持久化、AOF持久化的区别"><a href="#RDB持久化、AOF持久化的区别" class="headerlink" title="RDB持久化、AOF持久化的区别"></a>RDB持久化、AOF持久化的区别</h2><p>Redis提供的2种持久化方法的区别可以总结为以下4点：</p>
+<h3 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h3><p>RDB 持久化是通过将某个时间点 Redis 服务器存储的数据保存到 RDB 文件中来实现持久化的。</p>
 <p>AOF 持久化是通过将 Redis 服务器执行的所有写命令保存到 AOF 文件中来实现持久化的。</p>
-<h3 id="4-2-文件体积"><a href="#4-2-文件体积" class="headerlink" title="4.2 文件体积"></a>4.2 文件体积</h3><p>RDB 记录结果，AOF 记录过程。AOF 持久化生成的 AOF 文件会有体积越来越大的问题，Redis 提供了 AOF 重写功能来减小 AOF 文件体积。</p>
-<h3 id="4-3-安全性"><a href="#4-3-安全性" class="headerlink" title="4.3 安全性"></a>4.3 安全性</h3><p>AOF 持久化的安全性要比 RDB 持久化的安全性高。如果机器故障，AOF 持久化比 RDB 持久化丢失的数据少。</p>
+<h3 id="文件体积"><a href="#文件体积" class="headerlink" title="文件体积"></a>文件体积</h3><p>RDB 记录结果，AOF 记录过程。AOF 持久化生成的 AOF 文件会有体积越来越大的问题，Redis 提供了 AOF 重写功能来减小 AOF 文件体积。</p>
+<h3 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h3><p>AOF 持久化的安全性要比 RDB 持久化的安全性高。如果机器故障，AOF 持久化比 RDB 持久化丢失的数据少。</p>
 <p>因为 RDB 持久化会丢失上次 RDB 持久化后写入的数据，而 AOF 持久化最多丢失 1s 之内写入的数据（使用默认 everysec 配置的话）。</p>
-<h3 id="4-4-优先级"><a href="#4-4-优先级" class="headerlink" title="4.4 优先级"></a>4.4 优先级</h3><p>如果开启了 AOF 持久化功能，Redis 服务器在启动时会使用 AOF 文件来还原数据，如果未开启AOF持久化功能，Redis 服务器在启动时会使用 RDB 文件还原数据，所以 AOF 文件的优先级更高。</p>
+<h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><p>如果开启了 AOF 持久化功能，Redis 服务器在启动时会使用 AOF 文件来还原数据，如果未开启AOF持久化功能，Redis 服务器在启动时会使用 RDB 文件还原数据，所以 AOF 文件的优先级更高。</p>
 
       
     </div>
@@ -777,7 +777,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-为什么需要持久化？"><span class="nav-number">1.</span> <span class="nav-text">1. 为什么需要持久化？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-RDB-持久化"><span class="nav-number">2.</span> <span class="nav-text">2. RDB 持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-创建-RDB-文件"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 创建 RDB 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-载入RDB文件"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 载入RDB文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-服务器状态"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 服务器状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-AOF持久化"><span class="nav-number">3.</span> <span class="nav-text">3. AOF持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-AOF持久化的实现"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 AOF持久化的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-载入AOF文件"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 载入AOF文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-AOF-重写"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 AOF 重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-AOF重写的实现原理"><span class="nav-number">3.4.</span> <span class="nav-text">3.3.1 AOF重写的实现原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-AOF后台重写"><span class="nav-number">3.5.</span> <span class="nav-text">3.3.2 AOF后台重写</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-RDB持久化、AOF持久化的区别"><span class="nav-number">4.</span> <span class="nav-text">4. RDB持久化、AOF持久化的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-实现方式"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 实现方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-文件体积"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 文件体积</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-安全性"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 安全性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-优先级"><span class="nav-number">4.4.</span> <span class="nav-text">4.4 优先级</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么需要持久化？"><span class="nav-number">1.</span> <span class="nav-text">为什么需要持久化？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDB-持久化"><span class="nav-number">2.</span> <span class="nav-text">RDB 持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建-RDB-文件"><span class="nav-number">2.1.</span> <span class="nav-text">创建 RDB 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#载入RDB文件"><span class="nav-number">2.2.</span> <span class="nav-text">载入RDB文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#服务器状态"><span class="nav-number">2.3.</span> <span class="nav-text">服务器状态</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOF持久化"><span class="nav-number">3.</span> <span class="nav-text">AOF持久化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF持久化的实现"><span class="nav-number">3.1.</span> <span class="nav-text">AOF持久化的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#载入AOF文件"><span class="nav-number">3.2.</span> <span class="nav-text">载入AOF文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF-重写"><span class="nav-number">3.3.</span> <span class="nav-text">AOF 重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF重写的实现原理"><span class="nav-number">3.4.</span> <span class="nav-text">AOF重写的实现原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AOF后台重写"><span class="nav-number">3.5.</span> <span class="nav-text">AOF后台重写</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDB持久化、AOF持久化的区别"><span class="nav-number">4.</span> <span class="nav-text">RDB持久化、AOF持久化的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实现方式"><span class="nav-number">4.1.</span> <span class="nav-text">实现方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件体积"><span class="nav-number">4.2.</span> <span class="nav-text">文件体积</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#安全性"><span class="nav-number">4.3.</span> <span class="nav-text">安全性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#优先级"><span class="nav-number">4.4.</span> <span class="nav-text">优先级</span></a></li></ol></li></ol></div>
             
 
           </div>
