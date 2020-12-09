@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Redis</title>
-    <url>/2020/12/06/Redis/</url>
-    <content><![CDATA[<p>abcd</p>
-]]></content>
-      <tags>
-        <tag>面经</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Redis的持久化机制</title>
     <url>/2020/12/05/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<p>整理自<a href="https://zhuanlan.zhihu.com/p/106997927" target="_blank" rel="noopener">Redis的持久化机制(RDB、AOF)</a></p>
@@ -22,19 +13,19 @@
 </li>
 </ol>
 <h2 id="2-RDB持久化"><a href="#2-RDB持久化" class="headerlink" title="2. RDB持久化"></a>2. RDB持久化</h2><p>RDB持久化：将某个时间点Redis中的数据保存到RDB文件中：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-d477adb19e5dc7ca72211c25c8b368e1_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-d477adb19e5dc7ca72211c25c8b368e1_720w.jpg" alt="img"></p>
 <p>该文件是经过压缩的二进制文件，通过该文件可以还原生成RDB文件时Redis中的数据：</p>
-<p><img src="https://pic3.zhimg.com/80/v2-483dda2e7139aafbe4c0c95cf1a8891e_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-483dda2e7139aafbe4c0c95cf1a8891e_720w.jpg" alt="img"></p>
 <h3 id="2-1-创建RDB文件"><a href="#2-1-创建RDB文件" class="headerlink" title="2.1 创建RDB文件"></a>2.1 创建RDB文件</h3><p>Redis提供了2个命令创建RDB文件：<code>SAVE</code> 和 <code>BGSAVE</code>。</p>
 <p><code>SAVE</code>命令会阻塞Redis服务器进程，直到RDB文件创建完毕为止。在服务器进程阻塞期间，服务器不能处理任何命令请求：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-533b8dcca3075e0c773cc1303d0f04ed_720w.jpg" alt="img"></p>
+<p><img src="https://s3.ax1x.com/2020/12/09/r91eAJ.jpg" alt="img"></p>
 <p><code>BGSAVE</code>命令会派生出一个子进程，由子进程负责创建RDB文件，服务器进程（父进程）继续处理命令请求：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-ff9360549e3991cc17df9accf286169b_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-ff9360549e3991cc17df9accf286169b_720w.jpg" alt="img"></p>
 <p>推荐使用BGSAVE命令，因为该命令可以不阻塞服务器进程。</p>
 <p>除了手动执行上述两个命令，还可以配置Redis服务器配置文件的save选项，让服务器每隔一段时间自动执行一次<code>BGSAVE</code>命令。</p>
 <p>save选项有多个保存条件，其中任意一个条件被满足，服务器就会执行<code>BGSAVE</code>命令。</p>
 <p>save选项设置的默认条件：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-0aa8c6475ab870cc4aa5658ee1d6e9e5_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-0aa8c6475ab870cc4aa5658ee1d6e9e5_720w.jpg" alt="img"></p>
 <p>默认的配置条件：</p>
 <ul>
 <li>服务器在900s（15分钟）内，对数据库进行了至少1次修改</li>
@@ -42,11 +33,11 @@
 <li>服务器在60s（1分钟）内，对数据库进行了至少10000次修改</li>
 </ul>
 <p>当满足条件执行BGSAVE命令时，输出日志如下图所示：</p>
-<p><img src="https://pic1.zhimg.com/80/v2-b712556dc9ac6b31130eaf5fd10b7c50_720w.png" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-b712556dc9ac6b31130eaf5fd10b7c50_720w.png" alt="img"></p>
 <p>生成的RDB文件会根据Redis配置文件中的名称和路径来保存：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-c90e2e95bff1082447883877ab392699_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-c90e2e95bff1082447883877ab392699_720w.jpg" alt="img"></p>
 <p>最终生成的RDB文件：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-a25615bcf3c99f850ee915644bf68487_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-a25615bcf3c99f850ee915644bf68487_720w.jpg" alt="img"></p>
 <h3 id="2-2-载入RDB文件"><a href="#2-2-载入RDB文件" class="headerlink" title="2.2 载入RDB文件"></a>2.2 载入RDB文件</h3><p>载入RDB文件的目的是为了Redis服务器进程重启后还原之前存储在Redis中的数据。</p>
 <p>Redis没有专门的命令载入RDB文件，Redis服务器启动时自动执行。</p>
 <p>Redis服务器启动时是否会载入RDB文件取决于<strong>服务器是否启用了AOF持久化功能</strong>：</p>
@@ -56,10 +47,10 @@
 <li><p>如果AOF持久化功能开启，服务器优先使用AOF文件还原数据。</p>
 </li>
 </ol>
-<p><img src="https://pic1.zhimg.com/80/v2-02846b978a016f3888191ac4c2a55dd0_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-02846b978a016f3888191ac4c2a55dd0_720w.jpg" alt="img"></p>
 <p>默认情况下，AOF持久化功能是关闭的，所以Redis服务器在启动时会载入RDB文件，</p>
 <p>启动日志如下：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-b50e388e533e68935ca61a53713fd0cf_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-b50e388e533e68935ca61a53713fd0cf_720w.jpg" alt="img"></p>
 <h3 id="2-3-服务器状态"><a href="#2-3-服务器状态" class="headerlink" title="2.3 服务器状态"></a>2.3 服务器状态</h3><p>创建和载入RDB文件，服务器可能存在的状态有以下3种：</p>
 <ol>
 <li><p>执行<code>SAVE</code>命令，Redis服务器被阻塞。此时客户端发送的所有命令请求都被阻塞。只有服务器执行完<code>SAVE</code>命令后，客户端发送的命令请求才会被处理。</p>
@@ -70,15 +61,15 @@
 </li>
 </ol>
 <h2 id="3-AOF持久化"><a href="#3-AOF持久化" class="headerlink" title="3. AOF持久化"></a>3. AOF持久化</h2><p>AOF持久化是<strong>通过保存Redis服务器执行的写命令来记录数据库数据的</strong>。</p>
-<p><img src="https://pic3.zhimg.com/80/v2-420d66c1596a1271dc3b7426d32b496e_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-420d66c1596a1271dc3b7426d32b496e_720w.jpg" alt="img"></p>
 <p>默认情况下，AOF持久化功能是关闭的。可以修改下图所示的配置打开：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-7a2641ac6682b6064331f1595d869779_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-7a2641ac6682b6064331f1595d869779_720w.jpg" alt="img"></p>
 <p>假设Redis中未存储任何数据，执行如下命令：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-66ada753cd94512c3e498bc4ddc1ca1b_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-66ada753cd94512c3e498bc4ddc1ca1b_720w.jpg" alt="img"></p>
 <p>生成了<code>appendonly.aof</code>的文件。</p>
-<p><img src="https://pic2.zhimg.com/80/v2-cb937b6b6c1aa4e98083c6dfd3fd7a29_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-cb937b6b6c1aa4e98083c6dfd3fd7a29_720w.jpg" alt="img"></p>
 <p>打开该文件，可以看到上面执行的3个写命令都存储在该文件中：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-19c21104282b30f01baf0bcd47c167a7_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-19c21104282b30f01baf0bcd47c167a7_720w.jpg" alt="img"></p>
 <h3 id="3-1-AOF持久化的实现"><a href="#3-1-AOF持久化的实现" class="headerlink" title="3.1 AOF持久化的实现"></a>3.1 AOF持久化的实现</h3><p>当开启了AOF持久化功能，Redis服务器在执行完一个写命令后，会以协议格式（如上面截图中AOF文件里保存写命令的格式）将被执行的写命令追加到服务器状态的AOF缓冲区的末尾。Redis服务器根据配置文件中<code>appendfsync</code>选项决定何时将AOF缓冲区中的内容写入和同步到AOF文件里。</p>
 <p>appendfsync选项有以下3个值：</p>
 <ol>
@@ -108,7 +99,7 @@
 </li>
 </ol>
 <p>appendfsync选项的默认值是everysec，保证了效率和安全性。</p>
-<p><img src="https://pic3.zhimg.com/80/v2-c16dbb5154ad5a9daf8913171be4630a_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-c16dbb5154ad5a9daf8913171be4630a_720w.jpg" alt="img"></p>
 <h3 id="3-2-载入AOF文件"><a href="#3-2-载入AOF文件" class="headerlink" title="3.2 载入AOF文件"></a>3.2 载入AOF文件</h3><p>AOF文件包含了重建数据库所需的所有写命令，所以Redis服务器只要读入并重新执行一遍AOF文件里面保存的写命令，就能还原Redis服务器关闭之前的数据。</p>
 <p>Redis读取AOF文件并还原数据库的详细步骤如下：</p>
 <ol>
@@ -121,9 +112,9 @@
 <li><p>一直执行步骤2和步骤3，直到AOF文件中的所有写命令都被执行完毕。</p>
 </li>
 </ol>
-<p><img src="https://pic1.zhimg.com/80/v2-499981ec15682b4316a2d1bc3a944d34_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-499981ec15682b4316a2d1bc3a944d34_720w.jpg" alt="img"></p>
 <p>如果开启了AOF持久化功能，那么Redis服务器在启动时会载入AOF文件：</p>
-<p><img src="https://pic1.zhimg.com/80/v2-8e7f6c21345e673bb7f1914b6fc1cbac_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-8e7f6c21345e673bb7f1914b6fc1cbac_720w.jpg" alt="img"></p>
 <h3 id="3-3-AOF重写"><a href="#3-3-AOF重写" class="headerlink" title="3.3 AOF重写"></a>3.3 AOF重写</h3><p>AOF持久化是通过保存被执行的写命令来记录数据库数据的，随着Redis服务器运行时间的增加，AOF文件中的内容会越来越多，文件的体积会越来越大。如果不做控制，会有以下坏处：</p>
 <ol>
 <li><p>过多的占用服务器磁盘空间，对Redis服务器造成影响。</p>
@@ -132,7 +123,7 @@
 </li>
 </ol>
 <p>举个例子，在客户端执行如下命令：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-84b8800abe3224d21f4cd8fcf9229561_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-84b8800abe3224d21f4cd8fcf9229561_720w.jpg" alt="img"></p>
 <p>为了记录这个list的状态，AOF文件要保存上面执行的6条命令。</p>
 <p>为了解决AOF文件体积变大的问题，Redis提供了AOF文件重写功能：Redis服务器会创建一个新的AOF文件来替代现有的AOF文件，新旧两个AOF文件所保存的数据库数据相同，但新AOF文件不包含任何浪费空间的冗余命令，所以新AOF文件的体积比旧AOF文件的体积小很多。</p>
 <h3 id="3-3-1-AOF重写的实现原理"><a href="#3-3-1-AOF重写的实现原理" class="headerlink" title="3.3.1 AOF重写的实现原理"></a>3.3.1 AOF重写的实现原理</h3><p>AOF文件重写无需对现有的AOF文件进行任何读取、分析或写入操作，而是通过读取服务器当前的数据库数据来实现的。</p>
@@ -166,14 +157,14 @@
 </li>
 </ol>
 <p>Redis提供了<code>BGREWRITEAOF</code>命令来执行以上步骤：</p>
-<p><img src="https://pic1.zhimg.com/80/v2-991242e17d16e01e97b8be28a9b55ae4_720w.png" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-991242e17d16e01e97b8be28a9b55ae4_720w.png" alt="img"></p>
 <p>执行完成后，打开appendonly.aof文件，发现保存list的命令从六条变为了一条：</p>
-<p><img src="https://pic3.zhimg.com/80/v2-533dd929ac693841cc5a638145e763ee_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-533dd929ac693841cc5a638145e763ee_720w.jpg" alt="img"></p>
 <p>除了手动执行<code>BGREWRITEAOF</code>命令外，Redis还提供了2个配置项用来自动执行<code>BGREWRITEAOF</code>命令：</p>
 <blockquote>
 <p>auto-aof-rewrite-percentage 100<br>auto-aof-rewrite-min-size 64mb</p>
 </blockquote>
-<p><img src="https://pic3.zhimg.com/80/v2-b258c3322723f2d407793b05472d4f4e_720w.jpg" alt="img"></p>
+<p><img src="/D:/%E5%8D%9A%E5%AE%A2%E7%B4%A0%E6%9D%90/Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6/v2-b258c3322723f2d407793b05472d4f4e_720w.jpg" alt="img"></p>
 <p>该配置表示，当AOF文件的体积大于64MB，并且AOF文件的体积比上一次重写之后的体积大了至少一倍（100%），Redis将自动执行<code>BGREWRITEAOF</code>命令。</p>
 <h2 id="4-RDB持久化、AOF持久化的区别"><a href="#4-RDB持久化、AOF持久化的区别" class="headerlink" title="4. RDB持久化、AOF持久化的区别"></a>4. RDB持久化、AOF持久化的区别</h2><p>Redis提供的2种持久化方法的区别可以总结为以下4点：</p>
 <h3 id="4-1-实现方式"><a href="#4-1-实现方式" class="headerlink" title="4.1 实现方式"></a>4.1 实现方式</h3><p>RDB持久化是通过将某个时间点Redis服务器存储的数据保存到RDB文件中来实现持久化的。</p>
