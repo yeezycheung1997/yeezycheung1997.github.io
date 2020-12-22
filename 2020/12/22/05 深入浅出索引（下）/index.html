@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="操作系统," />
+  <meta name="keywords" content="数据库," />
 
 
 
@@ -79,28 +79,22 @@
 
 
 
-<meta name="description" content="整理自小林coding：进程、线程基础知识全家桶，30 张图一套带走  进程代码是一个存储在硬盘的静态文件，编译代码会生成二进制可执行文件。当可执行文件运行后，它被装载到内存中，CPU 执行程序中的每一条指令。这个运行中的程序就是进程。 假设有一个读取硬盘文件数据的程序被执行了，当运行到读取文件的指令时，会去从硬盘读取数据。但硬盘的读写速度非常慢，如果此时 CPU 傻傻地等硬盘返回数据的话，那 C">
+<meta name="description" content="在下面的表 T 中，执行 select * from T where k between 3 and 5，需要执行几次树的搜索操作，会扫描多少行？ 表 T 的初始化语句。 12345678mysql&gt; create table T (ID int primary key,k int NOT NULL DEFAULT 0, s varchar(16) NOT NULL DEFAULT &amp;#39">
 <meta property="og:type" content="article">
-<meta property="og:title" content="进程和线程（新）">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/10/13/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%EF%BC%88%E6%96%B0%EF%BC%89/index.html">
+<meta property="og:title" content="05 深入浅出索引（下）">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2020/12/22/05%20%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95%EF%BC%88%E4%B8%8B%EF%BC%89/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="整理自小林coding：进程、线程基础知识全家桶，30 张图一套带走  进程代码是一个存储在硬盘的静态文件，编译代码会生成二进制可执行文件。当可执行文件运行后，它被装载到内存中，CPU 执行程序中的每一条指令。这个运行中的程序就是进程。 假设有一个读取硬盘文件数据的程序被执行了，当运行到读取文件的指令时，会去从硬盘读取数据。但硬盘的读写速度非常慢，如果此时 CPU 傻傻地等硬盘返回数据的话，那 C">
-<meta property="og:image" content="https://pic1.zhimg.com/80/v2-173719595a7e633939679ec099470920_720w.jpg">
-<meta property="og:image" content="https://pic1.zhimg.com/80/v2-0e15e9b8bd206b6ac79749661fd005dc_720w.jpg">
-<meta property="og:image" content="https://pic2.zhimg.com/80/v2-22ab0d940d620da72daea688a298475d_720w.jpg">
-<meta property="og:image" content="https://pic1.zhimg.com/80/v2-a7b1f905d6ad3a2c3b1cd5de042a54c4_720w.jpg">
-<meta property="og:image" content="https://pic4.zhimg.com/80/v2-6e581c27d56c5df1f98bec8521d2b14b_720w.jpg">
-<meta property="og:image" content="https://pic4.zhimg.com/80/v2-18c3b8aa5a26209dea6abcfebc27198b_720w.jpg">
-<meta property="og:image" content="https://pic3.zhimg.com/80/v2-4e60d744e3f29eb62a3c42682d4c1b86_720w.jpg">
-<meta property="og:image" content="https://pic4.zhimg.com/80/v2-5d20327a5305f347bb76a3c571f43b33_720w.jpg">
-<meta property="og:image" content="https://pic3.zhimg.com/80/v2-52bef604640dac2e7975a4ff0efe4d5a_720w.jpg">
-<meta property="og:image" content="https://pic2.zhimg.com/80/v2-9cbca9f3c903c3bbfdaf330e95bf2835_720w.jpg">
-<meta property="article:published_time" content="2020-10-13T13:51:18.000Z">
-<meta property="article:modified_time" content="2020-10-14T15:03:09.576Z">
+<meta property="og:description" content="在下面的表 T 中，执行 select * from T where k between 3 and 5，需要执行几次树的搜索操作，会扫描多少行？ 表 T 的初始化语句。 12345678mysql&gt; create table T (ID int primary key,k int NOT NULL DEFAULT 0, s varchar(16) NOT NULL DEFAULT &amp;#39">
+<meta property="og:image" content="https://s3.ax1x.com/2020/12/22/rsM076.png">
+<meta property="og:image" content="https://s3.ax1x.com/2020/12/22/rsMhHP.jpg">
+<meta property="og:image" content="https://s3.ax1x.com/2020/12/22/rsQS4U.jpg">
+<meta property="og:image" content="https://s3.ax1x.com/2020/12/22/rsMzNT.jpg">
+<meta property="article:published_time" content="2020-12-22T14:00:00.000Z">
+<meta property="article:modified_time" content="2020-12-22T15:17:31.190Z">
 <meta property="article:author" content="Qianyi Zhang">
-<meta property="article:tag" content="操作系统">
+<meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://pic1.zhimg.com/80/v2-173719595a7e633939679ec099470920_720w.jpg">
+<meta name="twitter:image" content="https://s3.ax1x.com/2020/12/22/rsM076.png">
 
 
 
@@ -130,13 +124,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/10/13/进程和线程（新）/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/12/22/05 深入浅出索引（下）/"/>
 
 
 
 
 
-  <title>进程和线程（新） | Qianyi Zhang's blog</title>
+  <title>05 深入浅出索引（下） | Qianyi Zhang's blog</title>
   
 
 
@@ -298,7 +292,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/10/13/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%EF%BC%88%E6%96%B0%EF%BC%89/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/12/22/05%20%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95%EF%BC%88%E4%B8%8B%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -315,7 +309,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">进程和线程（新）</h1>
+          <h1 class="post-title" itemprop="name headline">05 深入浅出索引（下）</h1>
         
 
         <div class="post-meta">
@@ -327,8 +321,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-10-13T09:51:18-04:00">
-                2020-10-13
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-12-22T09:00:00-05:00">
+                2020-12-22
               </time>
             
 
@@ -339,8 +333,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2020-10-14T11:03:09-04:00" content="2020-10-14">
-                2020-10-14
+              <time itemprop="dateUpdated" datetime="2020-12-22T10:17:31-05:00" content="2020-12-22">
+                2020-12-22
               </time>
             </span>
           
@@ -373,150 +367,74 @@
       
 
       
-        <p>整理自<a href="https://zhuanlan.zhihu.com/p/158965214" target="_blank" rel="noopener">小林coding：进程、线程基础知识全家桶，30 张图一套带走</a></p>
-<p><img src="https://pic1.zhimg.com/80/v2-173719595a7e633939679ec099470920_720w.jpg" alt="img"></p>
-<h4 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h4><p>代码是一个存储在硬盘的静态文件，编译代码会生成二进制可执行文件。当可执行文件运行后，它被装载到内存中，CPU 执行程序中的每一条指令。这个运行中的程序就是进程。</p>
-<p>假设有一个读取硬盘文件数据的程序被执行了，当运行到读取文件的指令时，会去从硬盘读取数据。但硬盘的读写速度非常慢，如果此时 CPU 傻傻地等硬盘返回数据的话，那 CPU 的利用率极低。</p>
-<p>当进程从硬盘读取数据时，CPU 不需要阻塞等待数据的返回，而是去执行别的进程。当硬盘数据返回时，CPU 收到中断，再继续运行这个进程。</p>
-<p><img src="https://pic1.zhimg.com/80/v2-0e15e9b8bd206b6ac79749661fd005dc_720w.jpg" alt="img"></p>
-<p>这种<strong>多个程序、交替执行</strong>的思想，就是 CPU 管理多个进程的初步想法。</p>
-<p>一个支持多进程的系统，CPU 会从当前进程快速切换至新进程，每个进程各运行几十或几百毫秒。</p>
-<p>单核的 CPU 在某一瞬间只能运行一个进程。但在 1 秒钟期间，它可能会运行多个进程，这样就产生并行的错觉，实际上这是并发。</p>
-<h5 id="并发和并行有什么区别？"><a href="#并发和并行有什么区别？" class="headerlink" title="并发和并行有什么区别？"></a>并发和并行有什么区别？</h5><p><img src="https://pic2.zhimg.com/80/v2-22ab0d940d620da72daea688a298475d_720w.jpg" alt="img"></p>
-<h5 id="进程与程序的关系的类比"><a href="#进程与程序的关系的类比" class="headerlink" title="进程与程序的关系的类比"></a>进程与程序的关系的类比</h5><p>晚饭时间，一对情侣饿了。男生在网上找了菜谱，买了鸡肉、辣椒、香料等材料，然后边看菜谱边学边做菜。</p>
-<p><img src="https://pic1.zhimg.com/80/v2-a7b1f905d6ad3a2c3b1cd5de042a54c4_720w.jpg" alt="img"></p>
-<p>突然，女生说想喝可乐，男生只好暂停做菜，并在菜谱上标记做到哪一步骤，记录状态信息。</p>
-<p>然后男生听从女生的指令买了一瓶可乐，回到厨房继续做菜。</p>
-<p><strong>CPU 从当前进程（做菜）切换到新进程（买可乐），在切换前必须要记录当前进程中运行的状态信息，以备下次切换回来的时候能恢复执行。</strong></p>
-<p>所以进程有着<strong>运行 - 暂停 - 运行</strong>的活动规律。</p>
-<h5 id="进程的状态"><a href="#进程的状态" class="headerlink" title="进程的状态"></a>进程的状态</h5><p>进程有着<strong>运行 - 暂停 - 运行</strong>的活动规律。<strong>一个进程不是自始至终连续不停地运行，它与并发执行中的其他进程的执行相互制约。</strong></p>
-<p>它有时处于运行状态；有时由于某种原因暂停运行处于等待状态；当使它暂停的原因消失后，它又进入准备运行状态。</p>
-<p>所以，<strong>进程至少具备三种基本状态：运行状态、就绪状态、阻塞状态</strong>。</p>
-<p><img src="https://pic4.zhimg.com/80/v2-6e581c27d56c5df1f98bec8521d2b14b_720w.jpg" alt="img"></p>
+        <p>在下面的表 T 中，执行 <code>select * from T where k between 3 and 5</code>，需要执行几次树的搜索操作，会扫描多少行？</p>
+<p>表 T 的初始化语句。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table T (</span><br><span class="line">ID int primary key,</span><br><span class="line">k int NOT NULL DEFAULT 0, </span><br><span class="line">s varchar(16) NOT NULL DEFAULT &#39;&#39;,</span><br><span class="line">index k(k))</span><br><span class="line">engine&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">insert into T values(100,1, &#39;aa&#39;),(200,2,&#39;bb&#39;),(300,3,&#39;cc&#39;),(500,5,&#39;ee&#39;),(600,6,&#39;ff&#39;),(700,7,&#39;gg&#39;);</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s3.ax1x.com/2020/12/22/rsM076.png" alt="img"></p>
+<p>这条 SQL 查询语句的执行流程：</p>
+<ol>
+<li>在 k 索引树上找到 k=3 的记录，取得 ID=300</li>
+<li>再到 ID 索引树查到 ID=300 对应的 R3</li>
+<li>在 k 索引树取下一个值 k=5，取得 ID=500</li>
+<li>再回到 ID 索引树查到 ID=500 对应的 R4</li>
+<li>在 k 索引树取下一个值 k=6，不满足条件，循环结束</li>
+</ol>
+<p>在这个过程中，<strong>回到主键索引树搜索的过程，称为回表</strong>。上面的查询过程读了 k 索引树的 3 条记录（步骤 1、3 和 5），回表了两次（步骤 2 和 4）。</p>
+<p>在这个例子中，查询结果所需要的数据只在主键索引上有，所以不得不回表。那么有没有可能经过索引优化，避免回表过程呢？</p>
+<h3 id="覆盖索引"><a href="#覆盖索引" class="headerlink" title="覆盖索引"></a>覆盖索引</h3><p>如果执行的语句是 <code>select ID from T where k between 3 and 5</code>，这时只需要查 ID 的值，ID 的值已经在 k 索引树上了，因此可以直接提供查询结果，不需要回表。也就是说，在这个查询里面，索引 k 已经“覆盖了”查询需求，称为覆盖索引。</p>
+<p><strong>覆盖索引可以减少树的搜索次数，显著提升查询性能，覆盖索引是常用的性能优化手段。</strong></p>
+<p>需要注意的是，在引擎内部使用覆盖索引在索引 k 上其实读了三个记录，R3~R5（对应的索引 k 上的记录项），但是对于 MySQL 的 Server 层来说，它就是找引擎拿到了两条记录，因此 MySQL 认为扫描行数是 2。</p>
+<p>基于覆盖索引的说明，在一个市民信息表上，是否有必要将身份证号和名字建立联合索引？</p>
+<p>市民表定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">CREATE TABLE &#96;tuser&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;id_card&#96; varchar(32) DEFAULT NULL,</span><br><span class="line">  &#96;name&#96; varchar(32) DEFAULT NULL,</span><br><span class="line">  &#96;age&#96; int(11) DEFAULT NULL,</span><br><span class="line">  &#96;ismale&#96; tinyint(1) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;id_card&#96; (&#96;id_card&#96;),</span><br><span class="line">  KEY &#96;name_age&#96; (&#96;name&#96;,&#96;age&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB</span><br></pre></td></tr></table></figure>
+
+<p>身份证号是市民的唯一标识。如果有根据身份证号查询市民信息的需求，我们只要在身份证号字段上建立索引就够了。而再建立一个（身份证号、姓名）的联合索引，是不是浪费空间？</p>
+<p>如果现在有一个高频请求，要根据市民的身份证号查询他的姓名，这个联合索引就有意义了。它可以在这个高频请求上用到覆盖索引，不再需要回表查整行记录，减少语句的执行时间。</p>
+<p>索引字段的维护是有代价的。因此，在建立冗余索引来支持覆盖索引时就要权衡考虑了。</p>
+<h3 id="最左前缀原则"><a href="#最左前缀原则" class="headerlink" title="最左前缀原则"></a>最左前缀原则</h3><p>如果为每一种查询都设计一个索引，索引是不是太多了。如果要按照市民的身份证号去查家庭地址呢？虽然这个查询需求在业务中出现的概率不高，但总不能让它走全表扫描吧？反过来说，单独为一个不频繁的请求创建一个（身份证号，地址）的索引又感觉有点浪费。应该怎么做呢？</p>
+<p>先说结论：<strong>B+ 树这种索引结构，可以利用索引的“最左前缀”，来定位记录。</strong></p>
+<p>为了直观地说明这个概念，我们用（name，age）这个联合索引来分析。</p>
+<p><img src="https://s3.ax1x.com/2020/12/22/rsMhHP.jpg" alt="img"></p>
+<p>可以看到，索引项是按照索引定义里面出现的字段顺序排序的。</p>
+<p>当你的逻辑需求是查到所有名字是“张三”的人时，可以快速定位到 ID4，然后向后遍历得到所有需要的结果。</p>
+<p>如果要查所有名字第一个字是“张”的人，SQL 语句的条件是<code>where name like ‘张 %’</code>。这时也能用上这个索引，查找到第一个符合条件的记录是 ID3，然后向后遍历，直到不满足条件为止。</p>
+<p>可以看到，不只是索引的全部定义，只要满足最左前缀，就可以利用索引来加速检索。这个最左前缀可以是联合索引的最左 N 个字段，也可以是字符串索引的最左 M 个字符。</p>
+<p>基于上面对最左前缀索引的说明，讨论一个问题：<strong>在建立联合索引的时候，如何安排索引内的字段顺序。</strong></p>
+<p>评估标准是索引的复用能力。因为可以支持最左前缀，所以当已经有了 (a,b) 这个联合索引后，一般就不需要单独在 a 上建立索引了。因此，<strong>第一原则是，如果通过调整顺序，可以少维护一个索引，那么这个顺序往往就是需要优先考虑采用的。</strong></p>
+<p>这段开头的问题里，我们要为高频请求创建 (身份证号，姓名）这个联合索引，并用这个索引支持“根据身份证号查询地址”的需求。</p>
+<p>那么，如果既有联合查询，又有基于 a、b 各自的查询呢？查询条件里面只有 b 的语句，是无法使用 (a,b) 这个联合索引的，这时候就得维护另外一个索引，也就是说要同时维护 (a,b)、(b) 两个索引。</p>
+<p>这时要<strong>考虑的原则就是空间</strong>了。比如上面这个市民表的情况，name 字段是比 age 字段大的 ，那我就建议你创建一个（name,age) 的联合索引和一个 (age) 的单字段索引。</p>
+<h3 id="索引下推"><a href="#索引下推" class="headerlink" title="索引下推"></a>索引下推</h3><p>满足最左前缀原则的时候，最左前缀可以用于在索引中定位记录。那些不符合最左前缀的部分，会怎么样呢？</p>
+<p>还是以市民表的联合索引（name, age）为例。如果现在有一个需求：检索出表中“名字第一个字是张，而且年龄是 10 岁的所有男孩”。那么，SQL 语句是这么写的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from tuser where name like &#39;张%&#39; and age&#x3D;10 and ismale&#x3D;1;</span><br></pre></td></tr></table></figure>
+
+<p>已经知道了前缀索引规则，所以这个语句在搜索索引树的时候，只能用 “张”，找到第一个满足条件的记录 ID3。</p>
+<p>然后判断其他条件是否满足：</p>
 <ul>
-<li>运行状态（Runing）：该时刻进程占用 CPU</li>
-<li>就绪状态（Ready）：有运行的条件，但因为其他进程正在运行而暂时耽搁运行</li>
-<li>阻塞状态（Blocked）：该进程正在等待某一事件发生（如等待输入/输出操作的完成）而暂时停止运行。此时即使给它 CPU 控制权，它也无法运行</li>
-</ul>
-<p>进程另外两个基本状态：</p>
-<ul>
-<li>创建状态（new）：进程正在被创建时的状态</li>
-<li>结束状态（Exit）：进程正在从系统中消失时的状态</li>
-</ul>
-<p>一个完整的进程状态的变迁：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-18c3b8aa5a26209dea6abcfebc27198b_720w.jpg" alt="img"></p>
-<ul>
-<li><p>NULL -&gt; 创建状态：新进程被创建时的第一个状态</p>
+<li><p>在 MySQL 5.6 之前，只能从 ID3 开始一个个回表。到主键索引上找出数据行，再对比字段值。</p>
 </li>
-<li><p>创建状态 -&gt; 就绪状态：当进程被创建完成并初始化后，一切就绪准备运行时，变为就绪状态</p>
-</li>
-<li><p>就绪状态 -&gt; 运行状态：处于就绪状态的进程被操作系统的进程调度器选中后，分配给 CPU 并运行该进程</p>
-</li>
-<li><p>运行状态 -&gt; 结束状态：当进程已经运行完成或出错时，会被操作系统作结束状态处理</p>
-</li>
-<li><p>运行状态 -&gt; 就绪状态：处于运行状态的进程在运行过程中，由于运行的时间片用完，操作系统把该进程变为就绪状态，并从就绪状态选一个新的进程运行</p>
-</li>
-<li><p>运行状态 -&gt; 阻塞状态：当进程请求某个事件且必须等待时，例如请求 I/O 事件</p>
-</li>
-<li><p>阻塞状态 -&gt; 就绪状态：当进程要等待的事件完成时，它从阻塞状态变到就绪状态</p>
+<li><p>MySQL 5.6 引入的索引下推优化（index condition pushdown)， 可以在索引遍历过程中，对索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数。</p>
 </li>
 </ul>
-<p>如果有大量处于阻塞状态的进程，进程会占用有限的物理内存空间，这是一种浪费物理内存的行为。所以，通常把阻塞状态的进程的物理内存空间换出到硬盘，等需要再次运行时，再从硬盘换入到物理内存。</p>
-<p><img src="https://pic3.zhimg.com/80/v2-4e60d744e3f29eb62a3c42682d4c1b86_720w.jpg" alt="img"></p>
-<p>这样就需要一个新的状态，来<strong>描述进程没有占用实际的物理内存空间的情况，这个状态就是挂起状态。这跟阻塞状态是不一样，阻塞状态是等待某个事件的返回。</strong></p>
-<p>另外，挂起状态可以分为两种：</p>
-<ul>
-<li>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现；</li>
-<li>就绪挂起状态：进程在外存（硬盘），但只要进入内存，即刻立刻运行；</li>
-</ul>
-<p>这两种挂起状态加上前面的五种状态，就变成了七种状态变迁：</p>
-<p><img src="https://pic4.zhimg.com/80/v2-5d20327a5305f347bb76a3c571f43b33_720w.jpg" alt="img"></p>
-<p>导致进程挂起的原因不只是因为进程使用的内存空间不在物理内存，还包括：</p>
-<ul>
-<li>通过 sleep 让进程间歇性挂起，其工作原理是设置一个定时器，到期后唤醒进程。</li>
-<li>用户希望挂起一个程序的执行，比如在 Linux 中用 Ctrl+Z 挂起进程。</li>
-</ul>
-<h5 id="进程的控制结构"><a href="#进程的控制结构" class="headerlink" title="进程的控制结构"></a>进程的控制结构</h5><p>进程控制块（process control block，PCB）是用来描述进程的。<strong>PCB 是进程存在的唯一标识。一个进程的存在，必然会有一个 PCB，如果进程消失那么 PCB 也会随之消失</strong>。</p>
-<h5 id="PCB-包含什么信息呢？"><a href="#PCB-包含什么信息呢？" class="headerlink" title="PCB 包含什么信息呢？"></a>PCB 包含什么信息呢？</h5><h6 id="进程描述信息："><a href="#进程描述信息：" class="headerlink" title="进程描述信息："></a>进程描述信息：</h6><ul>
-<li>进程标识符：标识各个进程，每个进程有且只有一个唯一的标识符</li>
-<li>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务</li>
-</ul>
-<h6 id="进程控制和管理信息："><a href="#进程控制和管理信息：" class="headerlink" title="进程控制和管理信息："></a>进程控制和管理信息：</h6><ul>
-<li>进程当前状态，如 new、ready、running、waiting 或 blocked 等</li>
-<li>进程优先级：进程抢占 CPU 时的优先级</li>
-</ul>
-<h6 id="资源分配清单："><a href="#资源分配清单：" class="headerlink" title="资源分配清单："></a>资源分配清单：</h6><ul>
-<li>有关内存地址空间或虚拟地址空间的信息，所打开文件的列表和所使用的 I/O 设备信息。</li>
-</ul>
-<h6 id="CPU-相关信息："><a href="#CPU-相关信息：" class="headerlink" title="CPU 相关信息："></a>CPU 相关信息：</h6><ul>
-<li>CPU 中各个寄存器的值，当进程被切换时，CPU 的状态信息都会被保存在相应的 PCB 中，以便进程重新执行时，能从断点处继续执行。</li>
-</ul>
-<h5 id="各个-PCB-是如何组织的呢？"><a href="#各个-PCB-是如何组织的呢？" class="headerlink" title="各个 PCB 是如何组织的呢？"></a>各个 PCB 是如何组织的呢？</h5><p>各个 PCB 通常通过链表组织，把具有相同状态的进程链在一起，组成各种队列。比如：</p>
-<ul>
-<li>将所有处于就绪状态的进程链在一起，称为就绪队列。</li>
-<li>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列。</li>
-</ul>
-<p>对于运行队列在单核 CPU 系统中只有一个运行指针，因为单核 CPU 在某个时间，只能运行一个程序。</p>
-<p>那么，就绪队列和阻塞队列链表的组织形式如下图：</p>
-<p><img src="https://pic3.zhimg.com/80/v2-52bef604640dac2e7975a4ff0efe4d5a_720w.jpg" alt="img"></p>
-<p>除了链表的组织方式，还有索引方式：将同一状态的进程组织在一个索引表中，索引表项指向相应的 PCB，不同状态对应不同的索引表。</p>
-<p>一般会选择链表，因为进程创建，销毁等调度会导致进程状态发生变化，链表能够更加灵活地插入和删除。</p>
-<h5 id="进程的控制"><a href="#进程的控制" class="headerlink" title="进程的控制"></a>进程的控制</h5><p>熟知了进程的状态变迁和进程的 PCB 后，再来看看进程的创建、终止、阻塞、唤醒的过程，也就是进程的控制。</p>
-<h6 id="创建进程"><a href="#创建进程" class="headerlink" title="创建进程"></a>创建进程</h6><p>操作系统允许进程创建子进程，允许子进程继承父进程所拥有的资源。当子进程被终止时，其在父进程继承的资源应当还给父进程。终止父进程的同时也会终止其所有的子进程。</p>
-<p>创建进程的过程如下：</p>
-<ul>
-<li>为新进程分配一个唯一的进程标识号，并申请一个空白的 PCB。PCB 是有限的，若申请失败则创建失败</li>
-<li>为进程分配资源，此时如果资源不足，进程进入等待状态，以等待资源</li>
-<li>初始化 PCB</li>
-<li>如果进程的调度队列能够接纳新进程，那就将进程插入到就绪队列，等待被调度运行</li>
-</ul>
-<h6 id="终止进程"><a href="#终止进程" class="headerlink" title="终止进程"></a>终止进程</h6><p>进程有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）。</p>
-<p>终止进程的过程如下：</p>
-<ul>
-<li>查找需要终止的进程的 PCB</li>
-<li>如果处于运行状态，则立即终止该进程的运行，并将 CPU 分配给其他进程</li>
-<li>如果其还有子进程，将其所有子进程终止</li>
-<li>将该进程所拥有的全部资源都归还给父进程或操作系统</li>
-<li>将其从 PCB 所在队列中删除</li>
-</ul>
-<h6 id="阻塞进程"><a href="#阻塞进程" class="headerlink" title="阻塞进程"></a>阻塞进程</h6><p>当进程需要等待某一事件完成时，它可以调用阻塞语句把自己阻塞等待。而一旦被阻塞等待，它只能由另一个进程唤醒。</p>
-<p>阻塞进程的过程如下：</p>
-<ul>
-<li>查找需要被阻塞进程标识号对应的 PCB</li>
-<li>如果该进程为运行状态，则保护其现场，将其状态转为阻塞状态，停止运行</li>
-<li>将该 PCB 插入的阻塞队列中去</li>
-</ul>
-<h6 id="唤醒进程"><a href="#唤醒进程" class="headerlink" title="唤醒进程"></a>唤醒进程</h6><p>进程由「运行」转变为「阻塞」状态是由于进程必须等待某一事件的完成，所以处于阻塞状态的进程是绝对不可能叫醒自己的。</p>
-<p>如果某进程正在等待 I/O 事件，需由别的进程发消息给它，则只有当该进程所期待的事件出现时，才由发现者进程用唤醒语句叫醒它。</p>
-<p>唤醒进程的过程如下：</p>
-<ul>
-<li>在该事件的阻塞队列中找到相应进程的 PCB</li>
-<li>将其从阻塞队列中移出，并置其状态为就绪状态</li>
-<li>把该 PCB 插入到就绪队列中，等待调度程序调度</li>
-</ul>
-<p>进程的阻塞和唤醒是一对功能相反的语句，如果某个进程调用了阻塞语句，则必有一个与之对应的唤醒语句。</p>
-<h5 id="进程的上下文切换"><a href="#进程的上下文切换" class="headerlink" title="进程的上下文切换"></a>进程的上下文切换</h5><p>各个进程之间是共享 CPU 资源，进程之间需要切换，让不同的进程在 CPU 执行。当前进程切换到新进程运行，称为进程的上下文切换。</p>
-<h6 id="CPU-上下文切换"><a href="#CPU-上下文切换" class="headerlink" title="CPU 上下文切换"></a>CPU 上下文切换</h6><p>大多数操作系统都是多任务，通常支持大于 CPU 数量的任务同时运行。实际上，这些任务并不是同时运行的，只是因为系统在很短的时间内，让各个任务分别在 CPU 运行，造成了同时运行的错觉。</p>
-<p>任务是交给 CPU 运行的，那么在每个任务运行前，CPU 需要知道任务从哪里加载，又从哪里开始运行。</p>
-<p>所以，操作系统需要帮 CPU 设置好 <strong>CPU 寄存器和程序计数器</strong>。</p>
-<p>CPU 寄存器是 CPU 内部一个容量小，但是速度极快的内存（缓存）。程序计数器则是用来存储 CPU 正在执行的指令位置、或者即将执行的下一条指令位置。</p>
-<p>所以说，CPU 寄存器和程序计数器是 CPU 在运行任何任务前，所必须依赖的环境，这些环境就叫做 CPU 上下文。</p>
-<p>CPU 上下文切换就是先把前一个任务的 CPU 上下文（CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置，运行新任务。</p>
-<p>系统内核会存储保持下来的上下文信息，当此任务再次被分配给 CPU 运行时，CPU 会重新加载这些上下文，这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行。</p>
-<p>上面说到所谓的「任务」，主要包含进程、线程和中断。所以，可以根据任务的不同，把 CPU 上下文切换分成：进程上下文切换、线程上下文切换和中断上下文切换。</p>
-<p>进程的上下文切换到底是切换什么呢？<br>进程是由内核管理和调度的，所以进程的切换只能发生在内核态。</p>
-<p>所以，进程的上下文切换不仅包含了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、寄存器等内核空间的资源。</p>
-<p>通常，会把交换的信息保存在进程的 PCB，当要运行另外一个进程的时候，我们需要从这个进程的 PCB 取出上下文，然后恢复到 CPU 中，这使得这个进程可以继续执行，如下图所示：</p>
-<p><img src="https://pic2.zhimg.com/80/v2-9cbca9f3c903c3bbfdaf330e95bf2835_720w.jpg" alt="img"></p>
-<p>大家需要注意，进程的上下文开销是很关键的，我们希望它的开销越小越好，这样可以使得进程可以把更多时间花费在执行程序上，而不是耗费在上下文切换。</p>
-<p>发生进程上下文切换有哪些场景？</p>
-<ul>
-<li>为了保证所有进程可以得到公平调度，CPU 时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。这样，当某个进程的时间片耗尽了，进程就从运行状态变为就绪状态，系统从就绪队列选择另外一个进程运行；</li>
-<li>进程在系统资源不足（比如内存不足）时，要等到资源满足后才可以运行，这个时候进程也会被挂起，并由系统调度其他进程运行；</li>
-<li>当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时，自然也会重新调度；</li>
-<li>当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程来运行；</li>
-<li>发生硬件中断时，CPU 上的进程会被中断挂起，转而执行内核中的中断服务程序；<br>以上，就是发生进程上下文切换的常见场景了。</li>
-</ul>
+<p>（图3）无索引下推执行流程：</p>
+<p><img src="https://s3.ax1x.com/2020/12/22/rsQS4U.jpg" alt="img"></p>
+<p>（图4）索引下推执行流程：</p>
+<p><img src="https://s3.ax1x.com/2020/12/22/rsMzNT.jpg" alt="img"></p>
+<p>在上面的两个图中，每一个虚线箭头表示回表一次。</p>
+<p>图 3 中，在 (name,age) 索引里面我特意去掉了 age 的值，这个过程 InnoDB 不会去看 age 的值，只是按顺序把“name 第一个字是’张’”的记录一条条取出来回表。因此，需要回表 4 次。</p>
+<p>图 4 跟图 3 的区别是，InnoDB 在 (name,age) 索引内部就判断了 age 是否等于 10，对于不等于 10 的记录，直接判断并跳过。在这个例子中，只需要对 ID4、ID5 这两条记录回表取数据判断，就只需要回表 2 次。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>在满足语句需求的情况下， 尽量少地访问资源是数据库设计的重要原则之一。我们在使用数据库的时候，尤其是在设计表结构时，也要以减少资源消耗作为目标。</p>
+<p>留一个问题：</p>
+<p>实际上主键索引也是可以使用多个字段的。小吕在入职新公司的时候，就发现自己接手维护的库里面，有这么一个表，表结构如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">CREATE TABLE &#96;geek&#96; (</span><br><span class="line">  &#96;a&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;b&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;c&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;d&#96; int(11) NOT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;a&#96;,&#96;b&#96;),</span><br><span class="line">  KEY &#96;c&#96; (&#96;c&#96;),</span><br><span class="line">  KEY &#96;ca&#96; (&#96;c&#96;,&#96;a&#96;),</span><br><span class="line">  KEY &#96;cb&#96; (&#96;c&#96;,&#96;b&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br></pre></td></tr></table></figure>
+
+<p>公司的同事告诉他说，由于历史原因，这个表需要 a、b 做联合主键，这个小吕理解了。</p>
+<p>但是既然主键包含了 a、b 这两个字段，那意味着单独在字段 c 上创建一个索引，就已经包含了三个字段了呀，为什么要创建“ca”“cb”这两个索引？</p>
+<p>同事告诉他，是因为他们的业务里面有这样的两种语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">select * from geek where c&#x3D;N order by a limit 1;</span><br><span class="line">select * from geek where c&#x3D;N order by b limit 1;</span><br></pre></td></tr></table></figure>
+
+<p>这位同事的解释对吗，为了这两个查询模式，这两个索引是否都是必须的？为什么呢？</p>
 
       
     </div>
@@ -563,7 +481,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"><i class="fa fa-tag"></i> 操作系统</a>
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"><i class="fa fa-tag"></i> 数据库</a>
           
         </div>
       
@@ -576,8 +494,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/10/12/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%9A%84%E4%B8%89%E5%A4%A7%E8%B0%83%E5%BA%A6%E6%9C%BA%E5%88%B6/" rel="next" title="操作系统的三大调度机制">
-                <i class="fa fa-chevron-left"></i> 操作系统的三大调度机制
+              <a href="/2020/12/21/04%20%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95%EF%BC%88%E4%B8%8A%EF%BC%89/" rel="next" title="04 深入浅出索引（上）">
+                <i class="fa fa-chevron-left"></i> 04 深入浅出索引（上）
               </a>
             
           </div>
@@ -585,10 +503,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/12/01/Go%E8%AF%AD%E8%A8%80%E5%85%B3%E4%BA%8Einterface%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="Go语言关于interface的问题">
-                Go语言关于interface的问题 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -760,7 +674,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#进程"><span class="nav-number">1.</span> <span class="nav-text">进程</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#并发和并行有什么区别？"><span class="nav-number">1.1.</span> <span class="nav-text">并发和并行有什么区别？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程与程序的关系的类比"><span class="nav-number">1.2.</span> <span class="nav-text">进程与程序的关系的类比</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的状态"><span class="nav-number">1.3.</span> <span class="nav-text">进程的状态</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的控制结构"><span class="nav-number">1.4.</span> <span class="nav-text">进程的控制结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#PCB-包含什么信息呢？"><span class="nav-number">1.5.</span> <span class="nav-text">PCB 包含什么信息呢？</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#进程描述信息："><span class="nav-number">1.5.1.</span> <span class="nav-text">进程描述信息：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#进程控制和管理信息："><span class="nav-number">1.5.2.</span> <span class="nav-text">进程控制和管理信息：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#资源分配清单："><span class="nav-number">1.5.3.</span> <span class="nav-text">资源分配清单：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#CPU-相关信息："><span class="nav-number">1.5.4.</span> <span class="nav-text">CPU 相关信息：</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#各个-PCB-是如何组织的呢？"><span class="nav-number">1.6.</span> <span class="nav-text">各个 PCB 是如何组织的呢？</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的控制"><span class="nav-number">1.7.</span> <span class="nav-text">进程的控制</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#创建进程"><span class="nav-number">1.7.1.</span> <span class="nav-text">创建进程</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#终止进程"><span class="nav-number">1.7.2.</span> <span class="nav-text">终止进程</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#阻塞进程"><span class="nav-number">1.7.3.</span> <span class="nav-text">阻塞进程</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#唤醒进程"><span class="nav-number">1.7.4.</span> <span class="nav-text">唤醒进程</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#进程的上下文切换"><span class="nav-number">1.8.</span> <span class="nav-text">进程的上下文切换</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#CPU-上下文切换"><span class="nav-number">1.8.1.</span> <span class="nav-text">CPU 上下文切换</span></a></li></ol></li></ol></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#覆盖索引"><span class="nav-number">1.</span> <span class="nav-text">覆盖索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最左前缀原则"><span class="nav-number">2.</span> <span class="nav-text">最左前缀原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引下推"><span class="nav-number">3.</span> <span class="nav-text">索引下推</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">4.</span> <span class="nav-text">小结</span></a></li></ol></div>
                 
             </div>
             </section>
