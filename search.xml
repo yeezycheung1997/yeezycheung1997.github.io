@@ -1,6 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>09 普通索引和唯一索引，应该怎么选择？</title>
+    <url>/2021/01/08/09%20%E6%99%AE%E9%80%9A%E7%B4%A2%E5%BC%95%E5%92%8C%E5%94%AF%E4%B8%80%E7%B4%A2%E5%BC%95%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E9%80%89%E6%8B%A9%EF%BC%9F/</url>
+    <content><![CDATA[<p>前面介绍过索引的基本概念，了解了唯一索引和普通索引的区别。今天谈谈在不同的业务场景下，如何选择普通索引和唯一索引？</p>
+<p>在市民系统中，每个人都有唯一的身份证号，业务代码保证了不会写入两个重复的身份证号。如果市民系统按照身份证号查姓名，会执行这样的 SQL 语句：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select name from CUser where id_card &#x3D; &#39;xxxxxxxyyyyyyzzzzz&#39;;</span><br></pre></td></tr></table></figure>
+
+<p>所以会考虑在 id_card 字段上建索引。</p>
+<p>由于身份证号字段比较大，不建议身份证号当主键，那么现在有两个选择：</p>
+<ol>
+<li>给 id_card 字段创建唯一索引</li>
+<li>创建一个普通索引</li>
+</ol>
+<p>如果业务代码保证了不会写入重复的身份证号，那么这两个选择逻辑上都正确。</p>
+<p>如果考虑性能，选择唯一索引还是普通索引呢？依据是什么呢？</p>
+<p>还是用<a href="https://yeezycheung1997.github.io/2020/12/21/04%20%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95%EF%BC%88%E4%B8%8A%EF%BC%89/#more">《深入浅出索引（上）》</a>中的例子来说明，假设字段 k 上的值都不重复。</p>
+<p><img src="https://s3.ax1x.com/2021/01/08/snrwvR.png" alt="img"></p>
+<center>图 1 InnoDB 的索引组织结构</center>
+
+<p>接下来从这两种索引对查询语句和更新语句的性能影响来分析。</p>
+<h3 id="查询过程"><a href="#查询过程" class="headerlink" title="查询过程"></a>查询过程</h3><p>假设执行查询的语句是 <code>select id from T where k=5</code>。这个查询语句在索引树上查找的过程，先是通过 B+ 树从树根开始按层搜索到叶子节点，也就是图中右下角的这个数据页，数据页内部通过二分法定位记录。</p>
+<ul>
+<li><p>对于普通索引，查找到满足条件的第一个记录 (5,500) 后，需要查找下一个记录，直到碰到第一个不满足 k=5 条件的记录。</p>
+</li>
+<li><p>对于唯一索引，由于索引定义了唯一性，查找到第一个满足条件的记录后停止检索。</p>
+</li>
+</ul>
+<p>这个不同带来的性能差距有多少呢？答案是微乎其微。</p>
+<p>InnoDB 的数据是按数据页为单位来读写的。当读一条记录时，不是从磁盘读记录本身，而是以页为单位，将其整体读入内存。InnoDB 中的每个数据页大小默认是 16KB。</p>
+<p>因为引擎是按页读写的，当找到 k=5 的记录时，它所在的数据页就在内存里了。对于普通索引来说，要多做的那一次“查找和判断下一条记录”的操作，就只需要一次指针寻找和一次计算。</p>
+<p>如果 k=5 这个记录刚好是这个数据页的最后一个记录，那么要取下一个记录，必须读取下一个数据页，这个操作会稍微复杂一些。</p>
+<p>之前计算过，对于整型字段，一个数据页可以放近千个 key，因此出现这种情况的概率会很低。所以计算平均性能差异时，仍可认为这个操作成本对于 CPU 来说忽略不计。</p>
+<h3 id="更新过程"><a href="#更新过程" class="headerlink" title="更新过程"></a>更新过程</h3><p>为了说明普通索引和唯一索引对更新语句性能的影响，先介绍一下 change buffer。</p>
+<p>当更新一个数据页时，如果数据页在内存中就直接更新；如果数据页不在内存中，在不影响数据一致性的前提下，InnoDB 会将这些更新操作缓存在 change buffer 中，这样就无需从磁盘中读入这个数据页了。在下次查询需要访问这个数据页时，将数据页读入内存，然后执行 change buffer 中与这个页有关的操作。这种方式就能保证这个数据逻辑的正确性。</p>
+<p>虽然名字叫作 change buffer，实际上它是可以持久化的数据。也就是 change buffer 在内存中有拷贝会被写入到磁盘上。</p>
+<p><strong>将 change buffer 中的操作应用到原数据页，得到最新结果的过程称为 merge</strong>。</p>
+<ul>
+<li>访问这个数据页会触发 merge </li>
+<li>系统有后台线程会定期 merge</li>
+<li>在数据库正常关闭（shutdown）的过程中，也会执行 merge 操作</li>
+</ul>
+<p>显然，如果能够将更新操作先记录在 change buffer，减少读磁盘，语句的执行速度会明显地提升。而且，数据读入内存是要占用 buffer pool 的，所以这种方式还能够避免占用内存，提高内存利用率。</p>
+<h4 id="什么条件下可以使用-change-buffer-呢？"><a href="#什么条件下可以使用-change-buffer-呢？" class="headerlink" title="什么条件下可以使用 change buffer 呢？"></a>什么条件下可以使用 change buffer 呢？</h4><p><strong>对于唯一索引来说，所有的更新操作都要先判断这个操作是否违反唯一性约束</strong>。比如插入 (4,400) 这个记录，要先判断现在表中是否已经存在 k=4 的记录，而这必须要将数据页读入内存才能判断。如果都已经读入到内存了，那直接更新内存会更快，就没必要使用 change buffer 了。</p>
+<p>因此，<strong>唯一索引的更新不使用 change buffer，实际上只有普通索引可以使用</strong>。</p>
+<p>change buffer 用的是 buffer pool 里的内存，因此不能无限增大。change buffer 的大小通过参数 <code>innodb_change_buffer_max_size</code> 设置。参数设置为 50 表示 change buffer 的大小最多占用 buffer pool 的 50%。</p>
+<p>现在理解了 change buffer 的机制，再看看<strong>如果要在这张表中插入一个新记录 (4,400) 的话，InnoDB 的处理流程是怎样的</strong>。</p>
+<p>第一种情况：这个记录要更新的目标页在内存中。这时，InnoDB 的处理流程如下：</p>
+<ul>
+<li><p>对于唯一索引来说，找到 3 和 5 之间的位置，判断到没有冲突，插入这个值，语句执行结束</p>
+</li>
+<li><p>对于普通索引来说，找到 3 和 5 之间的位置，插入这个值，语句执行结束</p>
+</li>
+</ul>
+<p>这样看来，普通索引和唯一索引对更新语句性能影响的差别，只是一个判断，只会耗费微小的 CPU 时间。</p>
+<p>第二种情况：<strong>这个记录要更新的目标页不在内存中</strong>。这时，InnoDB 的处理流程如下：</p>
+<ul>
+<li><p>对于唯一索引来说，需要将数据页读入内存，判断到没有冲突，插入这个值，语句执行结束</p>
+</li>
+<li><p>对于普通索引来说，则是将更新记录在 change buffer，语句执行结束</p>
+</li>
+</ul>
+<p>将数据从磁盘读入内存涉及随机 IO 的访问，是数据库里面成本最高的操作之一。change buffer 减少了随机磁盘访问，对更新性能的提升很明显。</p>
+<p>现实中的例子，一个 DBA 负责的某个业务的库内存命中率突然从 99% 降低到了 75%，整个系统处于阻塞状态，更新语句全部堵住。探究原因后发现这个业务有大量插入数据的操作，而他在前一天把其中的某个普通索引改成了唯一索引。</p>
+<h3 id="change-buffer-的使用场景"><a href="#change-buffer-的使用场景" class="headerlink" title="change buffer 的使用场景"></a>change buffer 的使用场景</h3><p>通过上面的分析已经清楚了使用 change buffer 对更新过程的加速作用，也清楚了 <strong>change buffer 只限于用在普通索引的场景下，而不适用于唯一索引</strong>。</p>
+<h4 id="普通索引的所有场景，使用-change-buffer-都可以起到加速作用吗？"><a href="#普通索引的所有场景，使用-change-buffer-都可以起到加速作用吗？" class="headerlink" title="普通索引的所有场景，使用 change buffer 都可以起到加速作用吗？"></a>普通索引的所有场景，使用 change buffer 都可以起到加速作用吗？</h4><p>因为 merge 才是真正进行数据更新的时刻，而 <strong>change buffer 的主要目的是将记录的变更动作缓存下来</strong>，所以在一个数据页 merge 之前，change buffer 记录的变更越多（也就是这个页面上要更新的次数越多），收益就越大。</p>
+<p>对于写多读少的业务来说，页面在写完后马上被访问到的概率比较小，此时 change buffer 的使用效果最好。这种业务模型常见的就是账单类、日志类的系统。</p>
+<p>反过来，假设一个业务的更新模式是写入之后马上会做查询，那么即使满足了条件，将更新先记录在 change buffer，但之后由于马上要访问这个数据页，会立即触发 merge 过程。这样随机访问 IO 的次数不会减少，反而增加了 change buffer 的维护代价。对于这种业务模式来说，change buffer 反而起到了副作用。</p>
+<h3 id="索引选择和实践"><a href="#索引选择和实践" class="headerlink" title="索引选择和实践"></a>索引选择和实践</h3><p>文章开头问了普通索引和唯一索引应该怎么选择。这两类索引在查询能力上没差别，主要考虑对更新性能的影响。所以建议尽量选择普通索引。</p>
+<p>如果所有的更新后面，都马上伴随着对这个记录的查询，那么应该关闭 change buffer。而在其他情况下，change buffer 都能提升更新性能。</p>
+<p>在实际使用中会发现，普通索引和 change buffer 的配合使用，对于数据量大的表的更新优化还是很明显的。</p>
+<p>特别地，在使用机械硬盘时，change buffer 机制的收效非常显著的。所以，当你有一个类似“历史数据”的库，并且出于成本考虑用的是机械硬盘时，应该特别关注这些表里的索引，尽量使用普通索引，然后把 change buffer 尽量开大，以确保这个“历史数据”表的数据写入速度。</p>
+<h3 id="change-buffer-和-redo-log"><a href="#change-buffer-和-redo-log" class="headerlink" title="change buffer 和 redo log"></a>change buffer 和 redo log</h3><p>理解了 change buffer 的原理，可能会联想到前面文章中介绍过的 redo log 和 WAL。</p>
+<p>WAL 提升性能的核心机制是尽量减少随机读写。回顾下第 2 篇文章<a href="https://yeezycheung1997.github.io/2020/12/20/02%20%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/#more">《日志系统：一条 SQL 更新语句是如何执行的？》</a>中的相关内容。</p>
+<p>现在要在表上执行这个插入语句：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; insert into t(id,k) values(id1,k1),(id2,k2);</span><br></pre></td></tr></table></figure>
+
+<p>假设当前 k 索引树的状态，查找到位置后，k1 所在的数据页在内存 (InnoDB buffer pool) 中，k2 所在的数据页不在内存中。如图 2 所示是带 change buffer 的更新状态图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/08/snssQs.png" alt="img"></p>
+<center>图 2 带 change buffer 的更新过程</center>
+
+<p>这条更新语句涉及了四个部分：内存、redo log（ib_log_fileX）、 数据表空间（t.ibd）、系统表空间（ibdata1）。</p>
+<p>这条更新语句做了如下的操作（按图中的数字顺序）：</p>
+<ol>
+<li>Page 1 在内存中，直接更新内存</li>
+<li>Page 2 不在内存中，就在内存的 change buffer 区域，记录下“我要往 Page 2 插入一行”这个信息</li>
+<li>将上述两个动作记入 redo log 中（图中 3 和 4）</li>
+</ol>
+<p>做完上面这些，事务就可以完成了。所以执行这条更新语句的成本很低，就写了两处内存，然后写了一处磁盘（两次操作合在一起写了一次磁盘），而且还是顺序写的。</p>
+<p>图中的两个虚线箭头是后台操作，不影响更新的响应时间。那在这之后的读请求怎么处理呢？</p>
+<p>比如现在执行 <code>select * from t where k in (k1, k2)</code>。下面画了这两个读请求的流程图。</p>
+<p>如果读语句发生在更新语句后不久，内存中的数据都还在，那么此时的这两个读操作就与系统表空间（ibdata1）和 redo log（ib_log_fileX）无关了。所以图中就没画出这两部分。</p>
+<p><img src="https://s3.ax1x.com/2021/01/08/snsISJ.png" alt="img"></p>
+<center>图 3 带 change buffer 的读过程</center>
+
+<p>从图中可以看到：</p>
+<ol>
+<li>读 Page 1 的时候，直接从内存返回。有人问 WAL 之后如果读数据，是不是一定要读盘，是不是一定要从 redo log 里面把数据更新以后才可以返回？其实是不用的。图 3 的这个状态，虽然磁盘上还是之前的数据，但这里直接从内存返回结果，结果是正确的。</li>
+<li>要读 Page 2 的时候，需要把 Page 2 从磁盘读入内存中，然后应用 change buffer 里面的操作日志，生成一个正确的版本并返回结果。</li>
+</ol>
+<p>可以看到，直到需要读 Page 2 的时候，这个数据页才会被读入内存。</p>
+<p>所以，如果要简单地对比这两个机制在提升更新性能上的收益的话，redo log 主要节省的是随机<strong>写</strong>磁盘的 IO 消耗（转成顺序写），而 change buffer 主要节省的则是随机<strong>读</strong>磁盘的 IO 消耗。</p>
+]]></content>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>08 事务到底是隔离的还是不隔离的？</title>
     <url>/2021/01/08/08%20%E4%BA%8B%E5%8A%A1%E5%88%B0%E5%BA%95%E6%98%AF%E9%9A%94%E7%A6%BB%E7%9A%84%E8%BF%98%E6%98%AF%E4%B8%8D%E9%9A%94%E7%A6%BB%E7%9A%84%EF%BC%9F/</url>
     <content><![CDATA[<p>可重复读隔离级别下，事务 T 启动时会创建一个视图 read-view，之后事务 T 执行期间，即使有其他事务修改了数据，事务 T 看到的仍然跟在启动时看到的一样。也就是说，一个在可重复读隔离级别下执行的事务不受外界影响。</p>
