@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="数据库," />
 
 
 
@@ -79,17 +79,20 @@
 
 
 
-<meta name="description" content="可迭代对象和迭代器序列可以迭代的原因：iter 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：  检查对象是否实现了 __ iter__ 方法，实现了就调用它，获取一个迭代器。  没有实现 __ iter__ 方法，但实现了 __ getitem__ 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开">
+<meta name="description" content="现在几乎所有的系统都支持邮箱登录，今天讨论如何在邮箱这样的字段上建立合理的索引。 一个支持邮箱登录的系统，用户表定义如下： 12345mysql&gt; create table SUser(ID bigint unsigned primary key,email varchar(64), ... )engine&#x3D;innodb;  由于要使用邮箱登录，业务代码中一定会出现这样的语句： 1">
 <meta property="og:type" content="article">
-<meta property="og:title" content="对可迭代对象、迭代器和生成器的理解">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/index.html">
+<meta property="og:title" content="11怎么给字符串字段加索引？">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/09/11%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="可迭代对象和迭代器序列可以迭代的原因：iter 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：  检查对象是否实现了 __ iter__ 方法，实现了就调用它，获取一个迭代器。  没有实现 __ iter__ 方法，但实现了 __ getitem__ 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开">
-<meta property="article:published_time" content="2020-03-23T01:53:46.000Z">
-<meta property="article:modified_time" content="2020-03-23T13:54:39.991Z">
+<meta property="og:description" content="现在几乎所有的系统都支持邮箱登录，今天讨论如何在邮箱这样的字段上建立合理的索引。 一个支持邮箱登录的系统，用户表定义如下： 12345mysql&gt; create table SUser(ID bigint unsigned primary key,email varchar(64), ... )engine&#x3D;innodb;  由于要使用邮箱登录，业务代码中一定会出现这样的语句： 1">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/09/sMK1C8.jpg">
+<meta property="og:image" content="https://yeezycheung1997.github.io/2021/01/09/11%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/%3Chttps://s3.ax1x.com/2021/01/09/sMKD8U.jpg">
+<meta property="article:published_time" content="2021-01-09T03:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-09T03:52:26.489Z">
 <meta property="article:author" content="Qianyi Zhang">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/09/sMK1C8.jpg">
 
 
 
@@ -119,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/03/23/对可迭代对象、迭代器和生成器的理解/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/09/11怎么给字符串字段加索引？/"/>
 
 
 
 
 
-  <title>对可迭代对象、迭代器和生成器的理解 | Qianyi Zhang's blog</title>
+  <title>11怎么给字符串字段加索引？ | Qianyi Zhang's blog</title>
   
 
 
@@ -287,7 +290,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/09/11%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -304,7 +307,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">对可迭代对象、迭代器和生成器的理解</h1>
+          <h1 class="post-title" itemprop="name headline">11怎么给字符串字段加索引？</h1>
         
 
         <div class="post-meta">
@@ -316,8 +319,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-23T09:53:46+08:00">
-                2020-03-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-09T11:00:00+08:00">
+                2021-01-09
               </time>
             
 
@@ -328,8 +331,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2020-03-23T21:54:39+08:00" content="2020-03-23">
-                2020-03-23
+              <time itemprop="dateUpdated" datetime="2021-01-09T11:52:26+08:00" content="2021-01-09">
+                2021-01-09
               </time>
             </span>
           
@@ -362,62 +365,104 @@
       
 
       
-        <h5 id="可迭代对象和迭代器"><a href="#可迭代对象和迭代器" class="headerlink" title="可迭代对象和迭代器"></a>可迭代对象和迭代器</h5><p>序列可以迭代的原因：<strong>iter</strong> 函数。Python解释器需要迭代对象 x 时，会自动调用 iter(x)。内置的 iter 函数作用如下：</p>
-<ol>
-<li><p>检查对象是否实现了 __ <strong>iter__</strong> 方法，实现了就调用它，获取一个迭代器。</p>
-</li>
-<li><p>没有实现 __ <strong>iter__</strong> 方法，但实现了 __ <strong>getitem__</strong> 方法，而且参数是从零开始的索引，Python会创建一个迭代器，尝试按顺序（从索引 0 开始）获取元素。</p>
-</li>
-<li><p>如果前两步都失败，Python抛出 TypeError 异常，通常会提示“C object is not iterable”，其中 C 是目标对象所属的类。</p>
-</li>
-</ol>
-<p>由此可以明确可迭代对象（Iterable）： 使用 iter 内置函数可以获取迭代器（Iterator）的对象。即对象实现了能返回迭代器的 __ <strong>iter__</strong> 方法或实现了 __ <strong>getitem__</strong> 方法，而且其参数是从零开始的索引。</p>
-<p>一个实现 __ <strong>getitem__</strong> 的demo：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__getitem__</span><span class="params">(self, item)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.text[item]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o1 = Test(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o1:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+        <p>现在几乎所有的系统都支持邮箱登录，今天讨论如何在邮箱这样的字段上建立合理的索引。</p>
+<p>一个支持邮箱登录的系统，用户表定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table SUser(</span><br><span class="line">ID bigint unsigned primary key,</span><br><span class="line">email varchar(64), </span><br><span class="line">... </span><br><span class="line">)engine&#x3D;innodb;</span><br></pre></td></tr></table></figure>
 
-<p>下面来看一个实现 __ <strong>iter__</strong> 的例子。因为用到了迭代器，所以先明确一下迭代器的用法。 标准的迭代器接口有两个方法：  </p>
-<ol>
-<li><p>__ <strong>next__</strong> ：返回下一个可用的元素，如果没有元素了就抛出 <strong>StopIteration</strong> 异常。</p>
-</li>
-<li><p>__ <strong>iter__</strong> ：返回 self，以便在应该使用可迭代对象的地方使用迭代器，例如 for 循环。</p>
-</li>
-</ol>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> Eg2Iterator(self.text) <span class="comment"># 获取一个迭代器</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg2Iterator</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text</span><br><span class="line">        self.index = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__next__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            subtext = self.text[self.index]</span><br><span class="line">        <span class="keyword">except</span> IndexError:</span><br><span class="line">            <span class="keyword">raise</span> StopIteration()</span><br><span class="line">        self.index +=<span class="number">1</span></span><br><span class="line">        <span class="keyword">return</span> subtext</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o2 = Eg2(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o2:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+<p>由于要使用邮箱登录，业务代码中一定会出现这样的语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select f1, f2 from SUser where email&#x3D;&#39;xxx&#39;;</span><br></pre></td></tr></table></figure>
 
-<p>我们明确可迭代的对象和迭代器之间的关系：</p>
-<ol>
-<li><p>Python 从可迭代对象中获取迭代器。</p>
-</li>
-<li><p>__ <strong>iter__</strong> 方法从我们自己创建的迭代器类中获取迭代器，而__ <strong>getitem__</strong> 方法是python内部自动创建迭代器。</p>
-</li>
-</ol>
-<p>我们来了解一下使用更符合 Python 的方式实现 Eg2类。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">for</span> item <span class="keyword">in</span> self.text:</span><br><span class="line">            <span class="keyword">yield</span> item</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
-<p>这里使用了 <strong>yield</strong> 关键字， 只要 Python 函数体中有 yield 关键字，该函数就是生成器函数。调用生成器函数时会返回一个生成器对象。也就是说生成器函数是生成器工厂。 上述代码还可以使用yield from进一步简化：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg3</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">yield</span> <span class="keyword">from</span> self.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o3 = Eg3(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o3:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+<p>从第 4 和第 5 篇讲解索引的文章中知道了如果 email 字段上没有索引，那么这个语句只能做全表扫描。</p>
+<p>同时 MySQL 支持前缀索引，可以定义字符串的一部分作为索引。默认地，如果创建索引的语句不指定前缀长度，那么索引就会包含整个字符串。</p>
+<p>比如，这两个在 email 字段上创建索引的语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table SUser add index index1(email);</span><br><span class="line">或</span><br><span class="line">mysql&gt; alter table SUser add index index2(email(6));</span><br></pre></td></tr></table></figure>
 
-<p>还可以使用生成器表达式</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Eg5</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, text)</span>:</span></span><br><span class="line">        self.text = text.split(<span class="string">' '</span>)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__iter__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> (item <span class="keyword">for</span> item <span class="keyword">in</span> self.text) <span class="comment"># 生成器表达式</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">o5 = Eg5(<span class="string">'Hello, the wonderful new world!'</span>)</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> o5:</span><br><span class="line">    print(i)</span><br><span class="line"></span><br><span class="line"><span class="comment">#返回结果:  </span></span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>Hello,</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>the</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>wonderful</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>new</span><br><span class="line"><span class="meta">&gt;&gt;&gt; </span>world!</span><br></pre></td></tr></table></figure>
+<p>第一个语句创建的 index1 索引里面，包含了每个记录的整个字符串；</p>
+<p>第二个语句创建的 index2 索引里面，对于每个记录都只取前 6 个字节。</p>
+<p>这两种不同的定义在数据结构和存储上有什么区别呢？如图 2 和 3 所示是这两个索引的示意图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/09/sMK1C8.jpg" alt="img"></p>
+<center><font color="grey">图 1 email 索引结构</font></center>
 
-<p>总结：</p>
+<p><img src="%3Chttps://s3.ax1x.com/2021/01/09/sMKD8U.jpg" alt="img"></p>
+<center><font color="grey">图 2 email(6) 索引结构</font></center>
+
+<p>从图中可以看到，email(6) 这个索引结构中每个邮箱字段都只取前 6 个字节（即：zhangs），占用空间更小，这就是使用前缀索引的优势。</p>
+<p>但这同时带来的损失是，可能会增加额外的记录扫描次数。</p>
+<p>接下来看看下面这个语句，在这两个索引定义下分别是怎么执行的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,name,email from SUser where email&#x3D;&#39;zhangssxyz@xxx.com&#39;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>如果使用的是 index1</strong>（即 email 整个字符串的索引结构），执行顺序是这样的：</p>
 <ol>
-<li><p>可迭代对象（Iterable）要么实现了能返回迭代器的 __ <strong>iter__</strong> 方法，要么实现了 __ <strong>getitem__</strong> 方法而且其参数是从零开始的索引。</p>
-</li>
-<li><p>迭代器（Iterator）是这样的对象：实现了无参数的 __ <strong>next__</strong> 方法，返回下一个元素，如果没有元素就抛出 StopIteration 异常；并且实现 __ <strong>iter__</strong> 方法，返回迭代器本身。</p>
-</li>
-<li><p>生成器是带有 yield 关键字的函数。调用生成器函数时，会返回一个生成器对象。</p>
-</li>
-<li><p>生成器表达式是创建生成器的简洁句法，这样无需先定义函数再调用。</p>
-</li>
-<li><p>什么是迭代器模式？按需一次获取一个数据项。</p>
-</li>
-<li><p>生成器和迭代器有什么不同？</p>
-<p>相同点：所有生成器都是迭代器，因为生成器完全实现了迭代器接口。</p>
-<p>不同点：迭代器用于从集合中取出元素；生成器用于凭空生成元素。</p>
-</li>
+<li>从 index1 索引树找到满足索引值是’<a href="mailto:zhangssxyz@xxx.com">zhangssxyz@xxx.com</a>’的这条记录，取得 ID2 的值；</li>
+<li>到主键上查到主键值是 ID2 的行，判断 email 的值是正确的，将这行记录加入结果集；</li>
+<li>取 index1 索引树上刚刚查到的位置的下一条记录，发现已经不满足 email=’zhangssxyz@xxx.com’的条件了，循环结束。</li>
 </ol>
-<h5 id="生成器"><a href="#生成器" class="headerlink" title="生成器"></a>生成器</h5><p>迭代是处理大量数据的好方法。以列表为例，迭代存在两个问题。第一，列表中的元素太多将大量占用内存。第二，我们有时候只需要使用一次数据，如果用列表把数据全部保存起来，将会造成内存浪费。</p>
-<p>生成器是创建迭代器的工具。它们像常规函数一样撰写，但是在需要返回数据时使用yield语句。每当对它调用next()函数，生成器从它上次停止的地方重新开始（它会记住所有的数据值和上次执行的语句）。</p>
+<p>这个过程中，只需要回主键索引取一次数据，所以系统认为只扫描了一行。</p>
+<p><strong>如果使用的是 index2</strong>（即 email(6) 索引结构），执行顺序是这样的：</p>
+<ol>
+<li>从 index2 索引树找到满足索引值是’zhangs’的记录，找到的第一个是 ID1；</li>
+<li>到主键上查到主键值是 ID1 的行，判断出 email 的值不是’<a href="mailto:zhangssxyz@xxx.com">zhangssxyz@xxx.com</a>’，这行记录丢弃；</li>
+<li>取 index2 上刚刚查到的位置的下一条记录，发现仍然是’zhangs’，取出 ID2，再到 ID 索引上取整行然后判断，这次值对了，将这行记录加入结果集；</li>
+<li>重复上一步，直到在 idxe2 上取到的值不是’zhangs’时，循环结束。</li>
+</ol>
+<p>在这个过程中，要回主键索引取 4 次数据，也就是扫描了 4 行。</p>
+<p>通过这个对比，可以发现使用前缀索引后，可能会导致查询语句读数据的次数变多。</p>
+<p>但对于这个查询语句来说，如果你定义的 index2 不是 email(6) 而是 email(7），也就是说取 email 字段的前 7 个字节来构建索引的话，即满足前缀’zhangss’的记录只有一个，也能够直接查到 ID2，只扫描一行就结束了。</p>
+<p>也就是说<strong>使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本</strong>。</p>
+<p>当要给字符串创建前缀索引时，有什么方法能够确定应该使用多长的前缀呢？</p>
+<p>实际上我们在建立索引时关注的是区分度，区分度越高越好。因为区分度越高，意味着重复的键值越少。因此可以通过统计索引上有多少个不同的值来判断要使用多长的前缀。</p>
+<p>首先，可以使用下面这个语句，算出这个列上有多少个不同的值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select count(distinct email) as L from SUser;</span><br></pre></td></tr></table></figure>
+
+<p>然后，依次选取不同长度的前缀来看这个值，比如我们要看一下 4~7 个字节的前缀索引，可以用这个语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select </span><br><span class="line">  count(distinct left(email,4)）as L4,</span><br><span class="line">  count(distinct left(email,5)）as L5,</span><br><span class="line">  count(distinct left(email,6)）as L6,</span><br><span class="line">  count(distinct left(email,7)）as L7,</span><br><span class="line">from SUser;</span><br></pre></td></tr></table></figure>
+
+<p>当然，使用前缀索引很可能会损失区分度，所以你需要预先设定一个可以接受的损失比例，比如 5%。然后，在返回的 L4~L7 中，找出不小于 L * 95% 的值，假设这里 L6、L7 都满足，就可以选择前缀长度为 6。</p>
+<h3 id="前缀索引对覆盖索引的影响"><a href="#前缀索引对覆盖索引的影响" class="headerlink" title="前缀索引对覆盖索引的影响"></a>前缀索引对覆盖索引的影响</h3><p>前面说了使用前缀索引可能会增加扫描行数，会影响到性能。但前缀索引的影响不止如此，再看一下另一个场景。</p>
+<p>先来看这个 SQL 语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,email from SUser where email&#x3D;&#39;zhangssxyz@xxx.com&#39;;</span><br></pre></td></tr></table></figure>
+
+<p>与前面例子中的 SQL 语句</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,name,email from SUser where email&#x3D;&#39;zhangssxyz@xxx.com&#39;;</span><br></pre></td></tr></table></figure>
+
+<p>相比，这个语句只要求返回 id 和 email 字段。</p>
+<p>所以，如果使用 index1（即 email 整个字符串的索引结构）的话，可以利用覆盖索引，从 index1 查到结果后直接就返回了，不需要回到 ID 索引再去查一次。而如果使用 index2（即 email(6) 索引结构）的话，就不得不回到 ID 索引再去判断 email 字段的值。</p>
+<p>即使你将 index2 的定义修改为 email(18) 的前缀索引，这时候虽然 index2 已经包含了所有的信息，但 InnoDB 还是要回到 id 索引再查一下，因为系统并不确定前缀索引的定义是否截断了完整信息。</p>
+<p>也就是说，使用前缀索引就用不上覆盖索引对查询性能的优化了，这也是选择是否使用前缀索引需要考虑的一个因素。</p>
+<h3 id="其他方式"><a href="#其他方式" class="headerlink" title="其他方式"></a>其他方式</h3><p>对于类似于邮箱这样的字段来说，使用前缀索引的效果可能还不错。但是，遇到前缀的区分度不够好的情况时，要怎么办呢？</p>
+<p>比如身份证号一共 18 位，前 6 位是地址码，所以同一个县的人的身份证号前 6 位一般是相同的。</p>
+<p>假设你维护的数据库是一个市的公民信息系统，这时候如果对身份证号做长度为 6 的前缀索引的话，这个索引的区分度就非常低了。</p>
+<p>按照前面说的方法，可能需要创建长度为 12 以上的前缀索引，才能够满足区分度要求。</p>
+<p>但是，索引选取的越长，占用的磁盘空间就越大，相同的数据页能放下的索引值就越少，搜索的效率也就会越低。</p>
+<p>那么，如果我们能够确定业务需求里面只有按照身份证进行等值查询的需求，还有没有别的处理方法呢？这种方法，既可以占用更小的空间，也能达到相同的查询效率。</p>
+<p>答案是，有的。</p>
+<p><strong>第一种方式是使用倒序存储</strong>。如果存储身份证号时把它倒过来存，每次查询可以这么写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select field_list from t where id_card &#x3D; reverse(&#39;input_id_card_string&#39;);</span><br></pre></td></tr></table></figure>
+
+<p>由于身份证号的最后 6 位没有地址码这样的重复逻辑，所以最后这 6 位很可能就提供了足够的区分度。当然了，实践中不要忘记使用 count(distinct) 方法做验证。</p>
+<p><strong>第二种方式是使用 hash 字段</strong>。在表上再创建一个整数字段，来保存身份证的校验码，同时在这个字段上创建索引。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table t add id_card_crc int unsigned, add index(id_card_crc);</span><br></pre></td></tr></table></figure>
+
+<p>然后每次插入新记录时，都同时用 crc32() 这个函数得到校验码填到这个新字段。由于校验码可能存在冲突，也就是说两个不同的身份证号通过 crc32() 函数得到的结果可能是相同的，所以查询语句 where 部分要判断 id_card 的值是否精确相同。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select field_list from t where id_card_crc&#x3D;crc32(&#39;input_id_card_string&#39;) and id_card&#x3D;&#39;input_id_card_string&#39;</span><br></pre></td></tr></table></figure>
+
+<p>这样，索引的长度变成了 4 个字节，比原来小了很多。</p>
+<p>接下来看看<strong>使用倒序存储和使用 hash 字段这两种方法的异同点</strong>。</p>
+<p>它们的相同点是都不支持范围查询。倒序存储的字段上创建的索引是按照倒序字符串的方式排序的，已经没有办法利用索引方式查出身份证号码在[ID_X, ID_Y]的所有市民了。同样地，hash 字段的方式也只能支持等值查询。</p>
+<p>它们的区别体现在以下三个方面：</p>
+<ol>
+<li>从占用的额外空间来看，倒序存储方式在主键索引上，不会消耗额外的存储空间，而 hash 字段方法需要增加一个字段。当然，倒序存储方式使用 4 个字节的前缀长度应该是不够的，如果再长一点，这个消耗跟额外这个 hash 字段也差不多抵消了。</li>
+<li>在 CPU 消耗方面，倒序方式每次写和读的时候，都需要额外调用一次 reverse 函数，而 hash 字段的方式需要额外调用一次 crc32() 函数。如果只从这两个函数的计算复杂度来看的话，reverse 函数额外消耗的 CPU 资源会更小些。</li>
+<li>从查询效率上看，使用 hash 字段方式的查询性能相对更稳定一些。因为 crc32 算出来的值虽然有冲突的概率，但是概率非常小，可以认为每次查询的平均扫描行数接近 1。而倒序存储方式毕竟还是用的前缀索引的方式，也就是说还是会增加扫描行数。</li>
+</ol>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>这篇文章中聊了字符串字段创建索引的场景。可以使用的方式有：</p>
+<ol>
+<li>直接创建完整索引，这样可能比较占用空间；</li>
+<li>创建前缀索引，节省空间，但会增加查询扫描次数，并且不能使用覆盖索引；</li>
+<li>倒序存储，再创建前缀索引，用于绕过字符串本身前缀的区分度不够的问题；</li>
+<li>创建 hash 字段索引，查询性能稳定，有额外的存储和计算消耗，跟第三种方式一样，都不支持范围扫描。</li>
+</ol>
+<p>在实际应用中要根据业务字段的特点选择使用哪种方式。</p>
 
       
     </div>
@@ -464,7 +509,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag"><i class="fa fa-tag"></i> Python</a>
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"><i class="fa fa-tag"></i> 数据库</a>
           
         </div>
       
@@ -477,8 +522,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/" rel="next" title="Python的property动态属性">
-                <i class="fa fa-chevron-left"></i> Python的property动态属性
+              <a href="/2021/01/09/10%20MySQL%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%97%B6%E5%80%99%E4%BC%9A%E9%80%89%E9%94%99%E7%B4%A2%E5%BC%95%EF%BC%9F/" rel="next" title="10 MySQL为什么有时候会选错索引？">
+                <i class="fa fa-chevron-left"></i> 10 MySQL为什么有时候会选错索引？
               </a>
             
           </div>
@@ -486,10 +531,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/03/23/%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B/" rel="prev" title="进程和线程">
-                进程和线程 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -661,7 +702,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#可迭代对象和迭代器"><span class="nav-number">1.</span> <span class="nav-text">可迭代对象和迭代器</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#生成器"><span class="nav-number">2.</span> <span class="nav-text">生成器</span></a></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前缀索引对覆盖索引的影响"><span class="nav-number">1.</span> <span class="nav-text">前缀索引对覆盖索引的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他方式"><span class="nav-number">2.</span> <span class="nav-text">其他方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
                 
             </div>
             </section>
