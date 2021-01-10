@@ -79,20 +79,21 @@
 
 
 
-<meta name="description" content="现在几乎所有的系统都支持邮箱登录，今天讨论如何在邮箱这样的字段上建立合理的索引。 一个支持邮箱登录的系统，用户表定义如下： 12345mysql&gt; create table SUser(ID bigint unsigned primary key,email varchar(64), ... )engine&#x3D;innodb;  由于要使用邮箱登录，业务代码中一定会出现这样的语句： 1">
+<meta name="description" content="平时工作中有这样的场景：一条 SQL 语句，正常执行的时候特别快，但有时不知道怎么回事，它变得特别慢，并且这样的场景很难复现，它不只随机，而且持续时间还很短。 看上去就像是数据库“抖”了一下。我们探讨一下这是什么原因。 你的 SQL 语句为什么变“慢”了第 2 篇文章《日志系统：一条 SQL 更新语句是如何执行的？》介绍了 WAL 机制。InnoDB 在处理更新语句时，只做了写日志这一个磁盘操作。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="11怎么给字符串字段加索引？">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/09/11%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/index.html">
+<meta property="og:title" content="12 为什么我的MySQL会“抖”一下？">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/10/12%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E7%9A%84MySQL%E4%BC%9A%E2%80%9C%E6%8A%96%E2%80%9D%E4%B8%80%E4%B8%8B%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="现在几乎所有的系统都支持邮箱登录，今天讨论如何在邮箱这样的字段上建立合理的索引。 一个支持邮箱登录的系统，用户表定义如下： 12345mysql&gt; create table SUser(ID bigint unsigned primary key,email varchar(64), ... )engine&#x3D;innodb;  由于要使用邮箱登录，业务代码中一定会出现这样的语句： 1">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/09/sMK1C8.jpg">
-<meta property="og:image" content="https://yeezycheung1997.github.io/2021/01/09/11%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/%3Chttps://s3.ax1x.com/2021/01/09/sMKD8U.jpg">
-<meta property="article:published_time" content="2021-01-09T03:00:00.000Z">
-<meta property="article:modified_time" content="2021-01-09T03:52:26.489Z">
+<meta property="og:description" content="平时工作中有这样的场景：一条 SQL 语句，正常执行的时候特别快，但有时不知道怎么回事，它变得特别慢，并且这样的场景很难复现，它不只随机，而且持续时间还很短。 看上去就像是数据库“抖”了一下。我们探讨一下这是什么原因。 你的 SQL 语句为什么变“慢”了第 2 篇文章《日志系统：一条 SQL 更新语句是如何执行的？》介绍了 WAL 机制。InnoDB 在处理更新语句时，只做了写日志这一个磁盘操作。">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/10/sQz5in.jpg">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/10/sQzHMT.jpg">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/10/sQzxiR.png">
+<meta property="article:published_time" content="2021-01-10T01:12:00.000Z">
+<meta property="article:modified_time" content="2021-01-10T02:46:21.771Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/09/sMK1C8.jpg">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/10/sQz5in.jpg">
 
 
 
@@ -122,13 +123,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/09/11怎么给字符串字段加索引？/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/10/12 为什么我的MySQL会“抖”一下？/"/>
 
 
 
 
 
-  <title>11怎么给字符串字段加索引？ | Qianyi Zhang's blog</title>
+  <title>12 为什么我的MySQL会“抖”一下？ | Qianyi Zhang's blog</title>
   
 
 
@@ -290,7 +291,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/09/11%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/10/12%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E7%9A%84MySQL%E4%BC%9A%E2%80%9C%E6%8A%96%E2%80%9D%E4%B8%80%E4%B8%8B%EF%BC%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -307,7 +308,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">11怎么给字符串字段加索引？</h1>
+          <h1 class="post-title" itemprop="name headline">12 为什么我的MySQL会“抖”一下？</h1>
         
 
         <div class="post-meta">
@@ -319,8 +320,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-09T11:00:00+08:00">
-                2021-01-09
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-10T09:12:00+08:00">
+                2021-01-10
               </time>
             
 
@@ -331,8 +332,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-09T11:52:26+08:00" content="2021-01-09">
-                2021-01-09
+              <time itemprop="dateUpdated" datetime="2021-01-10T10:46:21+08:00" content="2021-01-10">
+                2021-01-10
               </time>
             </span>
           
@@ -365,104 +366,103 @@
       
 
       
-        <p>现在几乎所有的系统都支持邮箱登录，今天讨论如何在邮箱这样的字段上建立合理的索引。</p>
-<p>一个支持邮箱登录的系统，用户表定义如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create table SUser(</span><br><span class="line">ID bigint unsigned primary key,</span><br><span class="line">email varchar(64), </span><br><span class="line">... </span><br><span class="line">)engine&#x3D;innodb;</span><br></pre></td></tr></table></figure>
+        <p>平时工作中有这样的场景：一条 SQL 语句，正常执行的时候特别快，但有时不知道怎么回事，它变得特别慢，并且这样的场景很难复现，它不只随机，而且持续时间还很短。</p>
+<p>看上去就像是数据库“抖”了一下。我们探讨一下这是什么原因。</p>
+<h3 id="你的-SQL-语句为什么变“慢”了"><a href="#你的-SQL-语句为什么变“慢”了" class="headerlink" title="你的 SQL 语句为什么变“慢”了"></a>你的 SQL 语句为什么变“慢”了</h3><p>第 2 篇文章<a href="https://yeezycheung1997.github.io/2020/12/20/02%20%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/#more">《日志系统：一条 SQL 更新语句是如何执行的？》</a>介绍了 WAL 机制。InnoDB 在处理更新语句时，只做了写日志这一个磁盘操作。这个日志是 redo log（重做日志），也就是《孔乙己》里掌柜用来记账的粉板，在更新内存写完 redo log 后，就返回给客户端，本次更新成功。</p>
+<p>做下类比的话，掌柜记账的账本是数据文件，记账用的粉板是日志文件（redo log），掌柜的记忆就是内存。</p>
+<p>掌柜总要找时间把账本更新一下，对应的就是把内存里的数据写入磁盘的过程，术语是 flush。在  flush 操作执行前，孔乙己的赊账总额跟掌柜手中账本的记录还不一致。因为孔乙己今天的赊账金额还只在粉板上，而账本里的记录是老的，还没把今天的赊账算进去。</p>
+<p><strong>当内存数据页跟磁盘数据页内容不一致时，内存页称为“脏页”。内存数据写入到磁盘后，内存和磁盘上的数据页的内容就一致了，称为“干净页”。</strong></p>
+<p>脏页和干净页都在内存中。在这个例子里，内存对应的是掌柜的记忆。</p>
+<p>用一个示意图展示“孔乙己赊账”的整个操作过程。假设原来孔乙己欠账 10 文，这次又要赊 9 文。</p>
+<p><img src="https://s3.ax1x.com/2021/01/10/sQz5in.jpg" alt="img"></p>
+<center><font color="grey">图 1 “孔乙己赊账”更新和 flush 过程</font></center>
 
-<p>由于要使用邮箱登录，业务代码中一定会出现这样的语句：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select f1, f2 from SUser where email&#x3D;&#39;xxx&#39;;</span><br></pre></td></tr></table></figure>
+<p>回到文章开头的问题，不难想象平时执行很快的更新操作，其实就是在写内存和日志，而 MySQL 偶尔“抖”一下的那个瞬间，可能就是在刷脏页（flush）。</p>
+<h4 id="什么情况会引发数据库的-flush-过程？"><a href="#什么情况会引发数据库的-flush-过程？" class="headerlink" title="什么情况会引发数据库的 flush 过程？"></a>什么情况会引发数据库的 flush 过程？</h4><p>还是用酒店掌柜的例子，想一想掌柜在什么情况下会把粉板上的赊账记录改到账本上？</p>
+<ul>
+<li><p>第一种场景是，粉板满了，记不下了。这时如果再有人来赊账，掌柜就只得放下手里的活儿，将粉板上的记录擦掉一些，留出空位以便继续记账。当然在擦掉之前，他必须先将正确的账目记录到账本中才行。</p>
+<p>这个场景对应的就是 InnoDB 的 redo log 写满了。这时系统会停止所有更新操作，把 checkpoint 往前推进，redo log 留出空间可以继续写。第二讲画过 redo log 的示意图，这里改成环形，便于理解。</p>
+<p><img src="https://s3.ax1x.com/2021/01/10/sQzHMT.jpg" alt="img"></p>
+</li>
+</ul>
+<center><font color="grey">图 2 redo log 状态图</font></center>
 
-<p>从第 4 和第 5 篇讲解索引的文章中知道了如果 email 字段上没有索引，那么这个语句只能做全表扫描。</p>
-<p>同时 MySQL 支持前缀索引，可以定义字符串的一部分作为索引。默认地，如果创建索引的语句不指定前缀长度，那么索引就会包含整个字符串。</p>
-<p>比如，这两个在 email 字段上创建索引的语句：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table SUser add index index1(email);</span><br><span class="line">或</span><br><span class="line">mysql&gt; alter table SUser add index index2(email(6));</span><br></pre></td></tr></table></figure>
-
-<p>第一个语句创建的 index1 索引里面，包含了每个记录的整个字符串；</p>
-<p>第二个语句创建的 index2 索引里面，对于每个记录都只取前 6 个字节。</p>
-<p>这两种不同的定义在数据结构和存储上有什么区别呢？如图 2 和 3 所示是这两个索引的示意图。</p>
-<p><img src="https://s3.ax1x.com/2021/01/09/sMK1C8.jpg" alt="img"></p>
-<center><font color="grey">图 1 email 索引结构</font></center>
-
-<p><img src="%3Chttps://s3.ax1x.com/2021/01/09/sMKD8U.jpg" alt="img"></p>
-<center><font color="grey">图 2 email(6) 索引结构</font></center>
-
-<p>从图中可以看到，email(6) 这个索引结构中每个邮箱字段都只取前 6 个字节（即：zhangs），占用空间更小，这就是使用前缀索引的优势。</p>
-<p>但这同时带来的损失是，可能会增加额外的记录扫描次数。</p>
-<p>接下来看看下面这个语句，在这两个索引定义下分别是怎么执行的。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,name,email from SUser where email&#x3D;&#39;zhangssxyz@xxx.com&#39;;</span><br></pre></td></tr></table></figure>
-
-<p><strong>如果使用的是 index1</strong>（即 email 整个字符串的索引结构），执行顺序是这样的：</p>
+<p>checkpoint 不是随便往前修改一下位置就可以的。比如图 2 中把 checkpoint 位置从 CP 推进到 CP’，就需要将两个点之间的日志（浅绿色部分），对应的所有脏页都 flush 到磁盘上。之后，图中从 write pos 到 CP’之间就是可以再写入的 redo log 的区域。</p>
+<ul>
+<li><p>第二种场景是，这一天生意太好，要记住的事情太多，掌柜发现自己快记不住了，赶紧找出账本把孔乙己这笔账先加进去。</p>
+<p>这种场景对应的是系统内存不足。当需要新的内存页而内存不够用时，就要淘汰一些数据页，空出内存给别的数据页使用。如果淘汰的是“脏页”，就要先将脏页写到磁盘。</p>
+<p>你一定会说，这时难道不能直接把内存淘汰掉，下次需要请求时，从磁盘读入数据页，然后拿 redo log 出来应用不就行了？这其实是从性能考虑的。如果刷脏页一定会写盘，就保证了每个数据页有两种状态：</p>
+<ul>
+<li>一种是内存里存在，内存里就肯定是正确的结果，直接返回；</li>
+<li>另一种是内存里没有数据，就可以肯定数据文件上是正确的结果，读入内存后返回。这样的效率最高。</li>
+</ul>
+</li>
+<li><p>第三种场景是，生意不忙或打烊后。这时柜台没事，掌柜闲着也是闲着，不如更新账本。</p>
+<p>这种场景对应的是 MySQL 认为系统“空闲”时。当然，MySQL“这家酒店”的生意好起来可是会很快就能把粉板记满的，所以“掌柜”要合理地安排时间，即使是“生意好”的时候，也要见缝插针地找时间，只要有机会就刷一点“脏页”。</p>
+</li>
+<li><p>第四种场景是，年底酒店要关门几天，需要把账结清一下。这时掌柜要把所有账都记到账本上，这样过完年重新开张时，就能就着账本明确账目情况了。</p>
+<p>这种场景对应的是 MySQL 正常关闭的情况。这时 MySQL 会把内存的脏页都 flush 到磁盘上，这样下次 MySQL 启动时就可以直接从磁盘上读数据，启动速度会很快。</p>
+</li>
+</ul>
+<h4 id="上面四种场景对性能的影响"><a href="#上面四种场景对性能的影响" class="headerlink" title="上面四种场景对性能的影响"></a>上面四种场景对性能的影响</h4><p>第三种情况属于 MySQL 空闲时的操作，这时系统没什么压力，而第四种场景是数据库本来就要关闭了。这两种情况下不太关注“性能”问题。</p>
+<p>第一种是“redo log 写满了，要 flush 脏页”，这种情况是 InnoDB 要尽量避免的。因为出现这种情况时，整个系统不再接受更新，所有的更新都必须堵住。从监控上看，这时更新数会跌为 0。</p>
+<p>第二种是“内存不够用了，要先将脏页写到磁盘”，这种情况其实是常态。<strong>InnoDB 用缓冲池（buffer pool）管理内存，缓冲池中的内存页有三种状态</strong>：</p>
+<ul>
+<li>第一种是，还没有使用的</li>
+<li>第二种是，使用了并且是干净页</li>
+<li>第三种是，使用了并且是脏页</li>
+</ul>
+<p>InnoDB 的策略是尽量使用内存，因此对于一个长时间运行的库来说，未被使用的页面很少。</p>
+<p>而<strong>当要读入的数据页不在内存时，就必须到缓冲池中申请一个数据页</strong>。这时只能把最久不使用的数据页从内存中淘汰掉：如果要淘汰的是一个干净页，就直接释放出来复用；如果是脏页就必须将脏页先刷到磁盘，变成干净页后才能复用。</p>
+<p>刷脏页虽是常态，但出现以下这两种情况，都会明显影响性能的：</p>
 <ol>
-<li>从 index1 索引树找到满足索引值是’<a href="mailto:zhangssxyz@xxx.com">zhangssxyz@xxx.com</a>’的这条记录，取得 ID2 的值；</li>
-<li>到主键上查到主键值是 ID2 的行，判断 email 的值是正确的，将这行记录加入结果集；</li>
-<li>取 index1 索引树上刚刚查到的位置的下一条记录，发现已经不满足 email=’zhangssxyz@xxx.com’的条件了，循环结束。</li>
+<li>一个查询要淘汰的脏页个数太多，会导致查询的响应时间明显变长</li>
+<li>日志写满，更新全部堵住，写性能跌为 0，这种情况对敏感业务是不能接受的</li>
 </ol>
-<p>这个过程中，只需要回主键索引取一次数据，所以系统认为只扫描了一行。</p>
-<p><strong>如果使用的是 index2</strong>（即 email(6) 索引结构），执行顺序是这样的：</p>
+<p>所以 InnoDB 要有控制脏页比例的机制，尽量避免上面的两种情况。</p>
+<h3 id="InnoDB-刷脏页的控制策略"><a href="#InnoDB-刷脏页的控制策略" class="headerlink" title="InnoDB 刷脏页的控制策略"></a>InnoDB 刷脏页的控制策略</h3><p>接下来说说 InnoDB 脏页的控制策略，以及和这些策略相关的参数。</p>
+<p>首先要正确地告诉 InnoDB 所在主机的 IO 能力，这样 InnoDB 才能知道需要全力刷脏页时，可以刷多快。</p>
+<p>这用到 <code>innodb_io_capacity</code> 参数了，它会告诉 InnoDB 你的磁盘能力。这个值建议设置成磁盘的 IOPS。磁盘的 IOPS 可以通过 fio 这个工具来测试，下面的语句是用来测试磁盘随机读写的命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">fio -filename&#x3D;$filename -direct&#x3D;1 -iodepth 1 -thread -rw&#x3D;randrw -ioengine&#x3D;psync -bs&#x3D;16k -size&#x3D;500M -numjobs&#x3D;10 -runtime&#x3D;10 -group_reporting -name&#x3D;mytest</span><br></pre></td></tr></table></figure>
+
+<p>因为没能正确地设置 <code>innodb_io_capacity</code> 参数导致的性能问题比比皆是。之前一个 DBA 说 MySQL 的写入速度很慢，TPS 很低，但数据库主机的 IO 压力并不大。排查之后发现罪魁祸首就是这个参数的设置出了问题。</p>
+<p>他的主机磁盘用的是 SSD，但是 <code>innodb_io_capacity</code> 的值设成了 300。于是 InnoDB 认为这个系统的能力很差，所以刷脏页刷得特别慢，甚至比脏页生成的速度还慢，这就造成了脏页累积，影响了查询和更新性能。</p>
+<p>虽然我们现在定义了“全力刷脏页”的行为，但平时总不能一直全力刷吧？毕竟磁盘能力不能只用来刷脏页，还要服务用户请求。接下来看看 InnoDB 怎么控制引擎按照“全力”的百分比来刷脏页。</p>
+<h4 id="如果你来设计策略控制刷脏页的速度，会参考哪些因素呢？"><a href="#如果你来设计策略控制刷脏页的速度，会参考哪些因素呢？" class="headerlink" title="如果你来设计策略控制刷脏页的速度，会参考哪些因素呢？"></a>如果你来设计策略控制刷脏页的速度，会参考哪些因素呢？</h4><p>如果刷太慢会出现什么情况？</p>
 <ol>
-<li>从 index2 索引树找到满足索引值是’zhangs’的记录，找到的第一个是 ID1；</li>
-<li>到主键上查到主键值是 ID1 的行，判断出 email 的值不是’<a href="mailto:zhangssxyz@xxx.com">zhangssxyz@xxx.com</a>’，这行记录丢弃；</li>
-<li>取 index2 上刚刚查到的位置的下一条记录，发现仍然是’zhangs’，取出 ID2，再到 ID 索引上取整行然后判断，这次值对了，将这行记录加入结果集；</li>
-<li>重复上一步，直到在 idxe2 上取到的值不是’zhangs’时，循环结束。</li>
+<li><p>内存脏页太多</p>
+</li>
+<li><p>redo log 写满</p>
+</li>
 </ol>
-<p>在这个过程中，要回主键索引取 4 次数据，也就是扫描了 4 行。</p>
-<p>通过这个对比，可以发现使用前缀索引后，可能会导致查询语句读数据的次数变多。</p>
-<p>但对于这个查询语句来说，如果你定义的 index2 不是 email(6) 而是 email(7），也就是说取 email 字段的前 7 个字节来构建索引的话，即满足前缀’zhangss’的记录只有一个，也能够直接查到 ID2，只扫描一行就结束了。</p>
-<p>也就是说<strong>使用前缀索引，定义好长度，就可以做到既节省空间，又不用额外增加太多的查询成本</strong>。</p>
-<p>当要给字符串创建前缀索引时，有什么方法能够确定应该使用多长的前缀呢？</p>
-<p>实际上我们在建立索引时关注的是区分度，区分度越高越好。因为区分度越高，意味着重复的键值越少。因此可以通过统计索引上有多少个不同的值来判断要使用多长的前缀。</p>
-<p>首先，可以使用下面这个语句，算出这个列上有多少个不同的值：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select count(distinct email) as L from SUser;</span><br></pre></td></tr></table></figure>
-
-<p>然后，依次选取不同长度的前缀来看这个值，比如我们要看一下 4~7 个字节的前缀索引，可以用这个语句：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select </span><br><span class="line">  count(distinct left(email,4)）as L4,</span><br><span class="line">  count(distinct left(email,5)）as L5,</span><br><span class="line">  count(distinct left(email,6)）as L6,</span><br><span class="line">  count(distinct left(email,7)）as L7,</span><br><span class="line">from SUser;</span><br></pre></td></tr></table></figure>
-
-<p>当然，使用前缀索引很可能会损失区分度，所以你需要预先设定一个可以接受的损失比例，比如 5%。然后，在返回的 L4~L7 中，找出不小于 L * 95% 的值，假设这里 L6、L7 都满足，就可以选择前缀长度为 6。</p>
-<h3 id="前缀索引对覆盖索引的影响"><a href="#前缀索引对覆盖索引的影响" class="headerlink" title="前缀索引对覆盖索引的影响"></a>前缀索引对覆盖索引的影响</h3><p>前面说了使用前缀索引可能会增加扫描行数，会影响到性能。但前缀索引的影响不止如此，再看一下另一个场景。</p>
-<p>先来看这个 SQL 语句：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,email from SUser where email&#x3D;&#39;zhangssxyz@xxx.com&#39;;</span><br></pre></td></tr></table></figure>
-
-<p>与前面例子中的 SQL 语句</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select id,name,email from SUser where email&#x3D;&#39;zhangssxyz@xxx.com&#39;;</span><br></pre></td></tr></table></figure>
-
-<p>相比，这个语句只要求返回 id 和 email 字段。</p>
-<p>所以，如果使用 index1（即 email 整个字符串的索引结构）的话，可以利用覆盖索引，从 index1 查到结果后直接就返回了，不需要回到 ID 索引再去查一次。而如果使用 index2（即 email(6) 索引结构）的话，就不得不回到 ID 索引再去判断 email 字段的值。</p>
-<p>即使你将 index2 的定义修改为 email(18) 的前缀索引，这时候虽然 index2 已经包含了所有的信息，但 InnoDB 还是要回到 id 索引再查一下，因为系统并不确定前缀索引的定义是否截断了完整信息。</p>
-<p>也就是说，使用前缀索引就用不上覆盖索引对查询性能的优化了，这也是选择是否使用前缀索引需要考虑的一个因素。</p>
-<h3 id="其他方式"><a href="#其他方式" class="headerlink" title="其他方式"></a>其他方式</h3><p>对于类似于邮箱这样的字段来说，使用前缀索引的效果可能还不错。但是，遇到前缀的区分度不够好的情况时，要怎么办呢？</p>
-<p>比如身份证号一共 18 位，前 6 位是地址码，所以同一个县的人的身份证号前 6 位一般是相同的。</p>
-<p>假设你维护的数据库是一个市的公民信息系统，这时候如果对身份证号做长度为 6 的前缀索引的话，这个索引的区分度就非常低了。</p>
-<p>按照前面说的方法，可能需要创建长度为 12 以上的前缀索引，才能够满足区分度要求。</p>
-<p>但是，索引选取的越长，占用的磁盘空间就越大，相同的数据页能放下的索引值就越少，搜索的效率也就会越低。</p>
-<p>那么，如果我们能够确定业务需求里面只有按照身份证进行等值查询的需求，还有没有别的处理方法呢？这种方法，既可以占用更小的空间，也能达到相同的查询效率。</p>
-<p>答案是，有的。</p>
-<p><strong>第一种方式是使用倒序存储</strong>。如果存储身份证号时把它倒过来存，每次查询可以这么写：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select field_list from t where id_card &#x3D; reverse(&#39;input_id_card_string&#39;);</span><br></pre></td></tr></table></figure>
-
-<p>由于身份证号的最后 6 位没有地址码这样的重复逻辑，所以最后这 6 位很可能就提供了足够的区分度。当然了，实践中不要忘记使用 count(distinct) 方法做验证。</p>
-<p><strong>第二种方式是使用 hash 字段</strong>。在表上再创建一个整数字段，来保存身份证的校验码，同时在这个字段上创建索引。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; alter table t add id_card_crc int unsigned, add index(id_card_crc);</span><br></pre></td></tr></table></figure>
-
-<p>然后每次插入新记录时，都同时用 crc32() 这个函数得到校验码填到这个新字段。由于校验码可能存在冲突，也就是说两个不同的身份证号通过 crc32() 函数得到的结果可能是相同的，所以查询语句 where 部分要判断 id_card 的值是否精确相同。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select field_list from t where id_card_crc&#x3D;crc32(&#39;input_id_card_string&#39;) and id_card&#x3D;&#39;input_id_card_string&#39;</span><br></pre></td></tr></table></figure>
-
-<p>这样，索引的长度变成了 4 个字节，比原来小了很多。</p>
-<p>接下来看看<strong>使用倒序存储和使用 hash 字段这两种方法的异同点</strong>。</p>
-<p>它们的相同点是都不支持范围查询。倒序存储的字段上创建的索引是按照倒序字符串的方式排序的，已经没有办法利用索引方式查出身份证号码在[ID_X, ID_Y]的所有市民了。同样地，hash 字段的方式也只能支持等值查询。</p>
-<p>它们的区别体现在以下三个方面：</p>
+<p>所以 InnoDB 的刷盘速度就要参考这两个因素：</p>
 <ol>
-<li>从占用的额外空间来看，倒序存储方式在主键索引上，不会消耗额外的存储空间，而 hash 字段方法需要增加一个字段。当然，倒序存储方式使用 4 个字节的前缀长度应该是不够的，如果再长一点，这个消耗跟额外这个 hash 字段也差不多抵消了。</li>
-<li>在 CPU 消耗方面，倒序方式每次写和读的时候，都需要额外调用一次 reverse 函数，而 hash 字段的方式需要额外调用一次 crc32() 函数。如果只从这两个函数的计算复杂度来看的话，reverse 函数额外消耗的 CPU 资源会更小些。</li>
-<li>从查询效率上看，使用 hash 字段方式的查询性能相对更稳定一些。因为 crc32 算出来的值虽然有冲突的概率，但是概率非常小，可以认为每次查询的平均扫描行数接近 1。而倒序存储方式毕竟还是用的前缀索引的方式，也就是说还是会增加扫描行数。</li>
+<li>脏页比例</li>
+<li>redo log 写盘速度。</li>
 </ol>
-<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>这篇文章中聊了字符串字段创建索引的场景。可以使用的方式有：</p>
-<ol>
-<li>直接创建完整索引，这样可能比较占用空间；</li>
-<li>创建前缀索引，节省空间，但会增加查询扫描次数，并且不能使用覆盖索引；</li>
-<li>倒序存储，再创建前缀索引，用于绕过字符串本身前缀的区分度不够的问题；</li>
-<li>创建 hash 字段索引，查询性能稳定，有额外的存储和计算消耗，跟第三种方式一样，都不支持范围扫描。</li>
-</ol>
-<p>在实际应用中要根据业务字段的特点选择使用哪种方式。</p>
+<p>InnoDB 会根据这两个因素先单独算出两个数字。</p>
+<p>参数 <code>innodb_max_dirty_pages_pct</code> 是脏页比例上限，默认值是 75%。InnoDB 会根据当前的脏页比例（假设为 M），算出一个范围在 0 到 100 之间的数字，计算这个数字的伪代码类似这样：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">F1(M)</span><br><span class="line">&#123;</span><br><span class="line">  if M&gt;&#x3D;innodb_max_dirty_pages_pct then</span><br><span class="line">      return 100;</span><br><span class="line">  return 100*M&#x2F;innodb_max_dirty_pages_pct;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>InnoDB 每次写入的日志都有一个序号，当前写入的序号跟 checkpoint 对应的序号之间的差值，假设为 N。InnoDB 会根据这个 N 算出一个范围在 0 到 100 之间的数字，这个计算公式可以记为 F2(N)。F2(N) 算法比较复杂，N 越大算出来的值越大。</p>
+<p>然后根据上述算得的 F1(M) 和 F2(N) 两个值，取其中较大的值记为 R，之后引擎就可以按照 <code>innodb_io_capacity</code> 定义的能力乘以 R% 来控制刷脏页的速度。</p>
+<p>上述的计算流程抽象不易理解，这里画了一个简单的流程图。图中的 F1、F2 就是上面通过脏页比例和 redo log 写入速度算出来的两个值。</p>
+<p><img src="https://s3.ax1x.com/2021/01/10/sQzxiR.png" alt="img"></p>
+<center><font color="grey">图 3 InnoDB 刷脏页速度策略</font></center>
+
+<p>现在知道了 InnoDB 会在后台刷脏页，刷脏页的过程是将内存页写入磁盘。所以，无论是查询语句在需要内存时可能要求淘汰一个脏页，还是由于刷脏页的逻辑会占用 IO 资源并可能影响到了更新语句，都可能是造成 MySQL“抖”了一下的原因。</p>
+<p>要尽量避免这种情况，要合理地设置 <code>innodb_io_capacity</code> 的值，<strong>平时要多关注脏页比例，不要让它经常接近 75%</strong>。</p>
+<p>其中，脏页比例是通过 Innodb_buffer_pool_pages_dirty/Innodb_buffer_pool_pages_total 得到的，具体的命令参考下面的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select VARIABLE_VALUE into @a from global_status where VARIABLE_NAME &#x3D; &#39;Innodb_buffer_pool_pages_dirty&#39;;</span><br><span class="line">select VARIABLE_VALUE into @b from global_status where VARIABLE_NAME &#x3D; &#39;Innodb_buffer_pool_pages_total&#39;;</span><br><span class="line">select @a&#x2F;@b;</span><br></pre></td></tr></table></figure>
+
+<p>再看一个有趣的策略。</p>
+<p>一旦一个查询请求需要在执行过程中先 flush 掉一个脏页时，这个查询就可能要比平时慢了。而 MySQL 中的一个机制，可能让你的查询会更慢：在准备刷一个脏页的时候，如果这个数据页旁边的数据页刚好是脏页，就会把这个“邻居”也带着一起刷掉；而且这个把“邻居”拖下水的逻辑还可以继续蔓延，也就是对于每个邻居数据页，如果跟它相邻的数据页也还是脏页的话，也会被放到一起刷。</p>
+<p>在 InnoDB 中 <code>innodb_flush_neighbors</code> 参数就是用来控制这个行为的，值为 1 就会有上述的“连坐”机制，值为 0 时表示不找邻居，自己刷自己的。</p>
+<p>找“邻居”这个优化在机械硬盘时代是很有意义的，可以减少很多随机 IO。机械硬盘的随机 IOPS 一般只有几百，相同的逻辑操作减少随机 IO 就意味着系统性能的大幅度提升。</p>
+<p>而如果使用的是 SSD 这类 IOPS 比较高的设备，建议把 <code>innodb_flush_neighbors</code> 的值设成 0。因为这时 IOPS 不是瓶颈，“只刷自己”就能更快地执行完必要的刷脏页操作，减少 SQL 语句响应时间。</p>
+<p>在 MySQL 8.0 中，innodb_flush_neighbors 参数的默认值是 0 。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>这篇文章延续第 2 篇中介绍的 WAL 的概念，解释了这个机制后续需要的刷脏页操作和执行时机。利用 WAL 技术，数据库将随机写转换成了顺序写，大大提升了数据库的性能。</p>
+<p>但由此也带来了内存脏页的问题。脏页会被后台线程自动 flush，也会由于数据页淘汰而触发 flush，而刷脏页的过程由于会占用资源，可能会让更新和查询语句的响应时间长一些。在文章里也介绍了控制刷脏页的方法和对应的监控方式。</p>
 
       
     </div>
@@ -522,8 +522,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/01/09/10%20MySQL%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%97%B6%E5%80%99%E4%BC%9A%E9%80%89%E9%94%99%E7%B4%A2%E5%BC%95%EF%BC%9F/" rel="next" title="10 MySQL为什么有时候会选错索引？">
-                <i class="fa fa-chevron-left"></i> 10 MySQL为什么有时候会选错索引？
+              <a href="/2021/01/09/11%20%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95%EF%BC%9F/" rel="next" title="11 怎么给字符串字段加索引？">
+                <i class="fa fa-chevron-left"></i> 11 怎么给字符串字段加索引？
               </a>
             
           </div>
@@ -531,6 +531,10 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/01/10/13%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A1%A8%E6%95%B0%E6%8D%AE%E5%88%A0%E6%8E%89%E4%B8%80%E5%8D%8A%EF%BC%8C%E8%A1%A8%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F%E4%B8%8D%E5%8F%98%EF%BC%9F/" rel="prev" title="13 为什么表数据删掉一半，表文件大小不变？">
+                13 为什么表数据删掉一半，表文件大小不变？ <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -604,7 +608,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives/%7C%7C%20archive">
-              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-count">35</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -702,7 +706,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前缀索引对覆盖索引的影响"><span class="nav-number">1.</span> <span class="nav-text">前缀索引对覆盖索引的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他方式"><span class="nav-number">2.</span> <span class="nav-text">其他方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#你的-SQL-语句为什么变“慢”了"><span class="nav-number">1.</span> <span class="nav-text">你的 SQL 语句为什么变“慢”了</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么情况会引发数据库的-flush-过程？"><span class="nav-number">1.1.</span> <span class="nav-text">什么情况会引发数据库的 flush 过程？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#上面四种场景对性能的影响"><span class="nav-number">1.2.</span> <span class="nav-text">上面四种场景对性能的影响</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#InnoDB-刷脏页的控制策略"><span class="nav-number">2.</span> <span class="nav-text">InnoDB 刷脏页的控制策略</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#如果你来设计策略控制刷脏页的速度，会参考哪些因素呢？"><span class="nav-number">2.1.</span> <span class="nav-text">如果你来设计策略控制刷脏页的速度，会参考哪些因素呢？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-number">3.</span> <span class="nav-text">小结</span></a></li></ol></div>
                 
             </div>
             </section>
