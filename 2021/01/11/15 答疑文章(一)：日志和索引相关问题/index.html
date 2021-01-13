@@ -79,24 +79,20 @@
 
 
 
-<meta name="description" content="上一篇文章讲解了 order by 语句的几种执行模式。今天这篇文章从一个性能问题说起，说说 MySQL 中的另外一种排序需求。 一个英语学习 App 首页有一个随机显示单词的功能，也就是根据每个用户的级别有一个单词表，这个用户每次访问首页时都会随机滚动显示三个单词。他们发现随着单词表变大，选单词这个逻辑变得越来越慢，影响了首页的打开速度。 如果让你来设计这个 SQL 语句，你会怎么写呢？ 为了便">
+<meta name="description" content="日志相关问题第 2 篇文章《日志系统：一条 SQL 更新语句是如何执行的？》讲到 binlog（归档日志）和 redo log（重做日志）配合崩溃恢复的时候，用反证法说明了如果没有两阶段提交会导致 MySQL 出现主备数据不一致等问题。 那么在两阶段提交的不同瞬间，MySQL 如果发生异常重启，是怎么保证数据完整性的？  图 1 两阶段提交示意图  有人问这个图不是 update 语句的执行流程吗">
 <meta property="og:type" content="article">
-<meta property="og:title" content="17 如何正确地显示随机消息？">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/12/17%20%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E5%9C%B0%E6%98%BE%E7%A4%BA%E9%9A%8F%E6%9C%BA%E6%B6%88%E6%81%AF%EF%BC%9F/index.html">
+<meta property="og:title" content="15 答疑文章(一)：日志和索引相关问题">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="上一篇文章讲解了 order by 语句的几种执行模式。今天这篇文章从一个性能问题说起，说说 MySQL 中的另外一种排序需求。 一个英语学习 App 首页有一个随机显示单词的功能，也就是根据每个用户的级别有一个单词表，这个用户每次访问首页时都会随机滚动显示三个单词。他们发现随着单词表变大，选单词这个逻辑变得越来越慢，影响了首页的打开速度。 如果让你来设计这个 SQL 语句，你会怎么写呢？ 为了便">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/12/sJfLT0.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/12/sJhFTx.jpg">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/12/sJhepD.jpg">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/12/sJhUXj.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/12/sJhgc4.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/12/sJhfBR.png">
-<meta property="article:published_time" content="2021-01-12T07:44:00.000Z">
-<meta property="article:modified_time" content="2021-01-12T12:26:01.437Z">
+<meta property="og:description" content="日志相关问题第 2 篇文章《日志系统：一条 SQL 更新语句是如何执行的？》讲到 binlog（归档日志）和 redo log（重做日志）配合崩溃恢复的时候，用反证法说明了如果没有两阶段提交会导致 MySQL 出现主备数据不一致等问题。 那么在两阶段提交的不同瞬间，MySQL 如果发生异常重启，是怎么保证数据完整性的？  图 1 两阶段提交示意图  有人问这个图不是 update 语句的执行流程吗">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/10/s18PfA.jpg">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/10/s18dh9.jpg">
+<meta property="article:published_time" content="2021-01-11T02:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-11T02:23:46.064Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/12/sJfLT0.png">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/10/s18PfA.jpg">
 
 
 
@@ -126,13 +122,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/12/17 如何正确地显示随机消息？/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/11/15 答疑文章(一)：日志和索引相关问题/"/>
 
 
 
 
 
-  <title>17 如何正确地显示随机消息？ | Qianyi Zhang's blog</title>
+  <title>15 答疑文章(一)：日志和索引相关问题 | Qianyi Zhang's blog</title>
   
 
 
@@ -294,7 +290,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/12/17%20%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E5%9C%B0%E6%98%BE%E7%A4%BA%E9%9A%8F%E6%9C%BA%E6%B6%88%E6%81%AF%EF%BC%9F/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -311,7 +307,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">17 如何正确地显示随机消息？</h1>
+          <h1 class="post-title" itemprop="name headline">15 答疑文章(一)：日志和索引相关问题</h1>
         
 
         <div class="post-meta">
@@ -323,8 +319,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-12T15:44:00+08:00">
-                2021-01-12
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-11T10:00:00+08:00">
+                2021-01-11
               </time>
             
 
@@ -335,8 +331,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-12T20:26:01+08:00" content="2021-01-12">
-                2021-01-12
+              <time itemprop="dateUpdated" datetime="2021-01-11T10:23:46+08:00" content="2021-01-11">
+                2021-01-11
               </time>
             </span>
           
@@ -369,131 +365,91 @@
       
 
       
-        <p>上一篇文章讲解了 order by 语句的几种执行模式。今天这篇文章从一个性能问题说起，说说 MySQL 中的另外一种排序需求。</p>
-<p>一个英语学习 App 首页有一个随机显示单词的功能，也就是根据每个用户的级别有一个单词表，这个用户每次访问首页时都会随机滚动显示三个单词。他们发现随着单词表变大，选单词这个逻辑变得越来越慢，影响了首页的打开速度。</p>
-<p>如果让你来设计这个 SQL 语句，你会怎么写呢？</p>
-<p>为了便于理解，简化这个例子：去掉每个级别的用户都有一个对应的单词表这个逻辑，直接从一个单词表中随机选出三个单词。表的建表语句和初始数据的命令如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE &#96;words&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL AUTO_INCREMENT,</span><br><span class="line">  &#96;word&#96; varchar(64) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">delimiter ;;</span><br><span class="line">create procedure idata()</span><br><span class="line">begin</span><br><span class="line">  declare i int;</span><br><span class="line">  set i&#x3D;0;</span><br><span class="line">  while i&lt;10000 do</span><br><span class="line">    insert into words(word) values(concat(char(97+(i div 1000)), char(97+(i % 1000 div 100)), char(97+(i % 100 div 10)), char(97+(i % 10))));</span><br><span class="line">    set i&#x3D;i+1;</span><br><span class="line">  end while;</span><br><span class="line">end;;</span><br><span class="line">delimiter ;</span><br><span class="line"></span><br><span class="line">call idata();</span><br></pre></td></tr></table></figure>
+        <h3 id="日志相关问题"><a href="#日志相关问题" class="headerlink" title="日志相关问题"></a>日志相关问题</h3><p>第 2 篇文章<a href="https://yeezycheung1997.github.io/2020/12/20/02%20%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/">《日志系统：一条 SQL 更新语句是如何执行的？》</a>讲到 binlog（归档日志）和 redo log（重做日志）配合崩溃恢复的时候，用反证法说明了如果没有两阶段提交会导致 MySQL 出现主备数据不一致等问题。</p>
+<p>那么在两阶段提交的不同瞬间，MySQL 如果发生异常重启，是怎么保证数据完整性的？</p>
+<p><img src="https://s3.ax1x.com/2021/01/10/s18PfA.jpg" alt="img"></p>
+<center><font color="grey">图 1 两阶段提交示意图</font></center>
 
-<p>这个表里面插入了 10000 行记录。接下来看看要随机选择 3 个单词，有什么方法实现，存在什么问题以及如何改进。</p>
-<h3 id="内存临时表"><a href="#内存临时表" class="headerlink" title="内存临时表"></a>内存临时表</h3><p>用 order by rand() 来实现这个逻辑：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select word from words order by rand() limit 3;</span><br></pre></td></tr></table></figure>
-
-<p>该语句逻辑清晰，随机排序取前 3 个。虽然写法很简单，但执行流程却有点复杂。</p>
-<p>用 explain 命令来看看这个语句的执行情况。</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJfLT0.png" alt="img"></p>
-<center><font color="grey">图 1 使用 explain 命令查看语句的执行情况</font></center>
-
-<p>Extra 字段显示 Using temporary，表示需要使用临时表；Using filesort，表示需要执行排序操作。</p>
-<p>因此这个 Extra 的意思就是需要临时表并要在临时表上排序。</p>
-<p>先回顾一下上一篇文章中全字段排序和 rowid 排序的内容</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhFTx.jpg" alt="img"></p>
-<center><font color="grey">图 2 全字段排序</font></center>
-
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhepD.jpg" alt="img"></p>
-<center><font color="grey">图 3 rowid 排序</font></center>
-
-<p>你觉得对于临时内存表的排序来说，它会选择哪一种算法呢？回顾一下上一篇文章的一个结论：<strong>对于 InnoDB 表来说，执行全字段排序会减少磁盘访问，因此会被优先选择。</strong></p>
-<p>这里强调了“InnoDB 表”，但是对于内存表，回表过程只是简单地根据数据行的位置，直接访问内存得到数据，根本不会导致多访问磁盘。优化器没有了这一层顾虑，那么它优先考虑的就是用于排序的行越小越好了，所以 MySQL 这时会选择 rowid 排序。</p>
-<p>理解了这个算法选择的逻辑，我们再来看看语句的执行流程。我们来尝试分析一下语句的扫描行数。</p>
-<p>这条语句的执行流程如下：</p>
-<ol>
-<li>创建一个临时表。临时表使用 memory 引擎，表里有两个字段，第一个字段是 double 类型，记为字段 R，第二个字段是 varchar(64) 类型，记为字段 W。这个表没有建索引。</li>
-<li>从 words 表中按主键顺序取出所有的 word 值。对于每一个 word 值，调用 rand() 函数生成一个大于 0 小于 1 的随机小数，并把这个随机小数和 word 分别存入临时表的 R 和 W 字段中，到此，扫描行数是 10000。</li>
-<li>现在临时表有 10000 行数据了，接下来在这个没有索引的内存临时表上，按照字段 R 排序。</li>
-<li>初始化 sort_buffer。sort_buffer 中有两个字段，一个是 double 类型，另一个是整型。</li>
-<li>从内存临时表中一行一行地取出 R 值和位置信息（后面会解释为什么是“位置信息”），分别存入 sort_buffer 中的两个字段里。这个过程要对内存临时表做全表扫描，此时扫描行数增加 10000，变成了 20000。</li>
-<li>在 sort_buffer 中根据 R 的值进行排序。这个过程不涉及到表操作，所以不增加扫描行数。</li>
-<li>排序完成后，取出前三个结果的位置信息，依次到内存临时表中取出 word 值，返回给客户端。这个过程中，访问了表的三行数据，总扫描行数变成了 20003。</li>
-</ol>
-<p>接下来通过慢查询日志（slow log）来验证一下分析得到的扫描行数是否正确。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># Query_time: 0.900376  Lock_time: 0.000347 Rows_sent: 3 Rows_examined: 20003</span><br><span class="line">SET timestamp&#x3D;1541402277;</span><br><span class="line">select word from words order by rand() limit 3;</span><br></pre></td></tr></table></figure>
-
-<p>Rows_examined：20003 表示该语句执行过程中扫描了 20003 行，验证了我们分析得出的结论。</p>
-<p>完整的排序执行流程图：</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhUXj.png" alt="img"></p>
-<center><font color="grey">图 4 随机排序完整流程图 1</font></center>
-
-<p>图中的 pos 是位置信息，位置信息是什么概念？在上一篇文章中对 InnoDB 表排序的时候，明明用的还是 ID 字段。</p>
-<p>这时候要回到一个基本概念：<strong>MySQL 的表是用什么方法来定位“一行数据”的。</strong></p>
-<p>在前面第 4和第 5篇介绍索引的文章中，如果把一个 InnoDB 表的主键删掉，是不是就没有主键，就没办法回表了？</p>
-<p>其实不是的。如果创建的表没有主键，或把一个表的主键删掉了，那么 InnoDB 会自己生成一个长度为 6 字节的 rowid 来作为主键。</p>
-<p>这也是排序模式里 rowid 名字的来历。实际上它表示的是：每个引擎用来唯一标识数据行的信息。</p>
+<p>有人问这个图不是 update 语句的执行流程吗，怎么还会调用 commit 语句？</p>
+<p>两个“commit”的概念：</p>
 <ul>
-<li>对于有主键的 InnoDB 表来说，这个 rowid 就是主键 ID；</li>
-<li>对于没有主键的 InnoDB 表来说，这个 rowid 就是由系统生成的；</li>
-<li>MEMORY 引擎不是索引组织表。在这个例子里面你可以认为它是一个数组。因此这个 rowid 其实就是数组的下标。</li>
+<li>他说的“commit 语句”，是指 MySQL 语法中，用于提交一个事务的命令。一般跟 begin/start transaction 配对使用</li>
+<li>而图中用到的“commit 步骤”，指的是事务提交过程中的一个小步骤，也是最后一步。当这个步骤执行完成后，这个事务就提交完成了</li>
+<li>“commit 语句”执行时包含“commit 步骤”</li>
 </ul>
-<p>到这里小结一下：<strong>order by rand() 使用了内存临时表，内存临时表排序的时候使用了 rowid 排序方法。</strong></p>
-<h3 id="磁盘临时表"><a href="#磁盘临时表" class="headerlink" title="磁盘临时表"></a>磁盘临时表</h3><p>是不是所有的临时表都是内存表呢？</p>
-<p>其实不是的。tmp_table_size 限制了内存临时表的大小，默认值是 16M。如果临时表大小超过了 tmp_table_size，那么内存临时表就会转成磁盘临时表。</p>
-<p>磁盘临时表使用的引擎默认是 InnoDB，是由参数 internal_tmp_disk_storage_engine 控制的。</p>
-<p>当使用磁盘临时表的时候，对应的就是一个没有显式索引的 InnoDB 表的排序过程。</p>
-<p>为了复现这个过程，我把 tmp_table_size 设置成 1024，把 sort_buffer_size 设置成 32768, 把 max_length_for_sort_data 设置成 16。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">set tmp_table_size&#x3D;1024;</span><br><span class="line">set sort_buffer_size&#x3D;32768;</span><br><span class="line">set max_length_for_sort_data&#x3D;16;</span><br><span class="line">&#x2F;* 打开 optimizer_trace，只对本线程有效 *&#x2F;</span><br><span class="line">SET optimizer_trace&#x3D;&#39;enabled&#x3D;on&#39;; </span><br><span class="line"></span><br><span class="line">&#x2F;* 执行语句 *&#x2F;</span><br><span class="line">select word from words order by rand() limit 3;</span><br><span class="line"></span><br><span class="line">&#x2F;* 查看 OPTIMIZER_TRACE 输出 *&#x2F;</span><br><span class="line">SELECT * FROM &#96;information_schema&#96;.&#96;OPTIMIZER_TRACE&#96;\G</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhgc4.png" alt="img"></p>
-<center><font color="grey">图 5 OPTIMIZER_TRACE 部分结果</font></center>
-
-<p>看一下这次 OPTIMIZER_TRACE 的结果。</p>
-<p>因为将 max_length_for_sort_data 设置成 16，小于 word 字段的长度定义，所以 sort_mode 里面显示的是 rowid 排序，这是符合预期的，参与排序的是随机值 R 字段和 rowid 字段组成的行。</p>
-<p>这时你发现不对。R 字段存放的随机值就 8 个字节，rowid 是 6 个字节，数据总行数是 10000，这样算出来就有 140000 字节，超过了 sort_buffer_size 定义的 32768 字节了。但是，number_of_tmp_files 的值居然是 0，难道不需要用临时文件吗？</p>
-<p>这个 SQL 语句的排序确实没有用到临时文件，采用是 MySQL 5.6 版本引入的一个新的排序算法，即：优先队列排序算法。接下来看看为什么没有使用临时文件的算法，也就是归并排序算法，而是采用了优先队列排序算法。</p>
-<p>其实现在的 SQL 语句只需要取 R 值最小的 3 个 rowid。如果使用归并排序算法的话，虽然最终也能得到前 3 个值，但是这个算法结束后已经将 10000 行数据都排好序了。</p>
-<p>也就是说后面的 9997 行也是有序的了。但我们的查询并不需要这些数据是有序的。所以这浪费了非常多的计算量。</p>
-<p>而优先队列算法，就可以精确地只得到三个最小值，执行流程如下：</p>
+<p>这个例子没有显式地开启事务，因此这个 update 语句自己就是一个事务，在执行完成后提交事务时就会用到这个“commit 步骤“。</p>
+<h4 id="在两阶段提交的不同时刻，MySQL-异常重启会出现什么现象？"><a href="#在两阶段提交的不同时刻，MySQL-异常重启会出现什么现象？" class="headerlink" title="在两阶段提交的不同时刻，MySQL 异常重启会出现什么现象？"></a>在两阶段提交的不同时刻，MySQL 异常重启会出现什么现象？</h4><p>如果在图中时刻 A 的地方，也就是写入 redo log 处于 prepare 阶段之后、写 binlog 之前，发生了崩溃（crash），由于此时 binlog 还没写，redo log 也没提交，所以崩溃恢复时事务会回滚。这时 binlog 还没写，不会传到备库。</p>
+<p>在时刻 B，binlog 写完，redo log 还没 commit 前发生 crash，那崩溃恢复时 MySQL 会怎么处理？</p>
+<p>崩溃恢复时的判断规则：</p>
 <ol>
-<li>对于这 10000 个准备排序的 (R,rowid)，先取前三行，构造成一个堆；（对数据结构印象模糊的同学，可以先设想成这是一个由三个元素组成的数组）</li>
-<li>取下一个行 (R’,rowid’)，跟当前堆里面最大的 R 比较，如果 R’小于 R，把这个 (R,rowid) 从堆中去掉，换成 (R’,rowid’)；</li>
-<li>重复第 2 步，直到第 10000 个 (R’,rowid’) 完成比较。</li>
+<li><p>如果 redo log 里的事务是完整的，也就是已经有了 commit 标识，则直接提交</p>
+</li>
+<li><p>如果 redo log 里面的事务只有完整的 prepare，则判断对应的事务 binlog 是否存在并完整：</p>
+<p>a.  如果是，则提交事务</p>
+<p>b.  否则，回滚事务</p>
+</li>
 </ol>
-<p>优先队列排序过程的示意图：</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhfBR.png" alt="img"></p>
-<center><font color="grey">图 6 优先队列排序算法示例</font></center>
+<p>这里，时刻 B 发生 crash 对应的就是 2(a) 的情况，崩溃恢复过程中事务会被提交。</p>
+<h4 id="追问-1：MySQL-怎么知道-binlog-是完整的"><a href="#追问-1：MySQL-怎么知道-binlog-是完整的" class="headerlink" title="追问 1：MySQL 怎么知道 binlog 是完整的?"></a>追问 1：MySQL 怎么知道 binlog 是完整的?</h4><p>回答：一个事务的 binlog 是有完整格式的：</p>
+<ul>
+<li><p>statement 格式的 binlog，最后会有 COMMIT</p>
+</li>
+<li><p>row 格式的 binlog，最后会有一个 XID event</p>
+</li>
+</ul>
+<p>在 MySQL 5.6.2 版本以后引入了 binlog-checksum 参数，用来验证 binlog 内容的正确性。对于 binlog 日志由于磁盘原因，可能会在日志中间出错的情况，MySQL 可以通过校验 checksum 的结果来发现。所以 MySQL 是有办法验证事务 binlog 的完整性的。</p>
+<h4 id="追问-2：redo-log-和-binlog-是怎么关联起来的"><a href="#追问-2：redo-log-和-binlog-是怎么关联起来的" class="headerlink" title="追问 2：redo log 和 binlog 是怎么关联起来的?"></a>追问 2：redo log 和 binlog 是怎么关联起来的?</h4><p>回答：它们有一个共同的数据字段：XID。崩溃恢复时会按序扫描 redo log：</p>
+<ul>
+<li><p>如果碰到既有 prepare、又有 commit 的 redo log，就直接提交</p>
+</li>
+<li><p>如果碰到只有 parepare、而没有 commit 的 redo log，就拿着 XID 去 binlog 找对应的事务</p>
+</li>
+</ul>
+<h4 id="追问-3：处于-prepare-阶段的-redo-log-加上完整-binlog，重启就能恢复，MySQL-为啥这么设计"><a href="#追问-3：处于-prepare-阶段的-redo-log-加上完整-binlog，重启就能恢复，MySQL-为啥这么设计" class="headerlink" title="追问 3：处于 prepare 阶段的 redo log 加上完整 binlog，重启就能恢复，MySQL 为啥这么设计?"></a>追问 3：处于 prepare 阶段的 redo log 加上完整 binlog，重启就能恢复，MySQL 为啥这么设计?</h4><p>回答：这个问题跟在反证法中说到的数据与备份的一致性有关。在时刻 B，也就是 binlog 写完以后 MySQL 发生崩溃，这时 binlog 已经写入了，之后就会被从库（或用这个 binlog 恢复出来的库）使用。</p>
+<p>所以在主库上也要提交这个事务。采用这个策略的主库和备库的数据就保证了一致性。</p>
+<h4 id="追问-4：如果这样的话，为什么还要两阶段提交呢？干脆先-redo-log-写完，再写-binlog。崩溃恢复的时候，必须得两个日志都完整才可以。是不是一样的逻辑？"><a href="#追问-4：如果这样的话，为什么还要两阶段提交呢？干脆先-redo-log-写完，再写-binlog。崩溃恢复的时候，必须得两个日志都完整才可以。是不是一样的逻辑？" class="headerlink" title="追问 4：如果这样的话，为什么还要两阶段提交呢？干脆先 redo log 写完，再写 binlog。崩溃恢复的时候，必须得两个日志都完整才可以。是不是一样的逻辑？"></a>追问 4：如果这样的话，为什么还要两阶段提交呢？干脆先 redo log 写完，再写 binlog。崩溃恢复的时候，必须得两个日志都完整才可以。是不是一样的逻辑？</h4><p>回答：其实两阶段提交是经典的分布式系统问题，并不是 MySQL 独有的。</p>
+<p>如果必须要举一个场景来说明这么做的必要性的话，那就是事务的持久性问题。</p>
+<p>对于 InnoDB 引擎来说，如果 redo log 提交完成了，事务就不能回滚（如果这还允许回滚，就可能覆盖掉别的事务的更新）。而如果 redo log 直接提交，然后 binlog 写入的时候失败，InnoDB 又回滚不了，数据和 binlog 日志又不一致了。</p>
+<p>两阶段提交就是为了给所有人一个机会，当每个人都说“我 ok”的时候，再一起提交。</p>
+<h4 id="追问-5：不引入两个日志，也就没有两阶段提交的必要了。只用-binlog-来支持崩溃恢复，又能支持归档，不就可以了？"><a href="#追问-5：不引入两个日志，也就没有两阶段提交的必要了。只用-binlog-来支持崩溃恢复，又能支持归档，不就可以了？" class="headerlink" title="追问 5：不引入两个日志，也就没有两阶段提交的必要了。只用 binlog 来支持崩溃恢复，又能支持归档，不就可以了？"></a>追问 5：不引入两个日志，也就没有两阶段提交的必要了。只用 binlog 来支持崩溃恢复，又能支持归档，不就可以了？</h4><p>回答：如果只保留 binlog，然后把提交流程改成这样：… -&gt; “数据更新到内存” -&gt; “写 binlog” -&gt; “提交事务”，是不是也可以提供崩溃恢复的能力？</p>
+<p>答案是不可以。</p>
+<p>因为 InnoDB 不是 MySQL 的原生存储引擎。MySQL 的原生引擎是 MyISAM，设计之初就不支持崩溃恢复。</p>
+<p>InnoDB 在作为插件加入 MySQL 引擎家族之前，就已经是一个提供了崩溃恢复和事务支持的引擎了。</p>
+<p>InnoDB 接入了 MySQL 后，发现既然 binlog 没有崩溃恢复的能力，那就用 InnoDB 原有的 redo log 好了。</p>
+<p>而如果说实现上的原因的话，就有很多了。就按照问题中说的，只用 binlog 来实现崩溃恢复的流程，我画了一张示意图，这里就没有 redo log 了。</p>
+<p><img src="https://s3.ax1x.com/2021/01/10/s18dh9.jpg" alt="img"></p>
+<center><font color="grey">图 2 只用 binlog 支持崩溃恢复</font></center>
 
-<p>图 6 是模拟 6 个 (R,rowid) 行，通过优先队列排序找到最小的三个 R 值的行的过程。整个排序过程中，为了最快地拿到当前堆的最大值，总是保持最大值在堆顶，因此这是一个最大堆。</p>
-<p>图 5 的 OPTIMIZER_TRACE 结果中，filesort_priority_queue_optimization 这个部分的 chosen=true，表示使用了优先队列排序算法，这个过程不需要临时文件，因此对应的 number_of_tmp_files 是 0。</p>
-<p>这个流程结束后，我们构造的堆里面，就是这个 10000 行里面 R 值最小的三行。然后依次把它们的 rowid 取出来，去临时表里面拿到 word 字段，这个过程就跟上一篇文章的 rowid 排序的过程一样了。</p>
-<p>我们再看一下上一篇文章的 SQL 查询语句：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select city,name,age from t where city&#x3D;&#39;杭州&#39; order by name limit 1000  ;</span><br></pre></td></tr></table></figure>
-
-<p>这里也用到了 limit，为什么没用优先队列排序算法呢？原因是这条 SQL 语句是 limit 1000，如果使用优先队列算法的话，需要维护的堆的大小就是 1000 行的 (name,rowid)，超过了我设置的 sort_buffer_size 大小，所以只能使用归并排序算法。</p>
-<p>总之不论是使用哪种类型的临时表，order by rand() 会让计算过程非常复杂，需要大量的扫描行数，因此排序过程的资源消耗也会很大。</p>
-<p>回到文章开头的问题，怎么正确地随机排序呢？</p>
-<h3 id="随机排序方法"><a href="#随机排序方法" class="headerlink" title="随机排序方法"></a>随机排序方法</h3><p>把问题简化一下，如果只随机选择 1 个 word 值，可以怎么做呢？思路上是这样的：</p>
+<p>这样的流程下，binlog 还是不能支持崩溃恢复的。我说一个不支持的点吧：binlog 没有能力恢复“数据页”。</p>
+<p>如果在图中标的位置，也就是 binlog2 写完了，但是整个事务还没有 commit 的时候，MySQL 发生了 crash。</p>
+<p>重启后，引擎内部事务 2 会回滚，然后应用 binlog2 可以补回来；但是对于事务 1 来说，系统已经认为提交完成了，不会再应用一次 binlog1。</p>
+<p>但是，InnoDB 引擎使用的是 WAL 技术，执行事务的时候，写完内存和日志，事务就算完成了。如果之后崩溃，要依赖于日志来恢复数据页。</p>
+<p>也就是说在图中这个位置发生崩溃的话，事务 1 也是可能丢失了的，而且是数据页级的丢失。此时，binlog 里面并没有记录数据页的更新细节，是补不回来的。</p>
+<p>你如果要说，那我优化一下 binlog 的内容，让它来记录数据页的更改可以吗？但这其实就是又做了一个 redo log 出来。</p>
+<p>所以至少现在的 binlog 能力还不能支持崩溃恢复。</p>
+<h4 id="追问-6：那能不能只用-redo-log，不要-binlog？"><a href="#追问-6：那能不能只用-redo-log，不要-binlog？" class="headerlink" title="追问 6：那能不能只用 redo log，不要 binlog？"></a>追问 6：那能不能只用 redo log，不要 binlog？</h4><p>回答：如果只从崩溃恢复的角度来讲是可以的。你可以把 binlog 关掉，这样就没有两阶段提交了，但系统依然是 crash-safe 的。</p>
+<p>但是，如果你了解一下业界各个公司的使用场景的话，就会发现在正式的生产库上，binlog 都是开着的。因为 binlog 有着 redo log 无法替代的功能。</p>
+<p>一个是归档。redo log 是循环写，写到末尾是要回到开头继续写的。这样历史日志没法保留，redo log 也就起不到归档的作用。</p>
+<p>一个就是 MySQL 系统依赖于 binlog。binlog 作为 MySQL 一开始就有的功能，被用在了很多地方。其中，MySQL 系统高可用的基础，就是 binlog 复制。</p>
+<p>还有很多公司有异构系统（比如一些数据分析系统），这些系统就靠消费 MySQL 的 binlog 来更新自己的数据。关掉 binlog 的话，这些下游系统就没法输入了。</p>
+<p>总之，由于现在包括 MySQL 高可用在内的很多系统机制都依赖于 binlog，所以“鸠占鹊巢”redo log 还做不到。你看，发展生态是多么重要。</p>
+<h4 id="追问-7：redo-log-一般设置多大？"><a href="#追问-7：redo-log-一般设置多大？" class="headerlink" title="追问 7：redo log 一般设置多大？"></a>追问 7：redo log 一般设置多大？</h4><p>回答：redo log 太小的话，会导致很快就被写满，然后不得不强行刷 redo log，这样 WAL 机制的能力就发挥不出来了。</p>
+<p>所以，如果是现在常见的几个 TB 的磁盘的话，就不要太小气了，直接将 redo log 设置为 4 个文件、每个文件 1GB 吧。</p>
+<h4 id="追问-8：正常运行中的实例，数据写入后的最终落盘，是从-redo-log-更新过来的还是从-buffer-pool-更新过来的呢？"><a href="#追问-8：正常运行中的实例，数据写入后的最终落盘，是从-redo-log-更新过来的还是从-buffer-pool-更新过来的呢？" class="headerlink" title="追问 8：正常运行中的实例，数据写入后的最终落盘，是从 redo log 更新过来的还是从 buffer pool 更新过来的呢？"></a>追问 8：正常运行中的实例，数据写入后的最终落盘，是从 redo log 更新过来的还是从 buffer pool 更新过来的呢？</h4><p>回答：这个问题涉及到了“redo log 里面到底是什么”的问题。</p>
+<p>实际上，redo log 并没有记录数据页的完整数据，所以它并没有能力自己去更新磁盘数据页，也就不存在“数据最终落盘，是由 redo log 更新过去”的情况。</p>
 <ol>
-<li>取得这个表的主键 id 的最大值 M 和最小值 N;</li>
-<li>用随机函数生成一个最大值到最小值之间的数 X = (M-N)*rand() + N;</li>
-<li>取不小于 X 的第一个 ID 的行。</li>
+<li>如果是正常运行的实例的话，数据页被修改以后，跟磁盘的数据页不一致，称为脏页。最终数据落盘，就是把内存中的数据页写盘。这个过程，甚至与 redo log 毫无关系。</li>
+<li>在崩溃恢复场景中，InnoDB 如果判断到一个数据页可能在崩溃恢复的时候丢失了更新，就会将它读到内存，然后让 redo log 更新内存内容。更新完成后，内存页变成脏页，就回到了第一种情况的状态。</li>
 </ol>
-<p>我们把这个算法暂时称作随机算法 1:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select max(id),min(id) into @M,@N from t ;</span><br><span class="line">set @X&#x3D; floor((@M-@N+1)*rand() + @N);</span><br><span class="line">select * from t where id &gt;&#x3D; @X limit 1;</span><br></pre></td></tr></table></figure>
+<h4 id="追问-9：redo-log-buffer-是什么？是先修改内存，还是先写-redo-log-文件？"><a href="#追问-9：redo-log-buffer-是什么？是先修改内存，还是先写-redo-log-文件？" class="headerlink" title="追问 9：redo log buffer 是什么？是先修改内存，还是先写 redo log 文件？"></a>追问 9：redo log buffer 是什么？是先修改内存，还是先写 redo log 文件？</h4><p>回答：这两个问题可以一起回答。</p>
+<p>在一个事务的更新过程中，日志是要写多次的。比如下面这个事务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">begin;</span><br><span class="line">insert into t1 ...</span><br><span class="line">insert into t2 ...</span><br><span class="line">commit;</span><br></pre></td></tr></table></figure>
 
-<p>这个方法效率很高，因为取 max(id) 和 min(id) 都是不需要扫描索引的，而第三步的 select 也可以用索引快速定位，可以认为就只扫描了 3 行。但实际上这个算法本身并不严格满足题目的随机要求，因为 ID 中间可能有空洞，因此选择不同行的概率不一样，不是真正的随机。</p>
-<p>比如你有 4 个 id，分别是 1、2、4、5，如果按照上面的方法，那么取到 id=4 的这一行的概率是取得其他行概率的两倍。</p>
-<p>如果这四行的 id 分别是 1、2、40000、40001 呢？这个算法基本就能当 bug 来看待了。</p>
-<p>所以，为了得到严格随机的结果，可以用下面这个流程:</p>
-<ol>
-<li>取得整个表的行数，并记为 C。</li>
-<li>取得 Y = floor(C * rand())。 floor 函数在这里的作用，就是取整数部分。</li>
-<li>再用 limit Y,1 取得一行。 </li>
-</ol>
-<p>我们把这个算法，称为随机算法 2：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select count(*) into @C from t;</span><br><span class="line">set @Y &#x3D; floor(@C * rand());</span><br><span class="line">set @sql &#x3D; concat(&quot;select * from t limit &quot;, @Y, &quot;,1&quot;);</span><br><span class="line">prepare stmt from @sql;</span><br><span class="line">execute stmt;</span><br><span class="line">DEALLOCATE prepare stmt;</span><br></pre></td></tr></table></figure>
+<p>这个事务要往两个表中插入记录，插入数据的过程中，生成的日志都得先保存起来，但又不能在还没 commit 的时候就直接写到 redo log 文件里。</p>
+<p>所以，redo log buffer 就是一块内存，用来先存 redo 日志的。也就是说，在执行第一个 insert 的时候，数据的内存被修改了，redo log buffer 也写入了日志。</p>
+<p>但是，真正把日志写到 redo log 文件（文件名是 ib_logfile+ 数字），是在执行 commit 语句的时候做的。</p>
+<p>单独执行一个更新语句的时候，InnoDB 会自己启动一个事务，在语句执行完成的时候提交。过程跟上面是一样的，只不过是“压缩”到了一个语句里面完成。</p>
 
-<p>由于 limit 后面的参数不能直接跟变量，所以我在上面的代码中使用了 prepare+execute 的方法。你也可以把拼接 SQL 语句的方法写在应用程序中，会更简单些。</p>
-<p>随机算法 2 解决了算法 1 里面明显的概率不均匀问题。</p>
-<p>MySQL 处理 limit Y,1 的做法就是按顺序一个一个地读出来，丢掉前 Y 个，然后把下一个记录作为返回结果，因此这一步需要扫描 Y+1 行。再加上第一步扫描的 C 行，总共需要扫描 C+Y+1 行，执行代价比随机算法 1 的代价要高。</p>
-<p>当然，随机算法 2 跟直接 order by rand() 比起来，执行代价还是小很多的。</p>
-<p>如果按照这个表有 10000 行来计算的话，C=10000，要是随机到比较大的 Y 值，那扫描行数也跟 20000 差不多了，接近 order by rand() 的扫描行数，为什么说随机算法 2 的代价要小很多呢？我就把这个问题留给你去课后思考吧。</p>
-<p>如果我们按照随机算法 2 的思路，要随机取 3 个 word 值呢？你可以这么做：</p>
-<ol>
-<li>取得整个表的行数，记为 C；</li>
-<li>根据相同的随机方法得到 Y1、Y2、Y3；</li>
-<li>再执行三个 limit Y, 1 语句得到三行数据。</li>
-</ol>
-<p>我们把这个算法，称作随机算法 3：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select count(*) into @C from t;</span><br><span class="line">set @Y1 &#x3D; floor(@C * rand());</span><br><span class="line">set @Y2 &#x3D; floor(@C * rand());</span><br><span class="line">set @Y3 &#x3D; floor(@C * rand());</span><br><span class="line">select * from t limit @Y1，1； &#x2F;&#x2F;在应用代码里面取Y1、Y2、Y3值，拼出SQL后执行</span><br><span class="line">select * from t limit @Y2，1；</span><br><span class="line">select * from t limit @Y3，1；</span><br></pre></td></tr></table></figure>
       
     </div>
     
@@ -552,8 +508,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" rel="next" title="15 答疑文章(一)：日志和索引相关问题">
-                <i class="fa fa-chevron-left"></i> 15 答疑文章(一)：日志和索引相关问题
+              <a href="/2021/01/10/13%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A1%A8%E6%95%B0%E6%8D%AE%E5%88%A0%E6%8E%89%E4%B8%80%E5%8D%8A%EF%BC%8C%E8%A1%A8%E6%96%87%E4%BB%B6%E5%A4%A7%E5%B0%8F%E4%B8%8D%E5%8F%98%EF%BC%9F/" rel="next" title="13 为什么表数据删掉一半，表文件大小不变？">
+                <i class="fa fa-chevron-left"></i> 13 为什么表数据删掉一半，表文件大小不变？
               </a>
             
           </div>
@@ -562,8 +518,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/01/12/16%20%E2%80%9Corder%20by%E2%80%9D%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84%EF%BC%9F/" rel="prev" title="16 “order by”是怎么工作的？">
-                16 “order by”是怎么工作的？ <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/12/17%20%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E5%9C%B0%E6%98%BE%E7%A4%BA%E9%9A%8F%E6%9C%BA%E6%B6%88%E6%81%AF%EF%BC%9F/" rel="prev" title="17 如何正确地显示随机消息？">
+                17 如何正确地显示随机消息？ <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -736,7 +692,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存临时表"><span class="nav-number">1.</span> <span class="nav-text">内存临时表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#磁盘临时表"><span class="nav-number">2.</span> <span class="nav-text">磁盘临时表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#随机排序方法"><span class="nav-number">3.</span> <span class="nav-text">随机排序方法</span></a></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#日志相关问题"><span class="nav-number">1.</span> <span class="nav-text">日志相关问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#在两阶段提交的不同时刻，MySQL-异常重启会出现什么现象？"><span class="nav-number">1.1.</span> <span class="nav-text">在两阶段提交的不同时刻，MySQL 异常重启会出现什么现象？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-1：MySQL-怎么知道-binlog-是完整的"><span class="nav-number">1.2.</span> <span class="nav-text">追问 1：MySQL 怎么知道 binlog 是完整的?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-2：redo-log-和-binlog-是怎么关联起来的"><span class="nav-number">1.3.</span> <span class="nav-text">追问 2：redo log 和 binlog 是怎么关联起来的?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-3：处于-prepare-阶段的-redo-log-加上完整-binlog，重启就能恢复，MySQL-为啥这么设计"><span class="nav-number">1.4.</span> <span class="nav-text">追问 3：处于 prepare 阶段的 redo log 加上完整 binlog，重启就能恢复，MySQL 为啥这么设计?</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-4：如果这样的话，为什么还要两阶段提交呢？干脆先-redo-log-写完，再写-binlog。崩溃恢复的时候，必须得两个日志都完整才可以。是不是一样的逻辑？"><span class="nav-number">1.5.</span> <span class="nav-text">追问 4：如果这样的话，为什么还要两阶段提交呢？干脆先 redo log 写完，再写 binlog。崩溃恢复的时候，必须得两个日志都完整才可以。是不是一样的逻辑？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-5：不引入两个日志，也就没有两阶段提交的必要了。只用-binlog-来支持崩溃恢复，又能支持归档，不就可以了？"><span class="nav-number">1.6.</span> <span class="nav-text">追问 5：不引入两个日志，也就没有两阶段提交的必要了。只用 binlog 来支持崩溃恢复，又能支持归档，不就可以了？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-6：那能不能只用-redo-log，不要-binlog？"><span class="nav-number">1.7.</span> <span class="nav-text">追问 6：那能不能只用 redo log，不要 binlog？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-7：redo-log-一般设置多大？"><span class="nav-number">1.8.</span> <span class="nav-text">追问 7：redo log 一般设置多大？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-8：正常运行中的实例，数据写入后的最终落盘，是从-redo-log-更新过来的还是从-buffer-pool-更新过来的呢？"><span class="nav-number">1.9.</span> <span class="nav-text">追问 8：正常运行中的实例，数据写入后的最终落盘，是从 redo log 更新过来的还是从 buffer pool 更新过来的呢？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#追问-9：redo-log-buffer-是什么？是先修改内存，还是先写-redo-log-文件？"><span class="nav-number">1.10.</span> <span class="nav-text">追问 9：redo log buffer 是什么？是先修改内存，还是先写 redo log 文件？</span></a></li></ol></li></ol></div>
                 
             </div>
             </section>
