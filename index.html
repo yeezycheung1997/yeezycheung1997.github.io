@@ -1273,8 +1273,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-10T20:39:06+08:00" content="2021-01-10">
-                2021-01-10
+              <time itemprop="dateUpdated" datetime="2021-01-14T15:04:09+08:00" content="2021-01-14">
+                2021-01-14
               </time>
             </span>
           
@@ -1309,11 +1309,12 @@
       
         
           
-          有人问数据库占用空间太大，删掉了一个最大的表的一半数据，怎么表文件的大小还是没变？
+          有人问删掉了一个表的一半数据，怎么表文件的大小还是没变？
 今天就聊聊数据库表的空间回收，看看如何解决这个问题。
 这里还是针对 InnoDB 引擎展开讨论。一个 InnoDB 表包含两部分：表结构定义和数据。
 
-在 MySQL 8.0 版本以前，表结构是存在以.frm 为后缀
+在 MySQL 8.0 版本以前，表结构是存在以.frm 为后缀的文件里。
+MySQL 8
           ...
           <!--noindex-->
           <div class="post-button text-center">
@@ -1411,8 +1412,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-10T20:25:31+08:00" content="2021-01-10">
-                2021-01-10
+              <time itemprop="dateUpdated" datetime="2021-01-14T14:58:44+08:00" content="2021-01-14">
+                2021-01-14
               </time>
             </span>
           
@@ -1447,9 +1448,9 @@
       
         
           
-          有这样的场景：一条 SQL 语句，正常执行的时候特别快，但有时不知道怎么回事，它变得特别慢，并且这样的场景很难复现，它不只随机，而且持续时间还很短。
+          有这样的场景：一条 SQL 语句，正常执行的时候特别快，但有时它却变得特别慢，并且这样的场景很难复现，它不只随机，而且持续时间还很短。
 看上去像是数据库“抖”了一下。我们探讨一下这是什么原因。
-你的 SQL 语句为什么变“慢”了第 2 篇文章《日志系统：一条 SQL 更新语句是如何执行
+你的 SQL 语句为什么变“慢”了第 2 篇文章《日志系统：一条 SQL 更新语句是如何执行的？》介绍了 
           ...
           <!--noindex-->
           <div class="post-button text-center">
