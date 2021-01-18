@@ -1,6 +1,209 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>21 为什么我只改一行的语句，锁这么多？</title>
+    <url>/2021/01/18/21%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%94%B9%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E9%94%81%E8%BF%99%E4%B9%88%E5%A4%9A%EF%BC%9F/</url>
+    <content><![CDATA[<p>上一篇文章绍了间隙锁和 next-key lock 的概念，但没有说明加锁规则。今天就先从加锁规则开始。</p>
+<p><strong>间隙锁在可重复读隔离级别下才有效</strong>，所以本篇文章接下来的描述若没有特殊说明，默认是可重复读隔离级别。</p>
+<p>加锁规则包含了两个“原则”、两个“优化”。</p>
+<ol>
+<li>原则 1：加锁的基本单位是 next-key lock。next-key lock 是前开后闭区间</li>
+<li>原则 2：查找过程中访问到的对象才会加锁</li>
+<li>优化 1：索引上的等值查询，给唯一索引加锁时，next-key lock 退化为行锁</li>
+<li>优化 2：索引上的等值查询，向右遍历时且最后一个值不满足等值条件时，next-key lock 退化为间隙锁</li>
+</ol>
+<p>表 t 的建表语句和初始化语句如下。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE TABLE &#96;t&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;c&#96; int(11) DEFAULT NULL,</span><br><span class="line">  &#96;d&#96; int(11) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;c&#96; (&#96;c&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">insert into t values(0,0,0),(5,5,5),</span><br><span class="line">(10,10,10),(15,15,15),(20,20,20),(25,25,25);</span><br></pre></td></tr></table></figure>
+
+<h3 id="案例一：等值查询间隙锁"><a href="#案例一：等值查询间隙锁" class="headerlink" title="案例一：等值查询间隙锁"></a>案例一：等值查询间隙锁</h3><p>第一个例子关于等值条件操作间隙：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sycTte.png" alt="img"></p>
+<center><font color="grey">图 1 等值查询的间隙锁</font></center>
+
+<p>由于表 t 中没有 id=7 的记录，所以用加锁规则判断：</p>
+<ol>
+<li><p>根据原则 1，加锁单位是 next-key lock，session A 加锁范围是 (5,10]</p>
+</li>
+<li><p>根据优化 2，这是一个等值查询 (id=7)，而 id=10 不满足查询条件，next-key lock 退化成间隙锁，因此最终加锁的范围是 (5,10)</p>
+</li>
+</ol>
+<p>所以 session B 往间隙里插入 id=8 的记录会被锁，但 session C 可以修改 id=10 这行。</p>
+<h3 id="案例二：非唯一索引等值锁"><a href="#案例二：非唯一索引等值锁" class="headerlink" title="案例二：非唯一索引等值锁"></a>案例二：非唯一索引等值锁</h3><blockquote>
+<p>覆盖索引是 select 的数据列只用从索引中就能够取得，不必读取数据行，换句话说查询列要被所建的索引覆盖。</p>
+</blockquote>
+<p>第二个例子关于覆盖索引上的锁：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sycbpd.png" alt="img"></p>
+<center><font color="grey">图 2 只加在非唯一索引上的锁</font></center>
+
+<p>这里 session A 要给索引 c 上 c=5 的这一行加上读锁。</p>
+<ol>
+<li>根据原则 1，加锁单位是 next-key lock，因此会给 (0,5]加上 next-key lock</li>
+<li>c 是普通索引，因此仅访问 c=5 这一条记录是不能马上停下来的，需要向右遍历，查到 c=10 才放弃。根据原则 2，访问到的都要加锁，因此要给 (5,10]加 next-key lock</li>
+<li>但是同时这个符合优化 2：等值判断，向右遍历，最后一个值不满足 c=5 这个等值条件，因此退化成间隙锁 (5,10)</li>
+<li>根据原则 2 ，<strong>只有访问到的对象才会加锁</strong>，对象指的是列，不是记录行。 加锁是加在索引上的。 列上有索引就加在索引上； 列上没有索引就加在主键上。而这个查询使用覆盖索引，并不需要访问主键索引，所以主键索引上没有加任何锁，这就是为什么 session B 的 update 语句可以执行完成</li>
+</ol>
+<p>但 session C 要插入一个 (7,7,7) 的记录，就会被 session A 的间隙锁 (5,10) 锁住。</p>
+<p>在这个例子中，lock in share mode 只锁覆盖索引，但如果是 for update 就不一样了。 执行 for update 时，系统会认为接下来要更新数据，因此会顺便给主键索引上满足条件的行加上行锁。</p>
+<p>这个例子说明锁是加在索引上的；如果要用 lock in share mode 来给行加读锁避免数据被更新的话，就必须得绕过覆盖索引的优化，在查询字段中加入索引中不存在的字段。比如，将 session A 的查询语句改成 select d from t where c=5 lock in share mode。</p>
+<h3 id="案例三：主键索引范围锁"><a href="#案例三：主键索引范围锁" class="headerlink" title="案例三：主键索引范围锁"></a>案例三：主键索引范围锁</h3><p>第三个例子是关于范围查询的。</p>
+<p>对于表 t，下面这两条查询语句，加锁范围相同吗？</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select * from t where id&#x3D;10 for update;</span><br><span class="line">mysql&gt; select * from t where id&gt;&#x3D;10 and id&lt;11 for update;</span><br></pre></td></tr></table></figure>
+
+<p>你可能会想，id 定义为 int 类型，这两个语句就是等价的吧？其实，它们并不完全等价。</p>
+<p>逻辑上这两条查语句是等价的，但它们的加锁规则不太一样。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygPpj.png" alt="img"></p>
+<center><font color="grey">图 3 主键索引上范围查询的锁</font></center>
+
+<p>用加锁规则来分析一下 session A 会加什么锁呢？</p>
+<ol>
+<li><p>开始执行的时候，要找到第一个 id=10 的行，因此本该是 next-key lock(5,10]。 根据优化 1， 主键 id 上的等值条件，退化成行锁，只加了 id=10 这一行的行锁。</p>
+</li>
+<li><p>范围查找就往后继续找，找到 id=15 这一行停下来，因此需要加 next-key lock(10,15]。</p>
+</li>
+</ol>
+<p>所以，session A 这时候锁的范围就是主键索引上，行锁 id=10 和 next-key lock(10,15]。这样，session B 和 session C 的结果你就能理解了。</p>
+<p>首次 session A 定位查找 id=10 的行时是当做等值查询来判断的，而向右扫描到 id=15 时用的是范围查询判断。</p>
+<h3 id="案例四：非唯一索引范围锁"><a href="#案例四：非唯一索引范围锁" class="headerlink" title="案例四：非唯一索引范围锁"></a>案例四：非唯一索引范围锁</h3><p>再看两个范围查询加锁的例子，可以对照着案例三来看。</p>
+<p>与案例三不同的是，案例四中查询语句的 where 部分用的是字段 c。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syglcR.png" alt="img"></p>
+<center><font color="grey">图 4 非唯一索引范围锁</font></center>
+
+<p>这次 session A 用字段 c 来判断，加锁规则跟案例三唯一的不同是：在第一次用 c=10 定位记录的时候，索引 c 上加了 (5,10]这个 next-key lock 后，由于索引 c 是非唯一索引，没有优化规则，也就是说不会蜕变为行锁，因此最终 sesion A 加的锁是，索引 c 上的 (5,10] 和 (10,15] 这两个 next-key lock。</p>
+<p>所以从结果上来看，sesson B 要插入（8,8,8) 的这个 insert 语句时就被堵住了。</p>
+<p>扫描到 c=15 才停止扫描是合理的，因为 InnoDB 要扫到 c=15 才知道不用继续往后找了。</p>
+<h3 id="案例五：非唯一索引上存在”等值”的例子"><a href="#案例五：非唯一索引上存在”等值”的例子" class="headerlink" title="案例五：非唯一索引上存在”等值”的例子"></a>案例五：非唯一索引上存在”等值”的例子</h3><p>为了更好地说明“间隙”这个概念，给表 t 插入一条新记录。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; insert into t values(30,10,30);</span><br></pre></td></tr></table></figure>
+
+<p>新插入的这一行 c=10，也就是说现在表里有两个 c=10 的行。那么这时索引 c 上的间隙是什么状态了呢？由于非唯一索引上包含主键的值，所以是不可能存在“相同”的两行的。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygTbV.png" alt="img"></p>
+<center><font color="grey">图 6 非唯一索引等值的例子</font></center>
+
+<p>虽然有两个 c=10，但是它们的主键值 id 是不同的（分别是 10 和 30），因此这两个 c=10 的记录之间也是有间隙的。</p>
+<p>图中画出了索引 c 上的主键 id。为了跟间隙锁的开区间形式进行区别，用 (c=10,id=30) 这样的形式表示索引上的一行。</p>
+<p>看一下案例五。</p>
+<p>这次用 delete 语句来验证。delete 语句加锁的逻辑跟 select … for update 类似，也就是文章开始总结的两个“原则”、两个“优化”。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygj29.png" alt="img"></p>
+<center><font color="grey">图 7 delete 示例</font></center>
+
+<p>session A 在遍历时先访问第一个 c=10 的记录。同样地，根据原则 1，这里加的是 (c=5,id=5) 到 (c=10,id=10) 这个 next-key lock。</p>
+<p>然后，session A 向右查找，直到碰到 (c=15,id=15) 这一行，循环才结束。根据优化 2，这是一个等值查询，向右查找到了不满足条件的行，所以会退化成 (c=10,id=10) 到 (c=15,id=15) 的间隙锁。</p>
+<p>也就是这个 delete 语句在索引 c 上的加锁范围，就是下图中蓝色区域覆盖的部分。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygzK1.png" alt="img"></p>
+<center><font color="grey">图 8 delete 加锁效果示例</font></center>
+
+<p>这个蓝色区域左右两边都是虚线，表示开区间，即 (c=5,id=5) 和 (c=15,id=15) 这两行上都没有锁。</p>
+<h3 id="案例六：limit-语句加锁"><a href="#案例六：limit-语句加锁" class="headerlink" title="案例六：limit 语句加锁"></a>案例六：limit 语句加锁</h3><p>例子 6 也有一个对照案例，场景如下所示：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sy2nqP.png" alt="img"></p>
+<center><font color="grey">图 9 limit 语句加锁</font></center>
+
+<p>session A 的 delete 语句加了 limit 2。表 t 里 c=10 的记录只有两条，因此加不加 limit 2，删除的效果都是一样的，但是加锁的效果却不同。可以看到，session B 的 insert 语句执行通过了，跟案例五的结果不同。</p>
+<p>这是因为案例六里的 delete 语句明确加了 limit 2 的限制，因此在遍历到 (c=10, id=30) 这一行之后，满足条件的语句已经有两条，循环就结束了。</p>
+<p>因此索引 c 上的加锁范围变成了从（c=5,id=5) 到（c=10,id=30) 这个前开后闭区间，如下图所示：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sy23GQ.png" alt="img"></p>
+<center><font color="grey">图 10 带 limit 2 的加锁效果</font></center>
+
+<p>可以看到 (c=10,id=30）之后的间隙没有在加锁范围里，因此 insert 语句插入 c=12 是可以执行成功的。</p>
+<p>因此在删除数据的时候尽量加 limit。这样不仅可以控制删除数据的条数，让操作更安全，还可以减小加锁的范围。</p>
+<h3 id="案例七：一个死锁的例子"><a href="#案例七：一个死锁的例子" class="headerlink" title="案例七：一个死锁的例子"></a>案例七：一个死锁的例子</h3><p>前面的例子是按照 next-key lock 的逻辑来分析的，因为这样分析比较方便。最后再看一个案例，目的是说明：next-key lock 实际上是间隙锁和行锁加起来的结果。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sy2aZV.png" alt="img"></p>
+<center><font color="grey">图 11 案例八的操作序列</font></center>
+
+<p>现在按时间顺序分析为什么是这样的结果。</p>
+<ol>
+<li>session A 启动事务后执行查询语句加 lock in share mode，在索引 c 上加了 next-key lock(5,10] 和间隙锁 (10,15)；</li>
+<li>session B 的 update 语句也要在索引 c 上加 next-key lock(5,10] ，进入锁等待；</li>
+<li>然后 session A 要再插入 (8,8,8) 这一行，被 session B 的间隙锁锁住。由于出现了死锁，InnoDB 让 session B 回滚。</li>
+</ol>
+<p>你可能会问 session B 的 next-key lock 不是还没申请成功吗？其实是这样的，session B 的“加 next-key lock(5,10] ”操作实际上分成了两步，先是加 (5,10) 的间隙锁，加锁成功；然后加 c=10 的行锁，这时候才被锁住的。</p>
+<p>因此在分析加锁规则时可以用 next-key lock 分析。但是要知道具体执行时要分成间隙锁和行锁两段来执行的。</p>
+]]></content>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>22 MySQL有哪些“饮鸩止渴”提高性能的方法？</title>
+    <url>/2021/01/14/22%20MySQL%E6%9C%89%E5%93%AA%E4%BA%9B%E2%80%9C%E9%A5%AE%E9%B8%A9%E6%AD%A2%E6%B8%B4%E2%80%9D%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F/</url>
+    <content><![CDATA[<p>有这样的情景：业务高峰期，生产环境的 MySQL 压力太大，没法正常响应，需要短期内、临时性地提升一些性能。</p>
+<p>今天就来聊聊这些临时方案，并说一说它们可能存在的风险。</p>
+<h3 id="短连接风暴"><a href="#短连接风暴" class="headerlink" title="短连接风暴"></a>短连接风暴</h3><p>正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要的时候再重连。如果使用的是短连接，在业务高峰期的时候，就可能出现连接数突然暴涨的情况。</p>
+<p>第 1 篇文章<a href="https://yeezycheung1997.github.io/2020/12/19/01%20%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/">《基础架构：一条 SQL 查询语句是如何执行的？》</a>中说过 MySQL 建立连接的过程的成本是很高的。除了正常的网络连接三次握手外，还需要做登录权限判断和获得这个连接的数据读写权限。</p>
+<p>在数据库压力比较小的时候，这些额外的成本并不明显。但短连接模型存在一个风险：一旦数据库处理得慢一些，连接数就会暴涨。</p>
+<p>max_connections 参数用来控制一个 MySQL 实例同时存在的连接数的上限，超过这个值，系统就会拒绝接下来的连接请求，并报错提示“Too many connections”。对于被拒绝连接的请求来说，从业务角度看就是数据库不可用。</p>
+<p>在机器负载比较高的时候，处理现有请求的时间变长，每个连接保持的时间也更长。这时，再有新建连接的话，就可能会超过 max_connections 的限制。</p>
+<p>碰到这种情况时，一个想法就是调高 max_connections 的值。但这是有风险的，因为设计 max_connections 参数的目的是想保护 MySQL，如果把它改得太大，让更多的连接都可以进来，那么系统的负载可能会加大，大量的资源耗费在权限验证等逻辑上，结果可能适得其反，已经连接的线程拿不到 CPU 资源去执行业务的 SQL 请求。</p>
+<p>那么这种情况下，还有没有别的建议呢？这里有两种方法，但这些方法都是有损的。</p>
+<h3 id="第一种方法：先处理掉那些占着连接但是不工作的线程"><a href="#第一种方法：先处理掉那些占着连接但是不工作的线程" class="headerlink" title="第一种方法：先处理掉那些占着连接但是不工作的线程"></a>第一种方法：先处理掉那些占着连接但是不工作的线程</h3><p>max_connections 的计算，不是看谁在 running，是只要连着就占用一个计数位置。对于那些不需要保持的连接，我们可以通过 kill connection 主动踢掉。这个行为跟事先设置 wait_timeout 的效果是一样的。wait_timeout 参数表示一个线程空闲 wait_timeout 这么多秒之后，就会被 MySQL 直接断开连接。</p>
+<p>但在 show processlist 的结果里踢掉显示为 sleep 的线程，可能是有损的。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syRNSH.png" alt="img"></p>
+<center><font color="grey">图 1 sleep 线程的两种状态</font></center>
+
+<p>在上面这个例子里，如果断开 session A 的连接，因为这时 session A 还未提交，所以 MySQL 只能回滚事务；而断开 session B 的连接就没什么影响。所以应该优先断开像 session B 这样的事务外空闲的连接。</p>
+<p>但怎么判断哪些是事务外空闲的呢？session C 在 T 时刻之后的 30 秒执行 show processlist，看到的结果是这样的。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syRDTf.png" alt="img"></p>
+<center><font color="grey">图 2 sleep 线程的两种状态，show processlist 结果</font></center>
+
+<p>图中 id=4 和 id=5 的两个会话都是 Sleep 状态。而要看事务具体状态的话，可以查 information_schema 库的 innodb_trx 表。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syRytS.png" alt="img"></p>
+<center><font color="grey">图 3 从 information_schema.innodb_trx 查询事务状态</font></center>
+
+<p>trx_mysql_thread_id=4 表示 id=4 的线程还处在事务中。</p>
+<p>因此，如果是连接数过多，可以优先断开事务外空闲太久的连接；如果这样还不够，再考虑断开事务内空闲太久的连接。</p>
+<p>从服务端断开连接使用的是 kill connection + id 的命令， 一个客户端处于 sleep 状态时，它的连接被服务端主动断开后，这个客户端不会马上知道。直到客户端在发起下一个请求时会收到 <code>ERROR 2013 (HY000): Lost connection to MySQL server during query</code> 。</p>
+<p>从数据库端主动断开连接可能是有损的，尤其是有的应用端收到这个错误后，不重新连接，而是直接用这个已经不能用的句柄重试查询。这会导致从应用端看上去，“MySQL 一直没恢复”。</p>
+<h3 id="第二种方法：减少连接过程的消耗。"><a href="#第二种方法：减少连接过程的消耗。" class="headerlink" title="第二种方法：减少连接过程的消耗。"></a>第二种方法：减少连接过程的消耗。</h3><p>有的业务代码会在短时间内先大量申请数据库连接做备用，如果现在数据库确认是被连接行为打挂了，那么一种可能的做法，是让数据库跳过权限验证阶段。</p>
+<p>跳过权限验证的方法是：重启数据库，并使用–skip-grant-tables 参数启动。这样，整个 MySQL 会跳过所有的权限验证阶段，包括连接过程和语句执行过程在内。</p>
+<p>但是，这种方法特别符合我们标题里说的“饮鸩止渴”，风险极高，是我特别不建议使用的方案。尤其你的库外网可访问的话，就更不能这么做了。</p>
+<p>在 MySQL 8.0 版本里，如果你启用–skip-grant-tables 参数，MySQL 会默认把 –skip-networking 参数打开，表示这时候数据库只能被本地的客户端连接。可见，MySQL 官方对 skip-grant-tables 这个参数的安全问题也很重视。</p>
+<p>除了短连接数暴增可能会带来性能问题外，实际上碰到更多的是查询或者更新语句导致的性能问题。其中，查询问题比较典型的有两类，一类是由新出现的慢查询导致的，一类是由 QPS（每秒查询数）突增导致的。</p>
+<h3 id="慢查询性能问题"><a href="#慢查询性能问题" class="headerlink" title="慢查询性能问题"></a>慢查询性能问题</h3><p>在 MySQL 中，会引发性能问题的慢查询，大体有以下三种可能</p>
+<ol>
+<li>索引没设计好</li>
+<li>SQL 语句没写好</li>
+<li>MySQL 选错了索引</li>
+</ol>
+<h4 id="索引没设计好"><a href="#索引没设计好" class="headerlink" title="索引没设计好"></a>索引没设计好</h4><p>这种场景一般通过紧急创建索引来解决。MySQL 5.6 版本以后，创建索引都支持 Online DDL 了，对于那种高峰期数据库已经被这个语句打挂了的情况，最高效的做法就是直接执行 alter table 语句。</p>
+<p>比较理想的是能够在备库先执行。假设你现在的服务是一主一备，主库 A、备库 B，这个方案的大致流程如下：</p>
+<ol>
+<li>在备库 B 上执行 set sql_log_bin=off，也就是不写 binlog，然后执行 alter table 语句加上索引</li>
+<li>执行主备切换</li>
+<li>这时候主库是 B，备库是 A。在 A 上执行 set sql_log_bin=off，然后执行 alter table 语句加上索引</li>
+</ol>
+<h4 id="语句没写好"><a href="#语句没写好" class="headerlink" title="语句没写好"></a>语句没写好</h4><p>在第 18 篇文章<a href="https://yeezycheung1997.github.io/2021/01/13/18%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%BA%9BSQL%E8%AF%AD%E5%8F%A5%E9%80%BB%E8%BE%91%E7%9B%B8%E5%90%8C%EF%BC%8C%E6%80%A7%E8%83%BD%E5%8D%B4%E5%B7%AE%E5%BC%82%E5%B7%A8%E5%A4%A7%EF%BC%9F/">《为什么这些 SQL 语句逻辑相同，性能却差异巨大？》</a>中提到的那些错误导致了语句没使用上索引。</p>
+<p>这时可以通过改写 SQL 语句来处理。MySQL 5.7 提供了 query_rewrite 功能，可以把输入的一种语句改写成另外一种模式。</p>
+<p>比如，语句被错误地写成了 select * from t where id + 1 = 10000，你可以通过下面的方式，增加一个语句改写规则。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; insert into query_rewrite.rewrite_rules(pattern, replacement, pattern_database) values (&quot;select * from t where id + 1 &#x3D; ?&quot;, &quot;select * from t where id &#x3D; ? - 1&quot;, &quot;db1&quot;);</span><br><span class="line"></span><br><span class="line">call query_rewrite.flush_rewrite_rules();</span><br></pre></td></tr></table></figure>
+
+<p>call query_rewrite.flush_rewrite_rules() 这个存储过程，是让插入的新规则生效，也就是“查询重写”。用图 4 中的方法来确认改写规则是否生效。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syRjn1.png" alt="img"></p>
+<center><font color="grey">图 4 查询重写效果</font></center>
+
+<h4 id="MySQL-选错了索引"><a href="#MySQL-选错了索引" class="headerlink" title="MySQL 选错了索引"></a>MySQL 选错了索引</h4><p>第 10 篇文章<a href="https://yeezycheung1997.github.io/2021/01/09/10%20MySQL%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%97%B6%E5%80%99%E4%BC%9A%E9%80%89%E9%94%99%E7%B4%A2%E5%BC%95%EF%BC%9F/">《MySQL 为什么有时候会选错索引？》</a>中提到的情况就是MySQL 选错了索引。</p>
+<p>这时的应急方案就是给这个语句加上 force index。</p>
+<p>同样地，使用查询重写功能，给原来的语句加上 force index，也可以解决这个问题。</p>
+<h3 id="QPS-突增问题"><a href="#QPS-突增问题" class="headerlink" title="QPS 突增问题"></a>QPS 突增问题</h3><p>有时由于业务突然出现高峰，或者应用程序 bug，导致某个语句的 QPS 突然暴涨，也可能导致 MySQL 压力过大，影响服务。</p>
+<p>一类情况是由一个新功能的 bug 导致的。当然最理想的情况是让业务把这个功能下掉，服务自然就会恢复。</p>
+<p>而下掉一个功能，如果从数据库端处理的话，对应于不同的背景，有不同的方法可用。</p>
+<ol>
+<li><p>一种是由全新业务的 bug 导致的。假设你的 DB 运维是比较规范的，也就是说白名单是一个个加的。这种情况下，如果你能够确定业务方会下掉这个功能，只是时间上没那么快，那么就可以从数据库端直接把白名单去掉。</p>
+</li>
+<li><p>如果这个新功能使用的是单独的数据库用户，可以用管理员账号把这个用户删掉，然后断开现有连接。这样，这个新功能的连接不成功，由它引发的 QPS 就会变成 0。</p>
+</li>
+<li><p>如果这个新增的功能跟主体功能是部署在一起的，那么我们只能通过处理语句来限制。这时，我们可以使用上面提到的查询重写功能，把压力最大的 SQL 语句直接重写成”select 1”返回。</p>
+<p>这个操作的风险很高，可能存在两个副作用：</p>
+<ol>
+<li>如果别的功能里面也用到了这个 SQL 语句模板，会有误伤</li>
+<li>很多业务并不是靠这一个语句就能完成逻辑的，所以如果单独把这一个语句以 select 1 的结果返回的话，可能会导致后面的业务逻辑一起失败</li>
+</ol>
+</li>
+</ol>
+<p>所以方案 3 是用于止血的，跟前面提到的去掉权限验证一样，是优先级最低的一个方案。</p>
+<p>方案 1 和 2 都要依赖于规范的运维体系：虚拟化、白名单机制、业务账号分离。由此可见，更多的准备，往往意味着更稳定的系统。</p>
+]]></content>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>20 幻读是什么，幻读有什么问题？</title>
     <url>/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/</url>
     <content><![CDATA[<p>今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下：</p>
@@ -527,10 +730,142 @@
       </tags>
   </entry>
   <entry>
+    <title>17 如何正确地显示随机消息？</title>
+    <url>/2021/01/12/17%20%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E5%9C%B0%E6%98%BE%E7%A4%BA%E9%9A%8F%E6%9C%BA%E6%B6%88%E6%81%AF%EF%BC%9F/</url>
+    <content><![CDATA[<p>上一篇文章讲解了 order by 语句的几种执行模式。今天这篇文章从一个性能问题说起，说说 MySQL 中的另外一种排序需求。</p>
+<p>一个英语学习 App 首页有一个随机显示单词的功能，也就是根据每个用户的级别有一个单词表，这个用户每次访问首页时都会随机滚动显示三个单词。他们发现随着单词表变大，选单词这个逻辑变得越来越慢，影响了首页的打开速度。</p>
+<p>如果让你来设计这个 SQL 语句，你会怎么写呢？</p>
+<p>为了便于理解，简化这个例子：去掉每个级别的用户都有一个对应的单词表这个逻辑，直接从一个单词表中随机选出三个单词。表的建表语句和初始数据的命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE &#96;words&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL AUTO_INCREMENT,</span><br><span class="line">  &#96;word&#96; varchar(64) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">delimiter ;;</span><br><span class="line">create procedure idata()</span><br><span class="line">begin</span><br><span class="line">  declare i int;</span><br><span class="line">  set i&#x3D;0;</span><br><span class="line">  while i&lt;10000 do</span><br><span class="line">    insert into words(word) values(concat(char(97+(i div 1000)), char(97+(i % 1000 div 100)), char(97+(i % 100 div 10)), char(97+(i % 10))));</span><br><span class="line">    set i&#x3D;i+1;</span><br><span class="line">  end while;</span><br><span class="line">end;;</span><br><span class="line">delimiter ;</span><br><span class="line"></span><br><span class="line">call idata();</span><br></pre></td></tr></table></figure>
+
+<p>这个表里面插入了 10000 行记录。接下来看看要随机选择 3 个单词，有什么方法实现，存在什么问题以及如何改进。</p>
+<h3 id="内存临时表"><a href="#内存临时表" class="headerlink" title="内存临时表"></a>内存临时表</h3><p>用 order by rand() 来实现这个逻辑：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select word from words order by rand() limit 3;</span><br></pre></td></tr></table></figure>
+
+<p>该语句逻辑清晰，随机排序取前 3 个。虽然写法很简单，但执行流程却有点复杂。</p>
+<p>用 explain 命令来看看这个语句的执行情况。</p>
+<p><img src="https://s3.ax1x.com/2021/01/12/sJfLT0.png" alt="img"></p>
+<center><font color="grey">图 1 使用 explain 命令查看语句的执行情况</font></center>
+
+<p>Extra 字段显示 Using temporary，表示需要使用临时表；Using filesort，表示需要执行排序操作。</p>
+<p>因此这个 Extra 的意思就是需要临时表并要在临时表上排序。</p>
+<p>先回顾一下上一篇文章中全字段排序和 rowid 排序的内容</p>
+<p><img src="https://s3.ax1x.com/2021/01/12/sJhFTx.jpg" alt="img"></p>
+<center><font color="grey">图 2 全字段排序</font></center>
+
+<p><img src="https://s3.ax1x.com/2021/01/12/sJhepD.jpg" alt="img"></p>
+<center><font color="grey">图 3 rowid 排序</font></center>
+
+<p>你觉得对于临时内存表的排序来说，它会选择哪一种算法呢？回顾一下上一篇文章的一个结论：<strong>对于 InnoDB 表来说，执行全字段排序会减少磁盘访问，因此会被优先选择。</strong></p>
+<p>这里强调了“InnoDB 表”，但是对于内存表，回表过程只是简单地根据数据行的位置，直接访问内存得到数据，根本不会导致多访问磁盘。优化器没有了这一层顾虑，那么它优先考虑的就是用于排序的行越小越好了，所以 MySQL 这时会选择 rowid 排序。</p>
+<p>理解了这个算法选择的逻辑，我们再来看看语句的执行流程。我们来尝试分析一下语句的扫描行数。</p>
+<p>这条语句的执行流程如下：</p>
+<ol>
+<li>创建一个临时表。临时表使用 memory 引擎，表里有两个字段，第一个字段是 double 类型，记为字段 R，第二个字段是 varchar(64) 类型，记为字段 W。这个表没有建索引。</li>
+<li>从 words 表中按主键顺序取出所有的 word 值。对于每一个 word 值，调用 rand() 函数生成一个大于 0 小于 1 的随机小数，并把这个随机小数和 word 分别存入临时表的 R 和 W 字段中，到此，扫描行数是 10000。</li>
+<li>现在临时表有 10000 行数据了，接下来在这个没有索引的内存临时表上，按照字段 R 排序。</li>
+<li>初始化 sort_buffer。sort_buffer 中有两个字段，一个是 double 类型，另一个是整型。</li>
+<li>从内存临时表中一行一行地取出 R 值和位置信息（后面会解释为什么是“位置信息”），分别存入 sort_buffer 中的两个字段里。这个过程要对内存临时表做全表扫描，此时扫描行数增加 10000，变成了 20000。</li>
+<li>在 sort_buffer 中根据 R 的值进行排序。这个过程不涉及到表操作，所以不增加扫描行数。</li>
+<li>排序完成后，取出前三个结果的位置信息，依次到内存临时表中取出 word 值，返回给客户端。这个过程中，访问了表的三行数据，总扫描行数变成了 20003。</li>
+</ol>
+<p>接下来通过慢查询日志（slow log）来验证一下分析得到的扫描行数是否正确。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Query_time: 0.900376  Lock_time: 0.000347 Rows_sent: 3 Rows_examined: 20003</span><br><span class="line">SET timestamp&#x3D;1541402277;</span><br><span class="line">select word from words order by rand() limit 3;</span><br></pre></td></tr></table></figure>
+
+<p>Rows_examined：20003 表示该语句执行过程中扫描了 20003 行，验证了我们分析得出的结论。</p>
+<p>完整的排序执行流程图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/12/sJhUXj.png" alt="img"></p>
+<center><font color="grey">图 4 随机排序完整流程图 1</font></center>
+
+<p>图中的 pos 是位置信息，位置信息是什么概念？在上一篇文章中对 InnoDB 表排序的时候，明明用的还是 ID 字段。</p>
+<p>这时候要回到一个基本概念：<strong>MySQL 的表是用什么方法来定位“一行数据”的。</strong></p>
+<p>在前面第 4和第 5篇介绍索引的文章中，如果把一个 InnoDB 表的主键删掉，是不是就没有主键，就没办法回表了？</p>
+<p>其实不是的。如果创建的表没有主键，或把一个表的主键删掉了，那么 InnoDB 会自己生成一个长度为 6 字节的 rowid 来作为主键。</p>
+<p>这也是排序模式里 rowid 名字的来历。实际上它表示的是：每个引擎用来唯一标识数据行的信息。</p>
+<ul>
+<li>对于有主键的 InnoDB 表来说，这个 rowid 就是主键 ID；</li>
+<li>对于没有主键的 InnoDB 表来说，这个 rowid 就是由系统生成的；</li>
+<li>MEMORY 引擎不是索引组织表。在这个例子里面你可以认为它是一个数组。因此这个 rowid 其实就是数组的下标。</li>
+</ul>
+<p>到这里小结一下：<strong>order by rand() 使用了内存临时表，内存临时表排序的时候使用了 rowid 排序方法。</strong></p>
+<h3 id="磁盘临时表"><a href="#磁盘临时表" class="headerlink" title="磁盘临时表"></a>磁盘临时表</h3><p>是不是所有的临时表都是内存表呢？</p>
+<p>其实不是的。tmp_table_size 限制了内存临时表的大小，默认值是 16M。如果临时表大小超过了 tmp_table_size，那么内存临时表就会转成磁盘临时表。</p>
+<p>磁盘临时表使用的引擎默认是 InnoDB，是由参数 internal_tmp_disk_storage_engine 控制的。</p>
+<p>当使用磁盘临时表的时候，对应的就是一个没有显式索引的 InnoDB 表的排序过程。</p>
+<p>为了复现这个过程，我把 tmp_table_size 设置成 1024，把 sort_buffer_size 设置成 32768, 把 max_length_for_sort_data 设置成 16。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set tmp_table_size&#x3D;1024;</span><br><span class="line">set sort_buffer_size&#x3D;32768;</span><br><span class="line">set max_length_for_sort_data&#x3D;16;</span><br><span class="line">&#x2F;* 打开 optimizer_trace，只对本线程有效 *&#x2F;</span><br><span class="line">SET optimizer_trace&#x3D;&#39;enabled&#x3D;on&#39;; </span><br><span class="line"></span><br><span class="line">&#x2F;* 执行语句 *&#x2F;</span><br><span class="line">select word from words order by rand() limit 3;</span><br><span class="line"></span><br><span class="line">&#x2F;* 查看 OPTIMIZER_TRACE 输出 *&#x2F;</span><br><span class="line">SELECT * FROM &#96;information_schema&#96;.&#96;OPTIMIZER_TRACE&#96;\G</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s3.ax1x.com/2021/01/12/sJhgc4.png" alt="img"></p>
+<center><font color="grey">图 5 OPTIMIZER_TRACE 部分结果</font></center>
+
+<p>看一下这次 OPTIMIZER_TRACE 的结果。</p>
+<p>因为将 max_length_for_sort_data 设置成 16，小于 word 字段的长度定义，所以 sort_mode 里面显示的是 rowid 排序，这是符合预期的，参与排序的是随机值 R 字段和 rowid 字段组成的行。</p>
+<p>这时你发现不对。R 字段存放的随机值就 8 个字节，rowid 是 6 个字节，数据总行数是 10000，这样算出来就有 140000 字节，超过了 sort_buffer_size 定义的 32768 字节了。但是，number_of_tmp_files 的值居然是 0，难道不需要用临时文件吗？</p>
+<p>这个 SQL 语句的排序确实没有用到临时文件，采用是 MySQL 5.6 版本引入的一个新的排序算法，即：优先队列排序算法。接下来看看为什么没有使用临时文件的算法，也就是归并排序算法，而是采用了优先队列排序算法。</p>
+<p>其实现在的 SQL 语句只需要取 R 值最小的 3 个 rowid。如果使用归并排序算法的话，虽然最终也能得到前 3 个值，但是这个算法结束后已经将 10000 行数据都排好序了。</p>
+<p>也就是说后面的 9997 行也是有序的了。但我们的查询并不需要这些数据是有序的。所以这浪费了非常多的计算量。</p>
+<p>而优先队列算法，就可以精确地只得到三个最小值，执行流程如下：</p>
+<ol>
+<li>对于这 10000 个准备排序的 (R,rowid)，先取前三行，构造成一个堆；（对数据结构印象模糊的同学，可以先设想成这是一个由三个元素组成的数组）</li>
+<li>取下一个行 (R’,rowid’)，跟当前堆里面最大的 R 比较，如果 R’小于 R，把这个 (R,rowid) 从堆中去掉，换成 (R’,rowid’)；</li>
+<li>重复第 2 步，直到第 10000 个 (R’,rowid’) 完成比较。</li>
+</ol>
+<p>优先队列排序过程的示意图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/12/sJhfBR.png" alt="img"></p>
+<center><font color="grey">图 6 优先队列排序算法示例</font></center>
+
+<p>图 6 是模拟 6 个 (R,rowid) 行，通过优先队列排序找到最小的三个 R 值的行的过程。整个排序过程中，为了最快地拿到当前堆的最大值，总是保持最大值在堆顶，因此这是一个最大堆。</p>
+<p>图 5 的 OPTIMIZER_TRACE 结果中，filesort_priority_queue_optimization 这个部分的 chosen=true，表示使用了优先队列排序算法，这个过程不需要临时文件，因此对应的 number_of_tmp_files 是 0。</p>
+<p>这个流程结束后，我们构造的堆里面，就是这个 10000 行里面 R 值最小的三行。然后依次把它们的 rowid 取出来，去临时表里面拿到 word 字段，这个过程就跟上一篇文章的 rowid 排序的过程一样了。</p>
+<p>我们再看一下上一篇文章的 SQL 查询语句：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select city,name,age from t where city&#x3D;&#39;杭州&#39; order by name limit 1000  ;</span><br></pre></td></tr></table></figure>
+
+<p>这里也用到了 limit，为什么没用优先队列排序算法呢？原因是这条 SQL 语句是 limit 1000，如果使用优先队列算法的话，需要维护的堆的大小就是 1000 行的 (name,rowid)，超过了我设置的 sort_buffer_size 大小，所以只能使用归并排序算法。</p>
+<p>总之不论是使用哪种类型的临时表，order by rand() 会让计算过程非常复杂，需要大量的扫描行数，因此排序过程的资源消耗也会很大。</p>
+<p>回到文章开头的问题，怎么正确地随机排序呢？</p>
+<h3 id="随机排序方法"><a href="#随机排序方法" class="headerlink" title="随机排序方法"></a>随机排序方法</h3><p>把问题简化一下，如果只随机选择 1 个 word 值，可以怎么做呢？思路上是这样的：</p>
+<ol>
+<li>取得这个表的主键 id 的最大值 M 和最小值 N;</li>
+<li>用随机函数生成一个最大值到最小值之间的数 X = (M-N)*rand() + N;</li>
+<li>取不小于 X 的第一个 ID 的行。</li>
+</ol>
+<p>我们把这个算法暂时称作随机算法 1:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select max(id),min(id) into @M,@N from t ;</span><br><span class="line">set @X&#x3D; floor((@M-@N+1)*rand() + @N);</span><br><span class="line">select * from t where id &gt;&#x3D; @X limit 1;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法效率很高，因为取 max(id) 和 min(id) 都是不需要扫描索引的，而第三步的 select 也可以用索引快速定位，可以认为就只扫描了 3 行。但实际上这个算法本身并不严格满足题目的随机要求，因为 ID 中间可能有空洞，因此选择不同行的概率不一样，不是真正的随机。</p>
+<p>比如你有 4 个 id，分别是 1、2、4、5，如果按照上面的方法，那么取到 id=4 的这一行的概率是取得其他行概率的两倍。</p>
+<p>如果这四行的 id 分别是 1、2、40000、40001 呢？这个算法基本就能当 bug 来看待了。</p>
+<p>所以，为了得到严格随机的结果，可以用下面这个流程:</p>
+<ol>
+<li>取得整个表的行数，并记为 C。</li>
+<li>取得 Y = floor(C * rand())。 floor 函数在这里的作用，就是取整数部分。</li>
+<li>再用 limit Y,1 取得一行。 </li>
+</ol>
+<p>我们把这个算法，称为随机算法 2：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select count(*) into @C from t;</span><br><span class="line">set @Y &#x3D; floor(@C * rand());</span><br><span class="line">set @sql &#x3D; concat(&quot;select * from t limit &quot;, @Y, &quot;,1&quot;);</span><br><span class="line">prepare stmt from @sql;</span><br><span class="line">execute stmt;</span><br><span class="line">DEALLOCATE prepare stmt;</span><br></pre></td></tr></table></figure>
+
+<p>由于 limit 后面的参数不能直接跟变量，所以我在上面的代码中使用了 prepare+execute 的方法。你也可以把拼接 SQL 语句的方法写在应用程序中，会更简单些。</p>
+<p>随机算法 2 解决了算法 1 里面明显的概率不均匀问题。</p>
+<p>MySQL 处理 limit Y,1 的做法就是按顺序一个一个地读出来，丢掉前 Y 个，然后把下一个记录作为返回结果，因此这一步需要扫描 Y+1 行。再加上第一步扫描的 C 行，总共需要扫描 C+Y+1 行，执行代价比随机算法 1 的代价要高。</p>
+<p>当然，随机算法 2 跟直接 order by rand() 比起来，执行代价还是小很多的。</p>
+<p>如果按照这个表有 10000 行来计算的话，C=10000，要是随机到比较大的 Y 值，那扫描行数也跟 20000 差不多了，接近 order by rand() 的扫描行数，为什么说随机算法 2 的代价要小很多呢？我就把这个问题留给你去课后思考吧。</p>
+<p>如果我们按照随机算法 2 的思路，要随机取 3 个 word 值呢？你可以这么做：</p>
+<ol>
+<li>取得整个表的行数，记为 C；</li>
+<li>根据相同的随机方法得到 Y1、Y2、Y3；</li>
+<li>再执行三个 limit Y, 1 语句得到三行数据。</li>
+</ol>
+<p>我们把这个算法，称作随机算法 3：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select count(*) into @C from t;</span><br><span class="line">set @Y1 &#x3D; floor(@C * rand());</span><br><span class="line">set @Y2 &#x3D; floor(@C * rand());</span><br><span class="line">set @Y3 &#x3D; floor(@C * rand());</span><br><span class="line">select * from t limit @Y1，1； &#x2F;&#x2F;在应用代码里面取Y1、Y2、Y3值，拼出SQL后执行</span><br><span class="line">select * from t limit @Y2，1；</span><br><span class="line">select * from t limit @Y3，1；</span><br></pre></td></tr></table></figure>]]></content>
+      <tags>
+        <tag>数据库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>16 “order by”是怎么工作的？</title>
     <url>/2021/01/12/16%20%E2%80%9Corder%20by%E2%80%9D%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84%EF%BC%9F/</url>
-    <content><![CDATA[<p>开发应用时经常碰到需要<strong>根据指定的字段排序来显示结果</strong>的需求。还是以前面用过的市民表为例，假设要查询城市是“杭州”的所有人名字，并按照姓名排序返回前 1000 个人的姓名、年龄。</p>
-<p>表的部分定义如下：</p>
+    <content><![CDATA[<p>有需求是要<strong>根据指定的字段排序来显示结果</strong>。还是以市民表为例，假设要查询城市是“杭州”的所有人名字，并按姓名排序返回前 1000 个人的姓名、年龄。</p>
+<p>表定义如下：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CREATE TABLE &#96;t&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;city&#96; varchar(16) NOT NULL,</span><br><span class="line">  &#96;name&#96; varchar(16) NOT NULL,</span><br><span class="line">  &#96;age&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;addr&#96; varchar(128) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;city&#96; (&#96;city&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br></pre></td></tr></table></figure>
 
 <p>SQL 语句可以这么写：</p>
@@ -667,138 +1002,6 @@
 <p>可以看到，Extra 字段里面多了“Using index”，表示使用了覆盖索引，性能上会快很多。</p>
 <p>这并不是说要为了每个查询能用上覆盖索引，就要把语句中涉及的字段都建上联合索引，毕竟索引还是有维护代价的，这是一个需要权衡的决定。</p>
 ]]></content>
-      <tags>
-        <tag>数据库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>17 如何正确地显示随机消息？</title>
-    <url>/2021/01/12/17%20%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E5%9C%B0%E6%98%BE%E7%A4%BA%E9%9A%8F%E6%9C%BA%E6%B6%88%E6%81%AF%EF%BC%9F/</url>
-    <content><![CDATA[<p>上一篇文章讲解了 order by 语句的几种执行模式。今天这篇文章从一个性能问题说起，说说 MySQL 中的另外一种排序需求。</p>
-<p>一个英语学习 App 首页有一个随机显示单词的功能，也就是根据每个用户的级别有一个单词表，这个用户每次访问首页时都会随机滚动显示三个单词。他们发现随着单词表变大，选单词这个逻辑变得越来越慢，影响了首页的打开速度。</p>
-<p>如果让你来设计这个 SQL 语句，你会怎么写呢？</p>
-<p>为了便于理解，简化这个例子：去掉每个级别的用户都有一个对应的单词表这个逻辑，直接从一个单词表中随机选出三个单词。表的建表语句和初始数据的命令如下：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE &#96;words&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL AUTO_INCREMENT,</span><br><span class="line">  &#96;word&#96; varchar(64) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">delimiter ;;</span><br><span class="line">create procedure idata()</span><br><span class="line">begin</span><br><span class="line">  declare i int;</span><br><span class="line">  set i&#x3D;0;</span><br><span class="line">  while i&lt;10000 do</span><br><span class="line">    insert into words(word) values(concat(char(97+(i div 1000)), char(97+(i % 1000 div 100)), char(97+(i % 100 div 10)), char(97+(i % 10))));</span><br><span class="line">    set i&#x3D;i+1;</span><br><span class="line">  end while;</span><br><span class="line">end;;</span><br><span class="line">delimiter ;</span><br><span class="line"></span><br><span class="line">call idata();</span><br></pre></td></tr></table></figure>
-
-<p>这个表里面插入了 10000 行记录。接下来看看要随机选择 3 个单词，有什么方法实现，存在什么问题以及如何改进。</p>
-<h3 id="内存临时表"><a href="#内存临时表" class="headerlink" title="内存临时表"></a>内存临时表</h3><p>用 order by rand() 来实现这个逻辑：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select word from words order by rand() limit 3;</span><br></pre></td></tr></table></figure>
-
-<p>该语句逻辑清晰，随机排序取前 3 个。虽然写法很简单，但执行流程却有点复杂。</p>
-<p>用 explain 命令来看看这个语句的执行情况。</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJfLT0.png" alt="img"></p>
-<center><font color="grey">图 1 使用 explain 命令查看语句的执行情况</font></center>
-
-<p>Extra 字段显示 Using temporary，表示需要使用临时表；Using filesort，表示需要执行排序操作。</p>
-<p>因此这个 Extra 的意思就是需要临时表并要在临时表上排序。</p>
-<p>先回顾一下上一篇文章中全字段排序和 rowid 排序的内容</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhFTx.jpg" alt="img"></p>
-<center><font color="grey">图 2 全字段排序</font></center>
-
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhepD.jpg" alt="img"></p>
-<center><font color="grey">图 3 rowid 排序</font></center>
-
-<p>你觉得对于临时内存表的排序来说，它会选择哪一种算法呢？回顾一下上一篇文章的一个结论：<strong>对于 InnoDB 表来说，执行全字段排序会减少磁盘访问，因此会被优先选择。</strong></p>
-<p>这里强调了“InnoDB 表”，但是对于内存表，回表过程只是简单地根据数据行的位置，直接访问内存得到数据，根本不会导致多访问磁盘。优化器没有了这一层顾虑，那么它优先考虑的就是用于排序的行越小越好了，所以 MySQL 这时会选择 rowid 排序。</p>
-<p>理解了这个算法选择的逻辑，我们再来看看语句的执行流程。我们来尝试分析一下语句的扫描行数。</p>
-<p>这条语句的执行流程如下：</p>
-<ol>
-<li>创建一个临时表。临时表使用 memory 引擎，表里有两个字段，第一个字段是 double 类型，记为字段 R，第二个字段是 varchar(64) 类型，记为字段 W。这个表没有建索引。</li>
-<li>从 words 表中按主键顺序取出所有的 word 值。对于每一个 word 值，调用 rand() 函数生成一个大于 0 小于 1 的随机小数，并把这个随机小数和 word 分别存入临时表的 R 和 W 字段中，到此，扫描行数是 10000。</li>
-<li>现在临时表有 10000 行数据了，接下来在这个没有索引的内存临时表上，按照字段 R 排序。</li>
-<li>初始化 sort_buffer。sort_buffer 中有两个字段，一个是 double 类型，另一个是整型。</li>
-<li>从内存临时表中一行一行地取出 R 值和位置信息（后面会解释为什么是“位置信息”），分别存入 sort_buffer 中的两个字段里。这个过程要对内存临时表做全表扫描，此时扫描行数增加 10000，变成了 20000。</li>
-<li>在 sort_buffer 中根据 R 的值进行排序。这个过程不涉及到表操作，所以不增加扫描行数。</li>
-<li>排序完成后，取出前三个结果的位置信息，依次到内存临时表中取出 word 值，返回给客户端。这个过程中，访问了表的三行数据，总扫描行数变成了 20003。</li>
-</ol>
-<p>接下来通过慢查询日志（slow log）来验证一下分析得到的扫描行数是否正确。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># Query_time: 0.900376  Lock_time: 0.000347 Rows_sent: 3 Rows_examined: 20003</span><br><span class="line">SET timestamp&#x3D;1541402277;</span><br><span class="line">select word from words order by rand() limit 3;</span><br></pre></td></tr></table></figure>
-
-<p>Rows_examined：20003 表示该语句执行过程中扫描了 20003 行，验证了我们分析得出的结论。</p>
-<p>完整的排序执行流程图：</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhUXj.png" alt="img"></p>
-<center><font color="grey">图 4 随机排序完整流程图 1</font></center>
-
-<p>图中的 pos 是位置信息，位置信息是什么概念？在上一篇文章中对 InnoDB 表排序的时候，明明用的还是 ID 字段。</p>
-<p>这时候要回到一个基本概念：<strong>MySQL 的表是用什么方法来定位“一行数据”的。</strong></p>
-<p>在前面第 4和第 5篇介绍索引的文章中，如果把一个 InnoDB 表的主键删掉，是不是就没有主键，就没办法回表了？</p>
-<p>其实不是的。如果创建的表没有主键，或把一个表的主键删掉了，那么 InnoDB 会自己生成一个长度为 6 字节的 rowid 来作为主键。</p>
-<p>这也是排序模式里 rowid 名字的来历。实际上它表示的是：每个引擎用来唯一标识数据行的信息。</p>
-<ul>
-<li>对于有主键的 InnoDB 表来说，这个 rowid 就是主键 ID；</li>
-<li>对于没有主键的 InnoDB 表来说，这个 rowid 就是由系统生成的；</li>
-<li>MEMORY 引擎不是索引组织表。在这个例子里面你可以认为它是一个数组。因此这个 rowid 其实就是数组的下标。</li>
-</ul>
-<p>到这里小结一下：<strong>order by rand() 使用了内存临时表，内存临时表排序的时候使用了 rowid 排序方法。</strong></p>
-<h3 id="磁盘临时表"><a href="#磁盘临时表" class="headerlink" title="磁盘临时表"></a>磁盘临时表</h3><p>是不是所有的临时表都是内存表呢？</p>
-<p>其实不是的。tmp_table_size 限制了内存临时表的大小，默认值是 16M。如果临时表大小超过了 tmp_table_size，那么内存临时表就会转成磁盘临时表。</p>
-<p>磁盘临时表使用的引擎默认是 InnoDB，是由参数 internal_tmp_disk_storage_engine 控制的。</p>
-<p>当使用磁盘临时表的时候，对应的就是一个没有显式索引的 InnoDB 表的排序过程。</p>
-<p>为了复现这个过程，我把 tmp_table_size 设置成 1024，把 sort_buffer_size 设置成 32768, 把 max_length_for_sort_data 设置成 16。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">set tmp_table_size&#x3D;1024;</span><br><span class="line">set sort_buffer_size&#x3D;32768;</span><br><span class="line">set max_length_for_sort_data&#x3D;16;</span><br><span class="line">&#x2F;* 打开 optimizer_trace，只对本线程有效 *&#x2F;</span><br><span class="line">SET optimizer_trace&#x3D;&#39;enabled&#x3D;on&#39;; </span><br><span class="line"></span><br><span class="line">&#x2F;* 执行语句 *&#x2F;</span><br><span class="line">select word from words order by rand() limit 3;</span><br><span class="line"></span><br><span class="line">&#x2F;* 查看 OPTIMIZER_TRACE 输出 *&#x2F;</span><br><span class="line">SELECT * FROM &#96;information_schema&#96;.&#96;OPTIMIZER_TRACE&#96;\G</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhgc4.png" alt="img"></p>
-<center><font color="grey">图 5 OPTIMIZER_TRACE 部分结果</font></center>
-
-<p>看一下这次 OPTIMIZER_TRACE 的结果。</p>
-<p>因为将 max_length_for_sort_data 设置成 16，小于 word 字段的长度定义，所以 sort_mode 里面显示的是 rowid 排序，这是符合预期的，参与排序的是随机值 R 字段和 rowid 字段组成的行。</p>
-<p>这时你发现不对。R 字段存放的随机值就 8 个字节，rowid 是 6 个字节，数据总行数是 10000，这样算出来就有 140000 字节，超过了 sort_buffer_size 定义的 32768 字节了。但是，number_of_tmp_files 的值居然是 0，难道不需要用临时文件吗？</p>
-<p>这个 SQL 语句的排序确实没有用到临时文件，采用是 MySQL 5.6 版本引入的一个新的排序算法，即：优先队列排序算法。接下来看看为什么没有使用临时文件的算法，也就是归并排序算法，而是采用了优先队列排序算法。</p>
-<p>其实现在的 SQL 语句只需要取 R 值最小的 3 个 rowid。如果使用归并排序算法的话，虽然最终也能得到前 3 个值，但是这个算法结束后已经将 10000 行数据都排好序了。</p>
-<p>也就是说后面的 9997 行也是有序的了。但我们的查询并不需要这些数据是有序的。所以这浪费了非常多的计算量。</p>
-<p>而优先队列算法，就可以精确地只得到三个最小值，执行流程如下：</p>
-<ol>
-<li>对于这 10000 个准备排序的 (R,rowid)，先取前三行，构造成一个堆；（对数据结构印象模糊的同学，可以先设想成这是一个由三个元素组成的数组）</li>
-<li>取下一个行 (R’,rowid’)，跟当前堆里面最大的 R 比较，如果 R’小于 R，把这个 (R,rowid) 从堆中去掉，换成 (R’,rowid’)；</li>
-<li>重复第 2 步，直到第 10000 个 (R’,rowid’) 完成比较。</li>
-</ol>
-<p>优先队列排序过程的示意图：</p>
-<p><img src="https://s3.ax1x.com/2021/01/12/sJhfBR.png" alt="img"></p>
-<center><font color="grey">图 6 优先队列排序算法示例</font></center>
-
-<p>图 6 是模拟 6 个 (R,rowid) 行，通过优先队列排序找到最小的三个 R 值的行的过程。整个排序过程中，为了最快地拿到当前堆的最大值，总是保持最大值在堆顶，因此这是一个最大堆。</p>
-<p>图 5 的 OPTIMIZER_TRACE 结果中，filesort_priority_queue_optimization 这个部分的 chosen=true，表示使用了优先队列排序算法，这个过程不需要临时文件，因此对应的 number_of_tmp_files 是 0。</p>
-<p>这个流程结束后，我们构造的堆里面，就是这个 10000 行里面 R 值最小的三行。然后依次把它们的 rowid 取出来，去临时表里面拿到 word 字段，这个过程就跟上一篇文章的 rowid 排序的过程一样了。</p>
-<p>我们再看一下上一篇文章的 SQL 查询语句：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">select city,name,age from t where city&#x3D;&#39;杭州&#39; order by name limit 1000  ;</span><br></pre></td></tr></table></figure>
-
-<p>这里也用到了 limit，为什么没用优先队列排序算法呢？原因是这条 SQL 语句是 limit 1000，如果使用优先队列算法的话，需要维护的堆的大小就是 1000 行的 (name,rowid)，超过了我设置的 sort_buffer_size 大小，所以只能使用归并排序算法。</p>
-<p>总之不论是使用哪种类型的临时表，order by rand() 会让计算过程非常复杂，需要大量的扫描行数，因此排序过程的资源消耗也会很大。</p>
-<p>回到文章开头的问题，怎么正确地随机排序呢？</p>
-<h3 id="随机排序方法"><a href="#随机排序方法" class="headerlink" title="随机排序方法"></a>随机排序方法</h3><p>把问题简化一下，如果只随机选择 1 个 word 值，可以怎么做呢？思路上是这样的：</p>
-<ol>
-<li>取得这个表的主键 id 的最大值 M 和最小值 N;</li>
-<li>用随机函数生成一个最大值到最小值之间的数 X = (M-N)*rand() + N;</li>
-<li>取不小于 X 的第一个 ID 的行。</li>
-</ol>
-<p>我们把这个算法暂时称作随机算法 1:</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select max(id),min(id) into @M,@N from t ;</span><br><span class="line">set @X&#x3D; floor((@M-@N+1)*rand() + @N);</span><br><span class="line">select * from t where id &gt;&#x3D; @X limit 1;</span><br></pre></td></tr></table></figure>
-
-<p>这个方法效率很高，因为取 max(id) 和 min(id) 都是不需要扫描索引的，而第三步的 select 也可以用索引快速定位，可以认为就只扫描了 3 行。但实际上这个算法本身并不严格满足题目的随机要求，因为 ID 中间可能有空洞，因此选择不同行的概率不一样，不是真正的随机。</p>
-<p>比如你有 4 个 id，分别是 1、2、4、5，如果按照上面的方法，那么取到 id=4 的这一行的概率是取得其他行概率的两倍。</p>
-<p>如果这四行的 id 分别是 1、2、40000、40001 呢？这个算法基本就能当 bug 来看待了。</p>
-<p>所以，为了得到严格随机的结果，可以用下面这个流程:</p>
-<ol>
-<li>取得整个表的行数，并记为 C。</li>
-<li>取得 Y = floor(C * rand())。 floor 函数在这里的作用，就是取整数部分。</li>
-<li>再用 limit Y,1 取得一行。 </li>
-</ol>
-<p>我们把这个算法，称为随机算法 2：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select count(*) into @C from t;</span><br><span class="line">set @Y &#x3D; floor(@C * rand());</span><br><span class="line">set @sql &#x3D; concat(&quot;select * from t limit &quot;, @Y, &quot;,1&quot;);</span><br><span class="line">prepare stmt from @sql;</span><br><span class="line">execute stmt;</span><br><span class="line">DEALLOCATE prepare stmt;</span><br></pre></td></tr></table></figure>
-
-<p>由于 limit 后面的参数不能直接跟变量，所以我在上面的代码中使用了 prepare+execute 的方法。你也可以把拼接 SQL 语句的方法写在应用程序中，会更简单些。</p>
-<p>随机算法 2 解决了算法 1 里面明显的概率不均匀问题。</p>
-<p>MySQL 处理 limit Y,1 的做法就是按顺序一个一个地读出来，丢掉前 Y 个，然后把下一个记录作为返回结果，因此这一步需要扫描 Y+1 行。再加上第一步扫描的 C 行，总共需要扫描 C+Y+1 行，执行代价比随机算法 1 的代价要高。</p>
-<p>当然，随机算法 2 跟直接 order by rand() 比起来，执行代价还是小很多的。</p>
-<p>如果按照这个表有 10000 行来计算的话，C=10000，要是随机到比较大的 Y 值，那扫描行数也跟 20000 差不多了，接近 order by rand() 的扫描行数，为什么说随机算法 2 的代价要小很多呢？我就把这个问题留给你去课后思考吧。</p>
-<p>如果我们按照随机算法 2 的思路，要随机取 3 个 word 值呢？你可以这么做：</p>
-<ol>
-<li>取得整个表的行数，记为 C；</li>
-<li>根据相同的随机方法得到 Y1、Y2、Y3；</li>
-<li>再执行三个 limit Y, 1 语句得到三行数据。</li>
-</ol>
-<p>我们把这个算法，称作随机算法 3：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql&gt; select count(*) into @C from t;</span><br><span class="line">set @Y1 &#x3D; floor(@C * rand());</span><br><span class="line">set @Y2 &#x3D; floor(@C * rand());</span><br><span class="line">set @Y3 &#x3D; floor(@C * rand());</span><br><span class="line">select * from t limit @Y1，1； &#x2F;&#x2F;在应用代码里面取Y1、Y2、Y3值，拼出SQL后执行</span><br><span class="line">select * from t limit @Y2，1；</span><br><span class="line">select * from t limit @Y3，1；</span><br></pre></td></tr></table></figure>]]></content>
       <tags>
         <tag>数据库</tag>
       </tags>
