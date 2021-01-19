@@ -79,26 +79,23 @@
 
 
 
-<meta name="description" content="今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下： 12345678910CREATE TABLE &#96;t&#96; (  &#96;id&#96; int(11) NOT NULL,  &#96;c&#96; int(11) DEFAULT NULL,  &#96;d&#96; int(11) DEFAULT NULL,  PRIMARY">
+<meta name="description" content="前面的文章着重介绍了 WAL 机制（第 2 篇、第 9 篇、第 12 篇和第 15 篇文章中的相关内容），得到的结论是：只要 redo log 和 binlog 保证持久化到磁盘，就能确保 MySQL 异常重启后，数据可以恢复。 redo log 的写入流程是怎样的？如何保证 redo log 真实地写入了磁盘？今天就再看看 MySQL 写入 binlog 和 redo log 的流程。 binl">
 <meta property="og:type" content="article">
-<meta property="og:title" content="20 幻读是什么，幻读有什么问题？">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/index.html">
+<meta property="og:title" content="23 MySQL是怎么保证数据不丢失的？">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/15/23%20MySQL%E6%98%AF%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E4%B8%8D%E4%B8%A2%E5%A4%B1%E7%9A%84%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下： 12345678910CREATE TABLE &#96;t&#96; (  &#96;id&#96; int(11) NOT NULL,  &#96;c&#96; int(11) DEFAULT NULL,  &#96;d&#96; int(11) DEFAULT NULL,  PRIMARY">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN1G01.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN1W9S.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3i4K.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3aEq.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3bqA.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3Oat.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN8AI0.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN8sFP.png">
-<meta property="article:published_time" content="2021-01-14T01:12:50.000Z">
-<meta property="article:modified_time" content="2021-01-14T02:22:31.127Z">
+<meta property="og:description" content="前面的文章着重介绍了 WAL 机制（第 2 篇、第 9 篇、第 12 篇和第 15 篇文章中的相关内容），得到的结论是：只要 redo log 和 binlog 保证持久化到磁盘，就能确保 MySQL 异常重启后，数据可以恢复。 redo log 的写入流程是怎样的？如何保证 redo log 真实地写入了磁盘？今天就再看看 MySQL 写入 binlog 和 redo log 的流程。 binl">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syxPXt.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syxZtg.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syx37T.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syxN9J.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syxyND.png">
+<meta property="article:published_time" content="2021-01-15T01:52:50.000Z">
+<meta property="article:modified_time" content="2021-01-19T03:36:58.391Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/13/sN1G01.png">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/18/syxPXt.png">
 
 
 
@@ -128,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/14/20 幻读是什么，幻读有什么问题？/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/15/23 MySQL是怎么保证数据不丢失的？/"/>
 
 
 
 
 
-  <title>20 幻读是什么，幻读有什么问题？ | Qianyi Zhang's blog</title>
+  <title>23 MySQL是怎么保证数据不丢失的？ | Qianyi Zhang's blog</title>
   
 
 
@@ -296,7 +293,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/15/23%20MySQL%E6%98%AF%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E4%B8%8D%E4%B8%A2%E5%A4%B1%E7%9A%84%EF%BC%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -313,7 +310,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">20 幻读是什么，幻读有什么问题？</h1>
+          <h1 class="post-title" itemprop="name headline">23 MySQL是怎么保证数据不丢失的？</h1>
         
 
         <div class="post-meta">
@@ -325,8 +322,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-14T09:12:50+08:00">
-                2021-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-15T09:52:50+08:00">
+                2021-01-15
               </time>
             
 
@@ -337,8 +334,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-14T10:22:31+08:00" content="2021-01-14">
-                2021-01-14
+              <time itemprop="dateUpdated" datetime="2021-01-19T11:36:58+08:00" content="2021-01-19">
+                2021-01-19
               </time>
             </span>
           
@@ -371,142 +368,117 @@
       
 
       
-        <p>今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE &#96;t&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;c&#96; int(11) DEFAULT NULL,</span><br><span class="line">  &#96;d&#96; int(11) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;c&#96; (&#96;c&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">insert into t values(0,0,0),(5,5,5),</span><br><span class="line">(10,10,10),(15,15,15),(20,20,20),(25,25,25);</span><br></pre></td></tr></table></figure>
+        <p>前面的文章着重介绍了 WAL 机制（<a href="https://yeezycheung1997.github.io/2020/12/20/02%20%E6%97%A5%E5%BF%97%E7%B3%BB%E7%BB%9F%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/">第 2 篇</a>、<a href="https://yeezycheung1997.github.io/2021/01/08/09%20%E6%99%AE%E9%80%9A%E7%B4%A2%E5%BC%95%E5%92%8C%E5%94%AF%E4%B8%80%E7%B4%A2%E5%BC%95%EF%BC%8C%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E9%80%89%E6%8B%A9%EF%BC%9F/">第 9 篇</a>、<a href="https://yeezycheung1997.github.io/2021/01/10/12%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E7%9A%84MySQL%E4%BC%9A%E2%80%9C%E6%8A%96%E2%80%9D%E4%B8%80%E4%B8%8B%EF%BC%9F/">第 12 篇</a>和<a href="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">第 15 篇</a>文章中的相关内容），得到的结论是：<strong>只要 redo log 和 binlog 保证持久化到磁盘，就能确保 MySQL 异常重启后，数据可以恢复</strong>。</p>
+<p>redo log 的写入流程是怎样的？如何保证 redo log 真实地写入了磁盘？今天就再看看 MySQL 写入 binlog 和 redo log 的流程。</p>
+<h3 id="binlog-的写入机制"><a href="#binlog-的写入机制" class="headerlink" title="binlog 的写入机制"></a>binlog 的写入机制</h3><p>binlog 的写入逻辑比较简单：事务执行过程中，先把日志写到 binlog cache，事务提交时再把 binlog cache 写到 binlog 文件中。</p>
+<p><strong>一个事务的 binlog 是不能被拆开的，因此不论这个事务多大，也要确保一次性写入</strong>。这就涉及到了 binlog cache 的保存问题。</p>
+<p>系统给 binlog cache 分配了一片内存，每个线程一个，参数 <code>binlog_cache_size</code> 用于控制单个线程内 binlog cache 所占内存的大小。超过了该参数规定的大小就要暂存到磁盘。</p>
+<p>事务提交时，执行器把 binlog cache 里的完整事务写入到 binlog 中，并清空 binlog cache。状态如图 1 所示。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syxPXt.png" alt="img"></p>
+<center><font color="grey">图 1 binlog 写盘状态</font></center>
 
-<p>这个表除了主键 id 外，还有一个索引 c，初始化语句在表中插入了 6 行数据。</p>
-<p>下面的语句序列，是怎么加锁的，加的锁又是何时释放的呢？</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">begin;</span><br><span class="line">select * from t where d&#x3D;5 for update;</span><br><span class="line">commit;</span><br></pre></td></tr></table></figure>
-
-<p>这个语句会命中 d=5 的这一行，对应的主键 id=5，因此在 select 语句执行完成后，id=5 这一行会加一个写锁，而且由于两阶段锁协议，这个写锁会在执行 commit 语句的时候释放。</p>
-<p>由于字段 d 上没有索引，因此这条查询语句会做全表扫描。那么，其他被扫描到的，但是不满足条件的 5 行记录上，会不会被加锁呢？</p>
-<p>我们知道 InnoDB 的默认事务隔离级别是可重复读，所以本文接下来没有特殊说明的部分，都是设定在可重复读隔离级别下。</p>
-<h3 id="幻读是什么？"><a href="#幻读是什么？" class="headerlink" title="幻读是什么？"></a>幻读是什么？</h3><p>如果只在 id=5 这一行加锁，而其他行的不加锁的话，会怎么样。</p>
-<p>先看一下这个场景（注意：这是假设的一个场景）：</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN1G01.png" alt="img"></p>
-<center><font color="grey">图 1 假设只在 id=5 这一行加行锁</font></center>
-
-<p>可以看到，session A 里执行了三次查询，分别是 Q1、Q2 和 Q3。它们的 SQL 语句相同，都是 select * from t where d=5 for update。这个语句的意思是查所有 d=5 的行，而且是<strong>当前读，并且加上写锁</strong>。现在，我们来看一下这三条 SQL 语句，分别会返回什么结果。</p>
+<p>可以看到，每个线程有自己 binlog cache，但共用同一份 binlog 文件。</p>
+<ul>
+<li><p>图中的 write 指把日志写入到文件系统的 page cache，并没有把数据持久化到磁盘，速度较快</p>
+</li>
+<li><p>图中的 fsync 才是将数据持久化到磁盘的操作。一般情况下认为 fsync 才占磁盘的 IOPS</p>
+</li>
+</ul>
+<p>write 和 fsync 的时机是由参数 sync_binlog 控制的：</p>
 <ol>
-<li>Q1 只返回 id=5 这一行；</li>
-<li>在 T2 时刻，session B 把 id=0 这一行的 d 值改成了 5，因此 T3 时刻 Q2 查出来的是 id=0 和 id=5 这两行；</li>
-<li>在 T4 时刻，session C 又插入一行（1,1,5），因此 T5 时刻 Q3 查出来的是 id=0、id=1 和 id=5 的这三行。</li>
+<li>sync_binlog=0 表示每次提交事务都只 write，不 fsync</li>
+<li>sync_binlog=1 表示每次提交事务都会执行 fsync</li>
+<li>sync_binlog=N(N&gt;1) 表示每次提交事务都 write，但累积 N 个事务后才 fsync</li>
 </ol>
-<p>其中，Q3 读到 id=1 这一行的现象，被称为“幻读”。也就是说，幻读指的是一个事务在前后两次查询同一个范围的时候，后一次查询看到了前一次查询没有看到的行。</p>
-<p>这里对“幻读”做一个说明：</p>
+<p>因此在 IO 瓶颈的场景里，将 sync_binlog 设成一个比较大的值能提升性能。在实际的业务场景中，考虑到丢失日志量的可控性，一般不建议将该参数设成 0，而是将其设置为 100~1000 中的某个数值。</p>
+<p>但将 sync_binlog 设置为 N 对应的风险是：如果主机发生异常重启，会丢失最近 N 个事务的 binlog 日志。</p>
+<h3 id="redo-log-的写入机制"><a href="#redo-log-的写入机制" class="headerlink" title="redo log 的写入机制"></a>redo log 的写入机制</h3><p><a href="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">第 15 篇答疑文章</a>介绍了 redo log buffer。事务在执行过程中，生成的 redo log 是要先写到 redo log buffer 的。</p>
+<p>那么 redo log buffer 里面的内容，是不是每次生成后都要直接持久化到磁盘呢？</p>
+<p>答案是不需要。如果事务执行期间 MySQL 异常重启，那这部分日志就丢了。由于事务并未提交，所以日志丢了也没有损失。</p>
+<p>那事务还没提交时，redo log buffer 中的部分日志有没有可能被持久化到磁盘呢？</p>
+<p>答案是，确实会有。</p>
+<p>这个问题要从 redo log 可能存在的三种状态说起：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syxZtg.png" alt="img"></p>
+<center><font color="grey">图 2 MySQL redo log 存储状态</font></center>
+
+<p>这三种状态分别是：</p>
 <ol>
-<li><strong>在可重复读隔离级别下，普通的查询是快照读，看不到别的事务插入的数据。因此，幻读在“当前读”下才会出现。</strong></li>
-<li>上面 session B 的修改结果，被 session A 之后的 select 语句用“当前读”看到，不能称为幻读。幻读仅专指“新插入的行”。如果只从第 8 篇文章<a href="https://yeezycheung1997.github.io/2021/01/08/08%20%E4%BA%8B%E5%8A%A1%E5%88%B0%E5%BA%95%E6%98%AF%E9%9A%94%E7%A6%BB%E7%9A%84%E8%BF%98%E6%98%AF%E4%B8%8D%E9%9A%94%E7%A6%BB%E7%9A%84%EF%BC%9F/">《事务到底是隔离的还是不隔离的？》</a>学到的事务可见性规则来分析的话，上面这三条 SQL 语句的返回结果都没有问题。</li>
+<li>存在 redo log buffer 中，物理上是在 MySQL 进程内存中（图中红色部分）</li>
+<li>写到磁盘 (write)，但未持久化（fsync)，物理上是在文件系统的 page cache 里面（图中黄色部分）</li>
+<li>持久化到磁盘，对应的是 hard disk（图中绿色部分）</li>
 </ol>
-<p>因为这三个查询都是加了 for update，都是当前读。而当前读的规则，就是要能读到所有已经提交的记录的最新值。并且，session B 和 sessionC 的两条语句，执行后就会提交，所以 Q2 和 Q3 就是应该看到这两个事务的操作效果，而且也看到了，这跟事务的可见性规则并不矛盾。</p>
-<p>但是，这是不是真的没问题呢？</p>
-<p>不，这里还真就有问题。</p>
-<h3 id="幻读有什么问题？"><a href="#幻读有什么问题？" class="headerlink" title="幻读有什么问题？"></a>幻读有什么问题？</h3><p><strong>首先是语义上的</strong>。session A 在 T1 时刻就声明了，“我要把所有 d=5 的行锁住，不准别的事务进行读写操作”。而实际上，这个语义被破坏了。</p>
-<p>如果现在这样看感觉还不明显的话，我再往 session B 和 session C 里面分别加一条 SQL 语句，你再看看会出现什么现象。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN1W9S.png" alt="img"></p>
-<center><font color="grey">图 2 假设只在 id=5 这一行加行锁 -- 语义被破坏</font></center>
-
-<p>session B 的第二条语句 update t set c=5 where id=0，语义是“我把 id=0、d=5 这一行的 c 值，改成了 5”。</p>
-<p>由于在 T1 时刻，session A 还只是给 id=5 这一行加了行锁， 并没有给 id=0 这行加上锁。因此，session B 在 T2 时刻，是可以执行这两条 update 语句的。这样，就破坏了 session A 里 Q1 语句要锁住所有 d=5 的行的加锁声明。</p>
-<p>session C 也是一样的道理，对 id=1 这一行的修改，也是破坏了 Q1 的加锁声明。</p>
-<p><strong>其次，是数据一致性的问题。</strong></p>
-<p>我们知道，锁的设计是为了保证数据的一致性。而这个一致性，不止是数据库内部数据状态在此刻的一致性，还包含了数据和日志在逻辑上的一致性。</p>
-<p>为了说明这个问题，我给 session A 在 T1 时刻再加一个更新语句，即：update t set d=100 where d=5。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3i4K.png" alt="img"></p>
-<center><font color="grey">图 3 假设只在 id=5 这一行加行锁 -- 数据一致性问题</font></center>
-
-<p>update 的加锁语义和 select …for update 是一致的，所以这时候加上这条 update 语句也很合理。session A 声明说“要给 d=5 的语句加上锁”，就是为了要更新数据，新加的这条 update 语句就是把它认为加上了锁的这一行的 d 值修改成了 100。</p>
-<p>现在，我们来分析一下图 3 执行完成后，数据库里会是什么结果。</p>
+<p>日志写到 redo log buffer 是很快的，wirte 到 page cache 也差不多，但是持久化到磁盘的速度就慢多了。</p>
+<p>为了控制 redo log 的写入策略，InnoDB 提供了 <code>innodb_flush_log_at_trx_commit</code> 参数，它有三种可能取值：</p>
 <ol>
-<li>经过 T1 时刻，id=5 这一行变成 (5,5,100)，当然这个结果最终是在 T6 时刻正式提交的 ;</li>
-<li>经过 T2 时刻，id=0 这一行变成 (0,5,5);</li>
-<li>经过 T4 时刻，表里面多了一行 (1,5,5);</li>
-<li>其他行跟这个执行序列无关，保持不变。</li>
+<li>设为 0 表示每次事务提交时都只是把 redo log 留在 redo log buffer 中 </li>
+<li>设为 1 表示每次事务提交时都将 redo log 直接持久化到磁盘</li>
+<li>设为 2 表示每次事务提交时都只是把 redo log 写到 page cache</li>
 </ol>
-<p>这样看，这些数据也没啥问题，但是我们再来看看这时候 binlog 里面的内容。</p>
+<p>InnoDB 有一个后台线程，每隔 1 秒就把 redo log buffer 中的日志，调用 write 写到文件系统的 page cache，然后调用 fsync 持久化到磁盘。</p>
+<p>事务执行中间过程的 redo log 直接写在 redo log buffer 中，这些 redo log 也会被后台线程一起持久化到磁盘。也就是说一个未提交事务的 redo log，也是可能已经持久化到磁盘的。</p>
+<p>除了后台线程每秒一次的轮询操作外，还有两种场景会让一个未提交事务的 redo log 写入到磁盘中：</p>
 <ol>
-<li>T2 时刻，session B 事务提交，写入了两条语句；</li>
-<li>T4 时刻，session C 事务提交，写入了两条语句；</li>
-<li>T6 时刻，session A 事务提交，写入了 update t set d=100 where d=5 这条语句。</li>
+<li><p><strong>redo log buffer 占用的空间即将达到 <code>innodb_log_buffer_size</code> 一半时，后台线程会主动写盘</strong>。由于这个事务并未提交，所以这个写盘动作只是 write，而没调用 fsync，也就是只留在了文件系统的 page cache</p>
+</li>
+<li><p><strong>并行的事务提交时，顺带将这个事务的 redo log buffer 持久化到磁盘</strong>。假设一个事务 A 执行到一半，已经写了一些 redo log 到 buffer 中，这时另外一个线程的事务 B 提交，如果 <code>innodb_flush_log_at_trx_commit</code> 设为 1，那么事务 B 要把 redo log buffer 里的日志全部持久化到磁盘。这时就会带上事务 A 在 redo log buffer 里的日志一起持久化到磁盘</p>
+</li>
 </ol>
-<p>我统一放到一起的话，就是这样的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">update t set d&#x3D;5 where id&#x3D;0; &#x2F;*(0,0,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;0; &#x2F;*(0,5,5)*&#x2F;</span><br><span class="line"></span><br><span class="line">insert into t values(1,1,5); &#x2F;*(1,1,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;1; &#x2F;*(1,5,5)*&#x2F;</span><br><span class="line"></span><br><span class="line">update t set d&#x3D;100 where d&#x3D;5;&#x2F;*所有d&#x3D;5的行，d改成100*&#x2F;</span><br></pre></td></tr></table></figure>
+<p>介绍两阶段提交的时候说过，时序上 redo log 先 prepare， 再写 binlog，最后再把 redo log commit。</p>
+<p>如果把 <code>innodb_flush_log_at_trx_commit</code> 设置成 1，那么 redo log 在 prepare 阶段就要持久化一次，因为有一个崩溃恢复逻辑是要依赖于 prepare 的 redo log，再加上 binlog 来恢复的。（可以再回顾下<a href="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">第 15 篇文章</a>中的相关内容）。</p>
+<p>每秒一次后台轮询刷盘，再加上崩溃恢复这个逻辑，InnoDB 就认为 redo log 在 commit 的时候就不需要 fsync 了，只 write 到文件系统的 page cache 中就够了。</p>
+<p>MySQL 的“双 1”配置指的就是 <code>sync_binlog</code> 和 <code>innodb_flush_log_at_trx_commit</code> 都设成 1。也就是一个事务完整提交前，需要等待两次刷盘，一次是 redo log（prepare 阶段），一次是 binlog。</p>
+<p>这就意味着从 MySQL 看到的 TPS 是每秒两万的话，每秒就会写四万次磁盘。但用工具测试出来的磁盘能力也就两万左右，怎么能实现两万的 TPS？</p>
+<p>解释这个问题，就要用到组提交（group commit）机制了。</p>
+<p>先介绍日志逻辑序列号（log sequence number，LSN）。LSN 是单调递增的，用来对应 redo log 的一个个写入点。每次写入长度为 length 的 redo log， LSN 的值就会加上 length。</p>
+<p>LSN 也会写到 InnoDB 的数据页中，来确保数据页不会被多次执行重复的 redo log。（关于 LSN 和 redo log、checkpoint 的关系，会在后续文章中展开）</p>
+<p>图 3 是三个并发事务 (trx1, trx2, trx3) 在 prepare 阶段，都写完 redo log buffer，持久化到磁盘的过程，对应的 LSN 分别是 50、120 和 160。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syx37T.png" alt="img"></p>
+<center><font color="grey">图 3 redo log 组提交</font></center>
 
-<p>好，你应该看出问题了。这个语句序列，不论是拿到备库去执行，还是以后用 binlog 来克隆一个库，这三行的结果，都变成了 (0,5,100)、(1,5,100) 和 (5,5,100)。</p>
-<p>也就是说，id=0 和 id=1 这两行，发生了数据不一致。这个问题很严重，是不行的。</p>
-<p>到这里，我们再回顾一下，这个数据不一致到底是怎么引入的？</p>
-<p>我们分析一下可以知道，这是我们假设“select * from t where d=5 for update 这条语句只给 d=5 这一行，也就是 id=5 的这一行加锁”导致的。</p>
-<p>所以我们认为，上面的设定不合理，要改。</p>
-<p>那怎么改呢？我们把扫描过程中碰到的行，也都加上写锁，再来看看执行效果。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3aEq.png" alt="img"></p>
-<center><font color="grey">图 4 假设扫描到的行都被加上了行锁</font></center>
-
-<p>由于 session A 把所有的行都加了写锁，所以 session B 在执行第一个 update 语句的时候就被锁住了。需要等到 T6 时刻 session A 提交以后，session B 才能继续执行。</p>
-<p>这样对于 id=0 这一行，在数据库里的最终结果还是 (0,5,5)。在 binlog 里面，执行序列是这样的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">insert into t values(1,1,5); &#x2F;*(1,1,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;1; &#x2F;*(1,5,5)*&#x2F;</span><br><span class="line"></span><br><span class="line">update t set d&#x3D;100 where d&#x3D;5;&#x2F;*所有d&#x3D;5的行，d改成100*&#x2F;</span><br><span class="line"></span><br><span class="line">update t set d&#x3D;5 where id&#x3D;0; &#x2F;*(0,0,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;0; &#x2F;*(0,5,5)*&#x2F;</span><br></pre></td></tr></table></figure>
-
-<p>可以看到，按照日志顺序执行，id=0 这一行的最终结果也是 (0,5,5)。所以，id=0 这一行的问题解决了。</p>
-<p>但同时你也可以看到，id=1 这一行，在数据库里面的结果是 (1,5,5)，而根据 binlog 的执行结果是 (1,5,100)，也就是说幻读的问题还是没有解决。为什么我们已经这么“凶残”地，把所有的记录都上了锁，还是阻止不了 id=1 这一行的插入和更新呢？</p>
-<p>原因很简单。在 T3 时刻，我们给所有行加锁的时候，id=1 这一行还不存在，不存在也就加不上锁。</p>
-<p>也就是说，即使把所有的记录都加上锁，还是阻止不了新插入的记录，这也是为什么“幻读”会被单独拿出来解决的原因。</p>
-<p>到这里，其实我们刚说明完文章的标题 ：幻读的定义和幻读有什么问题。</p>
-<p>接下来，我们再看看 InnoDB 怎么解决幻读的问题。</p>
-<h3 id="如何解决幻读？"><a href="#如何解决幻读？" class="headerlink" title="如何解决幻读？"></a>如何解决幻读？</h3><p>现在你知道了，产生幻读的原因是，行锁只能锁住行，但是新插入记录这个动作，要更新的是记录之间的“间隙”。因此，为了解决幻读问题，InnoDB 只好引入新的锁，也就是间隙锁 (Gap Lock)。</p>
-<p>顾名思义，间隙锁，锁的就是两个值之间的空隙。比如文章开头的表 t，初始化插入了 6 个记录，这就产生了 7 个间隙。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3bqA.png" alt="img"></p>
-<center><font color="grey">图 5 表 t 主键索引上的行锁和间隙锁</font></center>
-
-<p>这样，当你执行 select * from t where d=5 for update 的时候，就不止是给数据库中已有的 6 个记录加上了行锁，还同时加了 7 个间隙锁。这样就确保了无法再插入新的记录。</p>
-<p>也就是说这时候，在一行行扫描的过程中，不仅将给行加上了行锁，还给行两边的空隙，也加上了间隙锁。</p>
-<p>现在你知道了，数据行是可以加上锁的实体，数据行之间的间隙，也是可以加上锁的实体。但是间隙锁跟我们之前碰到过的锁都不太一样。</p>
-<p>比如行锁，分成读锁和写锁。下图就是这两种类型行锁的冲突关系。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3Oat.png" alt="img"></p>
-<center><font color="grey">图 6 两种行锁间的冲突关系</font></center>
-
-<p>也就是说，跟行锁有冲突关系的是“另外一个行锁”。</p>
-<p>但是间隙锁不一样，跟间隙锁存在冲突关系的，是“往这个间隙中插入一个记录”这个操作。间隙锁之间都不存在冲突关系。</p>
-<p>这句话不太好理解，我给你举个例子：</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN8AI0.png" alt="img"></p>
-<center><font color="grey">图 7 间隙锁之间不互锁</font></center>
-
-<p>这里 session B 并不会被堵住。因为表 t 里并没有 c=7 这个记录，因此 session A 加的是间隙锁 (5,10)。而 session B 也是在这个间隙加的间隙锁。它们有共同的目标，即：保护这个间隙，不允许插入值。但，它们之间是不冲突的。</p>
-<p>间隙锁和行锁合称 next-key lock，每个 next-key lock 是前开后闭区间。也就是说，我们的表 t 初始化以后，如果用 select * from t for update 要把整个表所有记录锁起来，就形成了 7 个 next-key lock，分别是 (-∞,0]、(0,5]、(5,10]、(10,15]、(15,20]、(20, 25]、(25, +supremum]。</p>
-<blockquote>
-<p>备注：这篇文章中，如果没有特别说明，我们把间隙锁记为开区间，把 next-key lock 记为前开后闭区间。</p>
-</blockquote>
-<p>你可能会问说，这个 supremum 从哪儿来的呢？</p>
-<p>这是因为 +∞是开区间。实现上，InnoDB 给每个索引加了一个不存在的最大值 supremum，这样才符合我们前面说的“都是前开后闭区间”。</p>
-<p>间隙锁和 next-key lock 的引入，帮我们解决了幻读的问题，但同时也带来了一些“困扰”。</p>
-<p>在前面的文章中，就有同学提到了这个问题。我把他的问题转述一下，对应到我们这个例子的表来说，业务逻辑这样的：任意锁住一行，如果这一行不存在的话就插入，如果存在这一行就更新它的数据，代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">begin;</span><br><span class="line">select * from t where id&#x3D;N for update;</span><br><span class="line"></span><br><span class="line">&#x2F;*如果行不存在*&#x2F;</span><br><span class="line">insert into t values(N,N,N);</span><br><span class="line">&#x2F;*如果行存在*&#x2F;</span><br><span class="line">update t set d&#x3D;N set id&#x3D;N;</span><br><span class="line"></span><br><span class="line">commit;</span><br></pre></td></tr></table></figure>
-
-<p>可能你会说，这个不是 insert … on duplicate key update 就能解决吗？但其实在有多个唯一键的时候，这个方法是不能满足这位提问同学的需求的。至于为什么，我会在后面的文章中再展开说明。</p>
-<p>现在，我们就只讨论这个逻辑。</p>
-<p>这个同学碰到的现象是，这个逻辑一旦有并发，就会碰到死锁。你一定也觉得奇怪，这个逻辑每次操作前用 for update 锁起来，已经是最严格的模式了，怎么还会有死锁呢？</p>
-<p>这里，我用两个 session 来模拟并发，并假设 N=9。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN8sFP.png" alt="img"></p>
-<center><font color="grey">图 8 间隙锁导致的死锁</font></center>
-
-<p>你看到了，其实都不需要用到后面的 update 语句，就已经形成死锁了。我们按语句执行顺序来分析一下：</p>
+<p>从图中可以看到，</p>
 <ol>
-<li>session A 执行 select … for update 语句，由于 id=9 这一行并不存在，因此会加上间隙锁 (5,10);</li>
-<li>session B 执行 select … for update 语句，同样会加上间隙锁 (5,10)，间隙锁之间不会冲突，因此这个语句可以执行成功；</li>
-<li>session B 试图插入一行 (9,9,9)，被 session A 的间隙锁挡住了，只好进入等待；</li>
-<li>session A 试图插入一行 (9,9,9)，被 session B 的间隙锁挡住了。</li>
+<li>trx1 是第一个到达的，被选为这组的 leader</li>
+<li>等 trx1 要开始写盘时，这个组里已经有了三个事务，这时 LSN 变成了 160</li>
+<li>trx1 去写盘时带的就是 LSN=160，因此等 trx1 返回时，所有 LSN &lt;= 160 的 redo log 都已经被持久化到磁盘</li>
+<li>这时的 trx2 和 trx3 就可以直接返回了</li>
 </ol>
-<p>至此，两个 session 进入互相等待状态，形成死锁。当然，InnoDB 的死锁检测马上就发现了这对死锁关系，让 session A 的 insert 语句报错返回了。</p>
-<p>你现在知道了，间隙锁的引入，可能会导致同样的语句锁住更大的范围，这其实是影响了并发度的。其实，这还只是一个简单的例子，在下一篇文章中我们还会碰到更多、更复杂的例子。</p>
-<p>你可能会说，为了解决幻读的问题，我们引入了这么一大串内容，有没有更简单一点的处理方法呢。</p>
-<p>我在文章一开始就说过，如果没有特别说明，今天和你分析的问题都是在可重复读隔离级别下的，间隙锁是在可重复读隔离级别下才会生效的。所以，你如果把隔离级别设置为读提交的话，就没有间隙锁了。但同时，你要解决可能出现的数据和日志不一致问题，需要把 binlog 格式设置为 row。这，也是现在不少公司使用的配置组合。</p>
-<p>前面文章的评论区有同学留言说，他们公司就使用的是读提交隔离级别加 binlog_format=row 的组合。他曾问他们公司的 DBA 说，你为什么要这么配置。DBA 直接答复说，因为大家都这么用呀。</p>
-<p>所以，这个同学在评论区就问说，这个配置到底合不合理。</p>
-<p>关于这个问题本身的答案是，如果读提交隔离级别够用，也就是说，业务不需要可重复读的保证，这样考虑到读提交下操作数据的锁范围更小（没有间隙锁），这个选择是合理的。</p>
-<p>但其实我想说的是，配置是否合理，跟业务场景有关，需要具体问题具体分析。</p>
-<p>但是，如果 DBA 认为之所以这么用的原因是“大家都这么用”，那就有问题了，或者说，迟早会出问题。</p>
-<p>比如说，大家都用读提交，可是逻辑备份的时候，mysqldump 为什么要把备份线程设置成可重复读呢？（这个我在前面的文章中已经解释过了，你可以再回顾下第 6 篇文章《全局锁和表锁 ：给表加个字段怎么有这么多阻碍？》的内容）</p>
-<p>然后，在备份期间，备份线程用的是可重复读，而业务线程用的是读提交。同时存在两种事务隔离级别，会不会有问题？</p>
-<p>进一步地，这两个不同的隔离级别现象有什么不一样的，关于我们的业务，“用读提交就够了”这个结论是怎么得到的？</p>
-<p>如果业务开发和运维团队这些问题都没有弄清楚，那么“没问题”这个结论，本身就是有问题的。</p>
+<p>所以一次组提交里的组员越多，节约磁盘 IOPS 的效果越好。在并发更新场景下，第一个事务写完 redo log buffer 以后，接下来这个 fsync 越晚调用，组员可能越多，节约 IOPS 的效果就越好。</p>
+<p>为了让一次 fsync 带的组员更多，MySQL 有一个很有趣的优化：拖时间。在介绍两阶段提交时画了一个图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syxN9J.png" alt="img"></p>
+<center><font color="grey">图 4 两阶段提交</font></center>
+
+<p>图中把“写 binlog”当成一个动作。但实际上，写 binlog 是分成两步的：</p>
+<ol>
+<li><p>先把 binlog 从 binlog cache 中写到磁盘上的 binlog 文件</p>
+</li>
+<li><p>调用 fsync 持久化</p>
+</li>
+</ol>
+<p>MySQL 为了让组提交的效果更好，把 redo log 做 fsync 的时间拖到了步骤 1 之后。也就是说上图变成了这样：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syxyND.png" alt="img"></p>
+<center><font color="grey">图 5 两阶段提交细化</font></center>
+
+<p>这样 binlog 也可以组提交了。在执行图 5 中第 4 步把 binlog fsync 到磁盘时，如果有多个事务的 binlog 已经写完了，也可以一起持久化，减少 IOPS 的消耗。</p>
+<p>通常情况下第 3 步执行得会很快，所以 binlog 的 write 和 fsync 间的间隔时间短，导致能集合到一起持久化的 binlog 比较少，因此 binlog 的组提交的效果通常不如 redo log 的效果那么好。</p>
+<p>如果想提升 binlog 组提交的效果，可以通过设置 <code>binlog_group_commit_sync_delay</code>和 <code>binlog_group_commit_sync_no_delay_count</code> 来实现。</p>
+<ol>
+<li>binlog_group_commit_sync_delay 参数表示延迟多少微秒后才调用 fsync</li>
+<li>binlog_group_commit_sync_no_delay_count 参数表示累积多少次以后才调用 fsync</li>
+</ol>
+<p>这两个条件是或的关系，只要有一个满足条件就会调用 fsync。</p>
+<p>所以当 <code>binlog_group_commit_sync_delay</code> 设为 0 时，<code>binlog_group_commit_sync_no_delay_count</code> 也无效了。</p>
+<p>有人问 WAL 机制是减少磁盘写，可是每次提交事务都要写 redo log 和 binlog，这磁盘读写次数也没变少呀？</p>
+<p>现在你就能理解了，WAL 机制主要得益于两个方面：</p>
+<ol>
+<li>redo log 和 binlog 都是顺序写，磁盘的顺序写比随机写速度要快</li>
+<li>组提交机制，可以大幅度降低磁盘的 IOPS 消耗</li>
+</ol>
+<h4 id="如果-MySQL-出现了性能瓶颈，而且瓶颈在-IO-上，可以通过哪些方法来提升性能呢？"><a href="#如果-MySQL-出现了性能瓶颈，而且瓶颈在-IO-上，可以通过哪些方法来提升性能呢？" class="headerlink" title="如果 MySQL 出现了性能瓶颈，而且瓶颈在 IO 上，可以通过哪些方法来提升性能呢？"></a>如果 MySQL 出现了性能瓶颈，而且瓶颈在 IO 上，可以通过哪些方法来提升性能呢？</h4><ol>
+<li>设置 <code>binlog_group_commit_sync_delay</code> 和 <code>binlog_group_commit_sync_no_delay_count</code> 参数，减少 binlog 的写盘次数。这个方法是基于“额外的故意等待”来实现的，因此可能会增加语句的响应时间，但没有丢失数据的风险。</li>
+<li>将 sync_binlog 设置为大于 1 的值（比较常见是 100~1000）。这样做的风险是，主机掉电时会丢 binlog 日志。</li>
+<li>将 <code>innodb_flush_log_at_trx_commit</code> 设置为 2。这样做的风险是主机掉电的时候会丢数据。</li>
+</ol>
+<p>不建议把 <code>innodb_flush_log_at_trx_commit</code> 设成 0。这表示 redo log 只保存在内存中，这样的话 MySQL 本身异常重启也会丢数据，风险太大。而 redo log 写到文件系统的 page cache 的速度也是很快的，所以将这个参数设置成 2 跟设置成 0 其实性能差不多，但这样做 MySQL 异常重启时就不会丢数据了，相比之下风险会更小。</p>
 
       
     </div>
@@ -566,8 +538,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/01/13/19%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%9F%A5%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E4%B9%9F%E6%89%A7%E8%A1%8C%E8%BF%99%E4%B9%88%E6%85%A2%EF%BC%9F/" rel="next" title="19 为什么我只查一行的语句，也执行这么慢？">
-                <i class="fa fa-chevron-left"></i> 19 为什么我只查一行的语句，也执行这么慢？
+              <a href="/2021/01/14/22%20MySQL%E6%9C%89%E5%93%AA%E4%BA%9B%E2%80%9C%E9%A5%AE%E9%B8%A9%E6%AD%A2%E6%B8%B4%E2%80%9D%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F/" rel="next" title="22 MySQL有哪些“饮鸩止渴”提高性能的方法？">
+                <i class="fa fa-chevron-left"></i> 22 MySQL有哪些“饮鸩止渴”提高性能的方法？
               </a>
             
           </div>
@@ -576,8 +548,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/01/14/22%20MySQL%E6%9C%89%E5%93%AA%E4%BA%9B%E2%80%9C%E9%A5%AE%E9%B8%A9%E6%AD%A2%E6%B8%B4%E2%80%9D%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F/" rel="prev" title="22 MySQL有哪些“饮鸩止渴”提高性能的方法？">
-                22 MySQL有哪些“饮鸩止渴”提高性能的方法？ <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/15/24%20MySQL%E6%98%AF%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%87%86%E5%A4%87%E4%B8%80%E8%87%B4%E7%9A%84%EF%BC%9F/" rel="prev" title="24 MySQL是怎么保证准备一致的？">
+                24 MySQL是怎么保证准备一致的？ <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -750,7 +722,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#幻读是什么？"><span class="nav-number">1.</span> <span class="nav-text">幻读是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#幻读有什么问题？"><span class="nav-number">2.</span> <span class="nav-text">幻读有什么问题？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何解决幻读？"><span class="nav-number">3.</span> <span class="nav-text">如何解决幻读？</span></a></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog-的写入机制"><span class="nav-number">1.</span> <span class="nav-text">binlog 的写入机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#redo-log-的写入机制"><span class="nav-number">2.</span> <span class="nav-text">redo log 的写入机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#如果-MySQL-出现了性能瓶颈，而且瓶颈在-IO-上，可以通过哪些方法来提升性能呢？"><span class="nav-number">2.1.</span> <span class="nav-text">如果 MySQL 出现了性能瓶颈，而且瓶颈在 IO 上，可以通过哪些方法来提升性能呢？</span></a></li></ol></li></ol></div>
                 
             </div>
             </section>

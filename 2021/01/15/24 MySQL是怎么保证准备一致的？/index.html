@@ -79,26 +79,27 @@
 
 
 
-<meta name="description" content="今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下： 12345678910CREATE TABLE &#96;t&#96; (  &#96;id&#96; int(11) NOT NULL,  &#96;c&#96; int(11) DEFAULT NULL,  &#96;d&#96; int(11) DEFAULT NULL,  PRIMARY">
+<meta name="description" content="binlog 可以用来归档和做主备同步，但它的内容是什么样的呢？为什么备库执行了 binlog 就可以跟主库保持一致了呢？今天这篇文章主要介绍主备的基本原理，理解了背后的设计原理。 MySQL 主备的基本原理图 1 是基本的主备切换流程。  图 1 MySQL 主备切换流程  在状态 1 中，客户端的读写都直接访问节点 A，而节点 B 是 A 的备库，只是将 A 的更新都同步过来，到本地执行。这样">
 <meta property="og:type" content="article">
-<meta property="og:title" content="20 幻读是什么，幻读有什么问题？">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/index.html">
+<meta property="og:title" content="24 MySQL是怎么保证准备一致的？">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/15/24%20MySQL%E6%98%AF%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%87%86%E5%A4%87%E4%B8%80%E8%87%B4%E7%9A%84%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下： 12345678910CREATE TABLE &#96;t&#96; (  &#96;id&#96; int(11) NOT NULL,  &#96;c&#96; int(11) DEFAULT NULL,  &#96;d&#96; int(11) DEFAULT NULL,  PRIMARY">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN1G01.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN1W9S.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3i4K.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3aEq.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3bqA.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN3Oat.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN8AI0.png">
-<meta property="og:image" content="https://s3.ax1x.com/2021/01/13/sN8sFP.png">
-<meta property="article:published_time" content="2021-01-14T01:12:50.000Z">
-<meta property="article:modified_time" content="2021-01-14T02:22:31.127Z">
+<meta property="og:description" content="binlog 可以用来归档和做主备同步，但它的内容是什么样的呢？为什么备库执行了 binlog 就可以跟主库保持一致了呢？今天这篇文章主要介绍主备的基本原理，理解了背后的设计原理。 MySQL 主备的基本原理图 1 是基本的主备切换流程。  图 1 MySQL 主备切换流程  在状态 1 中，客户端的读写都直接访问节点 A，而节点 B 是 A 的备库，只是将 A 的更新都同步过来，到本地执行。这样">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syxxbV.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syzEK1.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syzJqP.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syzgaT.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syzOiD.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/s6SMwV.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/s6S6ld.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/s6SW0P.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/s6SbXn.png">
+<meta property="article:published_time" content="2021-01-15T02:52:50.000Z">
+<meta property="article:modified_time" content="2021-01-19T04:40:08.389Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/13/sN1G01.png">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/18/syxxbV.png">
 
 
 
@@ -128,13 +129,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/14/20 幻读是什么，幻读有什么问题？/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/15/24 MySQL是怎么保证准备一致的？/"/>
 
 
 
 
 
-  <title>20 幻读是什么，幻读有什么问题？ | Qianyi Zhang's blog</title>
+  <title>24 MySQL是怎么保证准备一致的？ | Qianyi Zhang's blog</title>
   
 
 
@@ -296,7 +297,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/15/24%20MySQL%E6%98%AF%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%87%86%E5%A4%87%E4%B8%80%E8%87%B4%E7%9A%84%EF%BC%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -313,7 +314,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">20 幻读是什么，幻读有什么问题？</h1>
+          <h1 class="post-title" itemprop="name headline">24 MySQL是怎么保证准备一致的？</h1>
         
 
         <div class="post-meta">
@@ -325,8 +326,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-14T09:12:50+08:00">
-                2021-01-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-15T10:52:50+08:00">
+                2021-01-15
               </time>
             
 
@@ -337,8 +338,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-14T10:22:31+08:00" content="2021-01-14">
-                2021-01-14
+              <time itemprop="dateUpdated" datetime="2021-01-19T12:40:08+08:00" content="2021-01-19">
+                2021-01-19
               </time>
             </span>
           
@@ -371,142 +372,152 @@
       
 
       
-        <p>今天从关于加锁规则的问题说起。为了便于说明问题，这篇文章使用一个小一点儿的表。建表和初始化语句如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE &#96;t&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;c&#96; int(11) DEFAULT NULL,</span><br><span class="line">  &#96;d&#96; int(11) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;c&#96; (&#96;c&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">insert into t values(0,0,0),(5,5,5),</span><br><span class="line">(10,10,10),(15,15,15),(20,20,20),(25,25,25);</span><br></pre></td></tr></table></figure>
+        <p>binlog 可以用来归档和做主备同步，但它的内容是什么样的呢？为什么备库执行了 binlog 就可以跟主库保持一致了呢？今天这篇文章主要介绍主备的基本原理，理解了背后的设计原理。</p>
+<h3 id="MySQL-主备的基本原理"><a href="#MySQL-主备的基本原理" class="headerlink" title="MySQL 主备的基本原理"></a>MySQL 主备的基本原理</h3><p>图 1 是基本的主备切换流程。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syxxbV.png" alt="img"></p>
+<center><font color="grey">图 1 MySQL 主备切换流程</font></center>
 
-<p>这个表除了主键 id 外，还有一个索引 c，初始化语句在表中插入了 6 行数据。</p>
-<p>下面的语句序列，是怎么加锁的，加的锁又是何时释放的呢？</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">begin;</span><br><span class="line">select * from t where d&#x3D;5 for update;</span><br><span class="line">commit;</span><br></pre></td></tr></table></figure>
-
-<p>这个语句会命中 d=5 的这一行，对应的主键 id=5，因此在 select 语句执行完成后，id=5 这一行会加一个写锁，而且由于两阶段锁协议，这个写锁会在执行 commit 语句的时候释放。</p>
-<p>由于字段 d 上没有索引，因此这条查询语句会做全表扫描。那么，其他被扫描到的，但是不满足条件的 5 行记录上，会不会被加锁呢？</p>
-<p>我们知道 InnoDB 的默认事务隔离级别是可重复读，所以本文接下来没有特殊说明的部分，都是设定在可重复读隔离级别下。</p>
-<h3 id="幻读是什么？"><a href="#幻读是什么？" class="headerlink" title="幻读是什么？"></a>幻读是什么？</h3><p>如果只在 id=5 这一行加锁，而其他行的不加锁的话，会怎么样。</p>
-<p>先看一下这个场景（注意：这是假设的一个场景）：</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN1G01.png" alt="img"></p>
-<center><font color="grey">图 1 假设只在 id=5 这一行加行锁</font></center>
-
-<p>可以看到，session A 里执行了三次查询，分别是 Q1、Q2 和 Q3。它们的 SQL 语句相同，都是 select * from t where d=5 for update。这个语句的意思是查所有 d=5 的行，而且是<strong>当前读，并且加上写锁</strong>。现在，我们来看一下这三条 SQL 语句，分别会返回什么结果。</p>
+<p>在状态 1 中，客户端的读写都直接访问节点 A，而节点 B 是 A 的备库，只是将 A 的更新都同步过来，到本地执行。这样可以保持节点 B 和 A 的数据是相同的。</p>
+<p>当需要切换时就切成状态 2。这时客户端读写访问的都是节点 B，而节点 A 是 B 的备库。</p>
+<p>在状态 1 中节点 B 没被直接访问，但建议把节点 B（也就是备库）设置成只读（readonly）模式。这样做有以下几个考虑：</p>
 <ol>
-<li>Q1 只返回 id=5 这一行；</li>
-<li>在 T2 时刻，session B 把 id=0 这一行的 d 值改成了 5，因此 T3 时刻 Q2 查出来的是 id=0 和 id=5 这两行；</li>
-<li>在 T4 时刻，session C 又插入一行（1,1,5），因此 T5 时刻 Q3 查出来的是 id=0、id=1 和 id=5 的这三行。</li>
+<li>有时候一些运营类的查询语句会被放到备库上去查，设置为只读可以防止误操作</li>
+<li>防止切换逻辑有 bug，比如切换过程中出现双写，造成主备不一致</li>
+<li>用 readonly 状态判断节点的角色</li>
 </ol>
-<p>其中，Q3 读到 id=1 这一行的现象，被称为“幻读”。也就是说，幻读指的是一个事务在前后两次查询同一个范围的时候，后一次查询看到了前一次查询没有看到的行。</p>
-<p>这里对“幻读”做一个说明：</p>
+<h4 id="把备库设置成只读，还怎么跟主库保持同步更新呢？"><a href="#把备库设置成只读，还怎么跟主库保持同步更新呢？" class="headerlink" title="把备库设置成只读，还怎么跟主库保持同步更新呢？"></a>把备库设置成只读，还怎么跟主库保持同步更新呢？</h4><p>readonly 对超级 (super) 权限用户是无效的，而用于同步更新的线程，就拥有超级权限。</p>
+<p>接下来看看<strong>节点 A 到 B 这条线的内部流程是什么样的</strong>。图 2 是一个 update 语句在节点 A 执行，然后同步到节点 B 的完整流程图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syzEK1.png" alt="img"></p>
+<center><font color="grey">图 2 主备流程图</font></center>
+
+<p>图 2 包含了上篇文章讲到的 binlog 和 redo log 的写入机制相关的内容，可以看到：主库接收到客户端的更新请求后，执行内部事务的更新逻辑，同时写 binlog。</p>
+<p>备库 B 跟主库 A 之间维持了一个长连接。主库 A 内部有一个线程，专门用于服务备库 B 的这个长连接。一个事务日志同步的完整过程是这样的：</p>
 <ol>
-<li><strong>在可重复读隔离级别下，普通的查询是快照读，看不到别的事务插入的数据。因此，幻读在“当前读”下才会出现。</strong></li>
-<li>上面 session B 的修改结果，被 session A 之后的 select 语句用“当前读”看到，不能称为幻读。幻读仅专指“新插入的行”。如果只从第 8 篇文章<a href="https://yeezycheung1997.github.io/2021/01/08/08%20%E4%BA%8B%E5%8A%A1%E5%88%B0%E5%BA%95%E6%98%AF%E9%9A%94%E7%A6%BB%E7%9A%84%E8%BF%98%E6%98%AF%E4%B8%8D%E9%9A%94%E7%A6%BB%E7%9A%84%EF%BC%9F/">《事务到底是隔离的还是不隔离的？》</a>学到的事务可见性规则来分析的话，上面这三条 SQL 语句的返回结果都没有问题。</li>
+<li>在备库 B 上通过 change master 命令，设置主库 A 的 IP、端口、用户名、密码，以及要从哪个位置开始请求 binlog，这个位置包含文件名和日志偏移量</li>
+<li>在备库 B 上执行 start slave 命令，这时备库会启动两个线程，就是图中的 io_thread 和 sql_thread。其中 io_thread 负责与主库建立连接</li>
+<li>主库 A 校验完用户名、密码后，开始按照备库 B 传过来的位置，从本地读取 binlog，发给 B</li>
+<li>备库 B 拿到 binlog 后，写到本地文件，称为中转日志（relay log）</li>
+<li>sql_thread 读取中转日志，解析出日志里的命令，并执行</li>
 </ol>
-<p>因为这三个查询都是加了 for update，都是当前读。而当前读的规则，就是要能读到所有已经提交的记录的最新值。并且，session B 和 sessionC 的两条语句，执行后就会提交，所以 Q2 和 Q3 就是应该看到这两个事务的操作效果，而且也看到了，这跟事务的可见性规则并不矛盾。</p>
-<p>但是，这是不是真的没问题呢？</p>
-<p>不，这里还真就有问题。</p>
-<h3 id="幻读有什么问题？"><a href="#幻读有什么问题？" class="headerlink" title="幻读有什么问题？"></a>幻读有什么问题？</h3><p><strong>首先是语义上的</strong>。session A 在 T1 时刻就声明了，“我要把所有 d=5 的行锁住，不准别的事务进行读写操作”。而实际上，这个语义被破坏了。</p>
-<p>如果现在这样看感觉还不明显的话，我再往 session B 和 session C 里面分别加一条 SQL 语句，你再看看会出现什么现象。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN1W9S.png" alt="img"></p>
-<center><font color="grey">图 2 假设只在 id=5 这一行加行锁 -- 语义被破坏</font></center>
+<p>后来由于多线程复制方案的引入，sql_thread 演化成为了多个线程，跟今天介绍的原理没有直接关系，暂且不展开。</p>
+<p>分析完了这个长连接的逻辑，那么 binlog 里面到底是什么内容？为什么备库拿过去可以直接执行呢？</p>
+<h3 id="binlog-的三种格式对比"><a href="#binlog-的三种格式对比" class="headerlink" title="binlog 的三种格式对比"></a>binlog 的三种格式对比</h3><p><a href="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">第 15 篇答疑文章</a>中提到过 binlog 有两种格式，一种是 statement，一种是 row，第三种格式叫作 mixed，是前两种格式的混合。</p>
+<p>为了便于描述 binlog 的这三种格式间的区别，创建一个表并初始化几行数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; CREATE TABLE &#96;t&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;a&#96; int(11) DEFAULT NULL,</span><br><span class="line">  &#96;t_modified&#96; timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;a&#96; (&#96;a&#96;),</span><br><span class="line">  KEY &#96;t_modified&#96;(&#96;t_modified&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">insert into t values(1,1,&#39;2018-11-13&#39;);</span><br><span class="line">insert into t values(2,2,&#39;2018-11-12&#39;);</span><br><span class="line">insert into t values(3,3,&#39;2018-11-11&#39;);</span><br><span class="line">insert into t values(4,4,&#39;2018-11-10&#39;);</span><br><span class="line">insert into t values(5,5,&#39;2018-11-09&#39;);</span><br></pre></td></tr></table></figure>
 
-<p>session B 的第二条语句 update t set c=5 where id=0，语义是“我把 id=0、d=5 这一行的 c 值，改成了 5”。</p>
-<p>由于在 T1 时刻，session A 还只是给 id=5 这一行加了行锁， 并没有给 id=0 这行加上锁。因此，session B 在 T2 时刻，是可以执行这两条 update 语句的。这样，就破坏了 session A 里 Q1 语句要锁住所有 d=5 的行的加锁声明。</p>
-<p>session C 也是一样的道理，对 id=1 这一行的修改，也是破坏了 Q1 的加锁声明。</p>
-<p><strong>其次，是数据一致性的问题。</strong></p>
-<p>我们知道，锁的设计是为了保证数据的一致性。而这个一致性，不止是数据库内部数据状态在此刻的一致性，还包含了数据和日志在逻辑上的一致性。</p>
-<p>为了说明这个问题，我给 session A 在 T1 时刻再加一个更新语句，即：update t set d=100 where d=5。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3i4K.png" alt="img"></p>
-<center><font color="grey">图 3 假设只在 id=5 这一行加行锁 -- 数据一致性问题</font></center>
+<p>如果要在表中删除一行数据的话，来看看这个 delete 语句的 binlog 是怎么记录的。</p>
+<p>注意，下面这个语句包含注释，如果用 MySQL 客户端来做实验的话，要加 -c 参数，否则客户端会自动去掉注释。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; delete from t &#x2F;*comment*&#x2F;  where a&gt;&#x3D;4 and t_modified&lt;&#x3D;&#39;2018-11-10&#39; limit 1;</span><br></pre></td></tr></table></figure>
 
-<p>update 的加锁语义和 select …for update 是一致的，所以这时候加上这条 update 语句也很合理。session A 声明说“要给 d=5 的语句加上锁”，就是为了要更新数据，新加的这条 update 语句就是把它认为加上了锁的这一行的 d 值修改成了 100。</p>
-<p>现在，我们来分析一下图 3 执行完成后，数据库里会是什么结果。</p>
+<p>当 binlog_format=statement 时，binlog 里面记录的就是 SQL 语句的原文。用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show binlog events in &#39;master.000001&#39;;</span><br></pre></td></tr></table></figure>
+
+<p>命令看 binlog 中的内容。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syzJqP.png" alt="img"></p>
+<center><font color="grey">图 3 statement 格式 binlog 示例</font></center>
+
+<p>看一下图 3 的输出结果。</p>
+<ul>
+<li><p>第一行 SET @@SESSION.GTID_NEXT=’ANONYMOUS’可以忽略，后面会在介绍主备切换的时候再提到</p>
+</li>
+<li><p>第二行是一个 BEGIN，跟第四行的 commit 对应，表示中间是一个事务</p>
+</li>
+<li><p>第三行就是真实执行的语句了。可以看到在真实执行的 delete 命令之前，还有一个“use ‘test’”命令。这条命令是 MySQL 根据当前要操作的表所在的数据库自行添加的。这样可以保证日志传到备库去执行时，不论当前的工作线程在哪个库里，都能够正确地更新到 test 库的表 t</p>
+<p>use ‘test’命令之后的 delete 语句就是我们输入的 SQL 原文了。binlog“忠实”地记录了 SQL 命令，甚至连注释也一并记录了</p>
+</li>
+<li><p>最后一行是一个 COMMIT，里面写着 xid=61。关于 XID 可以再回顾一下<a href="https://yeezycheung1997.github.io/2021/01/11/15%20%E7%AD%94%E7%96%91%E6%96%87%E7%AB%A0(%E4%B8%80)%EF%BC%9A%E6%97%A5%E5%BF%97%E5%92%8C%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/">第 15 篇文章</a></p>
+</li>
+</ul>
+<p>为了说明 statement 和 row 格式的区别，看一下这条 delete 命令的执行效果图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syzgaT.png" alt="img"></p>
+<center><font color="grey">图 4 delete 执行 warnings</font></center>
+
+<p>可以看到运行这条 delete 命令产生了一个 warning，原因是当前 binlog 设置的是 statement 格式，并且语句中有 limit，所以这个命令可能是 unsafe 的。</p>
+<p>为什么这么说呢？这是因为 delete 带 limit，很可能会出现主备数据不一致的情况。比如上面这个例子：</p>
 <ol>
-<li>经过 T1 时刻，id=5 这一行变成 (5,5,100)，当然这个结果最终是在 T6 时刻正式提交的 ;</li>
-<li>经过 T2 时刻，id=0 这一行变成 (0,5,5);</li>
-<li>经过 T4 时刻，表里面多了一行 (1,5,5);</li>
-<li>其他行跟这个执行序列无关，保持不变。</li>
+<li>如果 delete 语句使用的是索引 a，那么会根据索引 a 找到第一个满足条件的行，也就是删除 a=4 这一行</li>
+<li>但如果使用索引 t_modified，那么删除的就是 t_modified=’2018-11-09’也就是 a=5 这一行</li>
 </ol>
-<p>这样看，这些数据也没啥问题，但是我们再来看看这时候 binlog 里面的内容。</p>
+<p>由于 statement 格式下记录到 binlog 里的是语句原文，因此可能会出现这样一种情况：在主库执行这条 SQL 语句时用的是索引 a；而在备库执行这条 SQL 语句时却使用了索引 t_modified。因此 MySQL 认为这样写是有风险的。</p>
+<p>如果把 binlog 的格式改为 binlog_format=‘row’， 是不是就没有这个问题了呢？我们来看看这时 binog 中的内容。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syzOiD.png" alt="img"></p>
+<center><font color="grey">图 5 row 格式 binlog 示例</font></center>
+
+<p>可以看到与 statement 格式的 binlog 相比，前后的 BEGIN 和 COMMIT 是一样的。但 row 格式的 binlog 里没有了 SQL 语句的原文，而是替换成了两个 event：Table_map 和 Delete_rows。</p>
 <ol>
-<li>T2 时刻，session B 事务提交，写入了两条语句；</li>
-<li>T4 时刻，session C 事务提交，写入了两条语句；</li>
-<li>T6 时刻，session A 事务提交，写入了 update t set d=100 where d=5 这条语句。</li>
+<li>Table_map event 用于说明接下来要操作的表是 test 库的表 t</li>
+<li>Delete_rows event 用于定义删除的行为</li>
 </ol>
-<p>我统一放到一起的话，就是这样的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">update t set d&#x3D;5 where id&#x3D;0; &#x2F;*(0,0,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;0; &#x2F;*(0,5,5)*&#x2F;</span><br><span class="line"></span><br><span class="line">insert into t values(1,1,5); &#x2F;*(1,1,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;1; &#x2F;*(1,5,5)*&#x2F;</span><br><span class="line"></span><br><span class="line">update t set d&#x3D;100 where d&#x3D;5;&#x2F;*所有d&#x3D;5的行，d改成100*&#x2F;</span><br></pre></td></tr></table></figure>
+<p>通过图 5 是看不到详细信息的，还要借助 mysqlbinlog 工具，用下面这个命令解析和查看 binlog 中的内容。图 5 中的信息显示这个事务的 binlog 是从 8900 这个位置开始的，所以可以用 start-position 参数来指定从这个位置的日志开始解析。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog  -vv data&#x2F;master.000001 --start-position&#x3D;8900;</span><br></pre></td></tr></table></figure>
 
-<p>好，你应该看出问题了。这个语句序列，不论是拿到备库去执行，还是以后用 binlog 来克隆一个库，这三行的结果，都变成了 (0,5,100)、(1,5,100) 和 (5,5,100)。</p>
-<p>也就是说，id=0 和 id=1 这两行，发生了数据不一致。这个问题很严重，是不行的。</p>
-<p>到这里，我们再回顾一下，这个数据不一致到底是怎么引入的？</p>
-<p>我们分析一下可以知道，这是我们假设“select * from t where d=5 for update 这条语句只给 d=5 这一行，也就是 id=5 的这一行加锁”导致的。</p>
-<p>所以我们认为，上面的设定不合理，要改。</p>
-<p>那怎么改呢？我们把扫描过程中碰到的行，也都加上写锁，再来看看执行效果。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3aEq.png" alt="img"></p>
-<center><font color="grey">图 4 假设扫描到的行都被加上了行锁</font></center>
+<p><img src="https://s3.ax1x.com/2021/01/18/s6SMwV.png" alt="img"></p>
+<center><font color="grey">图 6 row 格式 binlog 示例的详细信息</font></center>
 
-<p>由于 session A 把所有的行都加了写锁，所以 session B 在执行第一个 update 语句的时候就被锁住了。需要等到 T6 时刻 session A 提交以后，session B 才能继续执行。</p>
-<p>这样对于 id=0 这一行，在数据库里的最终结果还是 (0,5,5)。在 binlog 里面，执行序列是这样的：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">insert into t values(1,1,5); &#x2F;*(1,1,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;1; &#x2F;*(1,5,5)*&#x2F;</span><br><span class="line"></span><br><span class="line">update t set d&#x3D;100 where d&#x3D;5;&#x2F;*所有d&#x3D;5的行，d改成100*&#x2F;</span><br><span class="line"></span><br><span class="line">update t set d&#x3D;5 where id&#x3D;0; &#x2F;*(0,0,5)*&#x2F;</span><br><span class="line">update t set c&#x3D;5 where id&#x3D;0; &#x2F;*(0,5,5)*&#x2F;</span><br></pre></td></tr></table></figure>
+<p>从这个图中可以看到以下几个信息：</p>
+<ul>
+<li>server id 1 表示这个事务是在 server_id=1 的这个库上执行的</li>
+<li>每个 event 都有 CRC32 的值，这是因为将参数 binlog_checksum 设置成了 CRC32</li>
+<li>Table_map event 跟在图 5 中看到的相同，显示了接下来要打开的表，map 到数字 226。现在我们这条 SQL 语句只操作了一张表，如果要操作多张表呢？每个表都有一个对应的 Table_map event、都会 map 到一个单独的数字，用于区分对不同表的操作</li>
+<li>在 mysqlbinlog 的命令中使用 -vv 参数是为了把内容都解析出来，所以从结果里面可以看到各个字段的值（比如，@1=4、 @2=4 这些值）</li>
+<li>binlog_row_image 的默认配置是 FULL，因此 Delete_event 里包含了删掉的行的所有字段的值。如果把 binlog_row_image 设置为 MINIMAL，则只会记录必要的信息，在这个例子里，就是只会记录 id=4 这个信息</li>
+<li>最后的 Xid event 表示事务被正确地提交了</li>
+</ul>
+<p>可以看到当 binlog_format 使用 row 格式时，binlog 里面记录了真实删除行的主键 id，这样 binlog 传到备库去的时候，就肯定会删除 id=4 的行，不会有主备删除不同行的问题。</p>
+<h3 id="为什么会有-mixed-格式的-binlog？"><a href="#为什么会有-mixed-格式的-binlog？" class="headerlink" title="为什么会有 mixed 格式的 binlog？"></a>为什么会有 mixed 格式的 binlog？</h3><ul>
+<li>因为有些 statement 格式的 binlog 可能会导致主备不一致，所以要使用 row 格式。</li>
+<li>但 row 格式的缺点是很占空间。比如用一个 delete 语句删掉 10 万行数据，用 statement 的话就是一个 SQL 语句被记录到 binlog 中，占用几十个字节的空间。但如果用 row 格式的 binlog，就要把这 10 万条记录都写到 binlog 中。这样会占用更大的空间，同时写 binlog 也要耗费 IO 资源，影响执行速度。</li>
+<li>所以 MySQL 就取了个折中方案：mixed 格式的 binlog。MySQL 自己会判断这条 SQL 语句是否可能引起主备不一致，如果有可能就用 row 格式，否则就用 statement 格式。</li>
+</ul>
+<p>也就是说 mixed 格式可以利用 statment 格式的优点，同时又避免了数据不一致的风险。</p>
+<p>比如我们这个例子，设置为 mixed 后就会记录为 row 格式；而如果执行的语句去掉 limit 1，就会记录为 statement 格式。</p>
+<p>现在越来越多的场景要求把 MySQL 的 binlog 格式设置成 row。这么做的理由有很多，其中最直接的好处就是<strong>恢复数据</strong>。</p>
+<p>接下来就分别从 delete、insert 和 update 这三种 SQL 语句的角度，来看看数据恢复的问题。</p>
+<p>通过图 6 可以看出即使执行的是 delete 语句，row 格式的 binlog 也会把被删掉的行的整行信息保存起来。如果执行完一条 delete 语句后发现删错数据了，可以直接把 binlog 中记录的 delete 语句转成 insert，把被错删的数据插入回去就可以恢复了。</p>
+<p>如果执行错了 insert 语句呢？row 格式下的 insert 语句的 binlog 里会记录所有的字段信息，这些信息可以用来精确定位刚刚被插入的那一行。直接把 insert 语句转成 delete 语句，删除掉这被误插入的一行数据就可以了。</p>
+<p>如果执行的是 update 语句的话，binlog 里面会记录修改前整行的数据和修改后的整行数据。所以如果误执行了 update 语句的话，只需把这个 event 前后的两行信息对调一下，再去数据库里面执行，就能恢复这个更新操作了。</p>
+<p>来看一下这条 SQL 语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; insert into t values(10,10, now());</span><br></pre></td></tr></table></figure>
 
-<p>可以看到，按照日志顺序执行，id=0 这一行的最终结果也是 (0,5,5)。所以，id=0 这一行的问题解决了。</p>
-<p>但同时你也可以看到，id=1 这一行，在数据库里面的结果是 (1,5,5)，而根据 binlog 的执行结果是 (1,5,100)，也就是说幻读的问题还是没有解决。为什么我们已经这么“凶残”地，把所有的记录都上了锁，还是阻止不了 id=1 这一行的插入和更新呢？</p>
-<p>原因很简单。在 T3 时刻，我们给所有行加锁的时候，id=1 这一行还不存在，不存在也就加不上锁。</p>
-<p>也就是说，即使把所有的记录都加上锁，还是阻止不了新插入的记录，这也是为什么“幻读”会被单独拿出来解决的原因。</p>
-<p>到这里，其实我们刚说明完文章的标题 ：幻读的定义和幻读有什么问题。</p>
-<p>接下来，我们再看看 InnoDB 怎么解决幻读的问题。</p>
-<h3 id="如何解决幻读？"><a href="#如何解决幻读？" class="headerlink" title="如何解决幻读？"></a>如何解决幻读？</h3><p>现在你知道了，产生幻读的原因是，行锁只能锁住行，但是新插入记录这个动作，要更新的是记录之间的“间隙”。因此，为了解决幻读问题，InnoDB 只好引入新的锁，也就是间隙锁 (Gap Lock)。</p>
-<p>顾名思义，间隙锁，锁的就是两个值之间的空隙。比如文章开头的表 t，初始化插入了 6 个记录，这就产生了 7 个间隙。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3bqA.png" alt="img"></p>
-<center><font color="grey">图 5 表 t 主键索引上的行锁和间隙锁</font></center>
+<p>如果把 binlog 格式设置为 mixed，MySQL 会把它记录为 row 格式还是 statement 格式呢？</p>
+<p>来一下这条语句执行的效果。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/s6S6ld.png" alt="img"></p>
+<center><font color="grey">图 7 mixed 格式和 now()</font></center>
 
-<p>这样，当你执行 select * from t where d=5 for update 的时候，就不止是给数据库中已有的 6 个记录加上了行锁，还同时加了 7 个间隙锁。这样就确保了无法再插入新的记录。</p>
-<p>也就是说这时候，在一行行扫描的过程中，不仅将给行加上了行锁，还给行两边的空隙，也加上了间隙锁。</p>
-<p>现在你知道了，数据行是可以加上锁的实体，数据行之间的间隙，也是可以加上锁的实体。但是间隙锁跟我们之前碰到过的锁都不太一样。</p>
-<p>比如行锁，分成读锁和写锁。下图就是这两种类型行锁的冲突关系。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN3Oat.png" alt="img"></p>
-<center><font color="grey">图 6 两种行锁间的冲突关系</font></center>
+<p>可以看到 MySQL 用的是 statement 格式。你一定会奇怪，如果这个 binlog 过了 1 分钟才传给备库的话，那主备的数据不就不一致了吗？</p>
+<p>接下来再用 mysqlbinlog 工具来看看：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/s6SW0P.png" alt="img"></p>
+<center><font color="grey">图 8 TIMESTAMP 命令</font></center>
 
-<p>也就是说，跟行锁有冲突关系的是“另外一个行锁”。</p>
-<p>但是间隙锁不一样，跟间隙锁存在冲突关系的，是“往这个间隙中插入一个记录”这个操作。间隙锁之间都不存在冲突关系。</p>
-<p>这句话不太好理解，我给你举个例子：</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN8AI0.png" alt="img"></p>
-<center><font color="grey">图 7 间隙锁之间不互锁</font></center>
+<p>从图中的结果可以看到，binlog 在记录 event 时多记了一条命令：SET TIMESTAMP=1546103491。它用 SET TIMESTAMP 命令约定了接下来的 now() 函数的返回时间。</p>
+<p>因此，不论这个 binlog 是 1 分钟之后被备库执行，还是 3 天后用来恢复这个库的备份，这个 insert 语句插入的行，值都是固定的。也就是说，通过这条 SET TIMESTAMP 命令，MySQL 就确保了主备数据的一致性。</p>
+<p>之前有人在重放 binlog 数据时，是用 mysqlbinlog 解析出日志，然后把里面的 statement 语句直接拷贝出来执行。</p>
+<p>这个方法是有风险的。因为有些语句的执行结果是依赖于上下文命令的，直接执行的结果很可能是错误的。</p>
+<p>所以用 binlog 来恢复数据的标准做法是用 mysqlbinlog 工具解析出来，然后把解析结果整个发给 MySQL 执行。类似下面的命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog master.000001  --start-position&#x3D;2738 --stop-position&#x3D;2973 | mysql -h127.0.0.1 -P13000 -u$user -p$pwd;</span><br></pre></td></tr></table></figure>
 
-<p>这里 session B 并不会被堵住。因为表 t 里并没有 c=7 这个记录，因此 session A 加的是间隙锁 (5,10)。而 session B 也是在这个间隙加的间隙锁。它们有共同的目标，即：保护这个间隙，不允许插入值。但，它们之间是不冲突的。</p>
-<p>间隙锁和行锁合称 next-key lock，每个 next-key lock 是前开后闭区间。也就是说，我们的表 t 初始化以后，如果用 select * from t for update 要把整个表所有记录锁起来，就形成了 7 个 next-key lock，分别是 (-∞,0]、(0,5]、(5,10]、(10,15]、(15,20]、(20, 25]、(25, +supremum]。</p>
-<blockquote>
-<p>备注：这篇文章中，如果没有特别说明，我们把间隙锁记为开区间，把 next-key lock 记为前开后闭区间。</p>
-</blockquote>
-<p>你可能会问说，这个 supremum 从哪儿来的呢？</p>
-<p>这是因为 +∞是开区间。实现上，InnoDB 给每个索引加了一个不存在的最大值 supremum，这样才符合我们前面说的“都是前开后闭区间”。</p>
-<p>间隙锁和 next-key lock 的引入，帮我们解决了幻读的问题，但同时也带来了一些“困扰”。</p>
-<p>在前面的文章中，就有同学提到了这个问题。我把他的问题转述一下，对应到我们这个例子的表来说，业务逻辑这样的：任意锁住一行，如果这一行不存在的话就插入，如果存在这一行就更新它的数据，代码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">begin;</span><br><span class="line">select * from t where id&#x3D;N for update;</span><br><span class="line"></span><br><span class="line">&#x2F;*如果行不存在*&#x2F;</span><br><span class="line">insert into t values(N,N,N);</span><br><span class="line">&#x2F;*如果行存在*&#x2F;</span><br><span class="line">update t set d&#x3D;N set id&#x3D;N;</span><br><span class="line"></span><br><span class="line">commit;</span><br></pre></td></tr></table></figure>
+<p>这个命令的意思是将 master.000001 文件里面从第 2738 字节到第 2973 字节中间这段内容解析出来，放到 MySQL 去执行。</p>
+<h3 id="循环复制问题"><a href="#循环复制问题" class="headerlink" title="循环复制问题"></a>循环复制问题</h3><p>binlog 的特性确保了在备库执行相同的 binlog，可以得到与主库相同的状态。</p>
+<p>因此，我们可以认为正常情况下主备的数据是一致的。也就是说图 1 中 A、B 两个节点的内容是一致的。图 1 画的是 M-S 结构，但实际生产上使用比较多的是双 M 结构，也就是图 9 所示的主备切换流程。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/s6SbXn.png" alt="img"></p>
+<center><font color="grey">图 9 MySQL 主备切换流程 -- 双 M 结构</font></center>
 
-<p>可能你会说，这个不是 insert … on duplicate key update 就能解决吗？但其实在有多个唯一键的时候，这个方法是不能满足这位提问同学的需求的。至于为什么，我会在后面的文章中再展开说明。</p>
-<p>现在，我们就只讨论这个逻辑。</p>
-<p>这个同学碰到的现象是，这个逻辑一旦有并发，就会碰到死锁。你一定也觉得奇怪，这个逻辑每次操作前用 for update 锁起来，已经是最严格的模式了，怎么还会有死锁呢？</p>
-<p>这里，我用两个 session 来模拟并发，并假设 N=9。</p>
-<p><img src="https://s3.ax1x.com/2021/01/13/sN8sFP.png" alt="img"></p>
-<center><font color="grey">图 8 间隙锁导致的死锁</font></center>
-
-<p>你看到了，其实都不需要用到后面的 update 语句，就已经形成死锁了。我们按语句执行顺序来分析一下：</p>
+<p>对比图 9 和图 1，双 M 结构和 M-S 结构的区别只是多了一条线，即：节点 A 和 B 之间总是互为主备关系。这样在切换的时候就不用再修改主备关系。</p>
+<p>但双 M 结构还有一个问题需要解决。</p>
+<p>业务逻辑在节点 A 上更新了一条语句，然后再把生成的 binlog 发给节点 B，节点 B 执行完这条更新语句后也会生成 binlog。（建议把参数 log_slave_updates 设置为 on，表示备库执行 relay log 后生成 binlog）。</p>
+<p>如果节点 A 同时是节点 B 的备库，相当于又把节点 B 新生成的 binlog 拿过来执行了一次，然后节点 A 和 B 间，会不断地循环执行这个更新语句，也就是循环复制了。这怎么解决呢？</p>
+<p>从图 6 可以看到 MySQL 在 binlog 中记录了这个命令第一次执行时所在实例的 server id。因此可以用下面的逻辑来解决两个节点间的循环复制的问题：</p>
 <ol>
-<li>session A 执行 select … for update 语句，由于 id=9 这一行并不存在，因此会加上间隙锁 (5,10);</li>
-<li>session B 执行 select … for update 语句，同样会加上间隙锁 (5,10)，间隙锁之间不会冲突，因此这个语句可以执行成功；</li>
-<li>session B 试图插入一行 (9,9,9)，被 session A 的间隙锁挡住了，只好进入等待；</li>
-<li>session A 试图插入一行 (9,9,9)，被 session B 的间隙锁挡住了。</li>
+<li>规定两个库的 server id 必须不同，如果相同则它们之间不能设定为主备关系</li>
+<li>一个备库接到 binlog 并在重放的过程中，生成与原 binlog 的 server id 相同的新的 binlog</li>
+<li>每个库在收到从自己的主库发过来的日志后，先判断 server id，如果跟自己的相同，表示这个日志是自己生成的，就直接丢弃这个日志</li>
 </ol>
-<p>至此，两个 session 进入互相等待状态，形成死锁。当然，InnoDB 的死锁检测马上就发现了这对死锁关系，让 session A 的 insert 语句报错返回了。</p>
-<p>你现在知道了，间隙锁的引入，可能会导致同样的语句锁住更大的范围，这其实是影响了并发度的。其实，这还只是一个简单的例子，在下一篇文章中我们还会碰到更多、更复杂的例子。</p>
-<p>你可能会说，为了解决幻读的问题，我们引入了这么一大串内容，有没有更简单一点的处理方法呢。</p>
-<p>我在文章一开始就说过，如果没有特别说明，今天和你分析的问题都是在可重复读隔离级别下的，间隙锁是在可重复读隔离级别下才会生效的。所以，你如果把隔离级别设置为读提交的话，就没有间隙锁了。但同时，你要解决可能出现的数据和日志不一致问题，需要把 binlog 格式设置为 row。这，也是现在不少公司使用的配置组合。</p>
-<p>前面文章的评论区有同学留言说，他们公司就使用的是读提交隔离级别加 binlog_format=row 的组合。他曾问他们公司的 DBA 说，你为什么要这么配置。DBA 直接答复说，因为大家都这么用呀。</p>
-<p>所以，这个同学在评论区就问说，这个配置到底合不合理。</p>
-<p>关于这个问题本身的答案是，如果读提交隔离级别够用，也就是说，业务不需要可重复读的保证，这样考虑到读提交下操作数据的锁范围更小（没有间隙锁），这个选择是合理的。</p>
-<p>但其实我想说的是，配置是否合理，跟业务场景有关，需要具体问题具体分析。</p>
-<p>但是，如果 DBA 认为之所以这么用的原因是“大家都这么用”，那就有问题了，或者说，迟早会出问题。</p>
-<p>比如说，大家都用读提交，可是逻辑备份的时候，mysqldump 为什么要把备份线程设置成可重复读呢？（这个我在前面的文章中已经解释过了，你可以再回顾下第 6 篇文章《全局锁和表锁 ：给表加个字段怎么有这么多阻碍？》的内容）</p>
-<p>然后，在备份期间，备份线程用的是可重复读，而业务线程用的是读提交。同时存在两种事务隔离级别，会不会有问题？</p>
-<p>进一步地，这两个不同的隔离级别现象有什么不一样的，关于我们的业务，“用读提交就够了”这个结论是怎么得到的？</p>
-<p>如果业务开发和运维团队这些问题都没有弄清楚，那么“没问题”这个结论，本身就是有问题的。</p>
+<p>按照这个逻辑，双 M 结构的日志的执行流就会变成这样：</p>
+<ol>
+<li>从节点 A 更新的事务，binlog 里面记的都是 A 的 server id</li>
+<li>传到节点 B 执行一次以后，节点 B 生成的 binlog 的 server id 也是 A 的 server id</li>
+<li>再传回给节点 A，A 判断到这个 server id 与自己的相同，就不会再处理这个日志。所以，死循环在这里就断掉了</li>
+</ol>
 
       
     </div>
@@ -566,8 +577,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/01/13/19%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%9F%A5%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E4%B9%9F%E6%89%A7%E8%A1%8C%E8%BF%99%E4%B9%88%E6%85%A2%EF%BC%9F/" rel="next" title="19 为什么我只查一行的语句，也执行这么慢？">
-                <i class="fa fa-chevron-left"></i> 19 为什么我只查一行的语句，也执行这么慢？
+              <a href="/2021/01/15/23%20MySQL%E6%98%AF%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E4%B8%8D%E4%B8%A2%E5%A4%B1%E7%9A%84%EF%BC%9F/" rel="next" title="23 MySQL是怎么保证数据不丢失的？">
+                <i class="fa fa-chevron-left"></i> 23 MySQL是怎么保证数据不丢失的？
               </a>
             
           </div>
@@ -576,8 +587,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/01/14/22%20MySQL%E6%9C%89%E5%93%AA%E4%BA%9B%E2%80%9C%E9%A5%AE%E9%B8%A9%E6%AD%A2%E6%B8%B4%E2%80%9D%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F/" rel="prev" title="22 MySQL有哪些“饮鸩止渴”提高性能的方法？">
-                22 MySQL有哪些“饮鸩止渴”提高性能的方法？ <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/18/21%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%94%B9%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E9%94%81%E8%BF%99%E4%B9%88%E5%A4%9A%EF%BC%9F/" rel="prev" title="21 为什么我只改一行的语句，锁这么多？">
+                21 为什么我只改一行的语句，锁这么多？ <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -750,7 +761,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#幻读是什么？"><span class="nav-number">1.</span> <span class="nav-text">幻读是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#幻读有什么问题？"><span class="nav-number">2.</span> <span class="nav-text">幻读有什么问题？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何解决幻读？"><span class="nav-number">3.</span> <span class="nav-text">如何解决幻读？</span></a></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL-主备的基本原理"><span class="nav-number">1.</span> <span class="nav-text">MySQL 主备的基本原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#把备库设置成只读，还怎么跟主库保持同步更新呢？"><span class="nav-number">1.1.</span> <span class="nav-text">把备库设置成只读，还怎么跟主库保持同步更新呢？</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog-的三种格式对比"><span class="nav-number">2.</span> <span class="nav-text">binlog 的三种格式对比</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么会有-mixed-格式的-binlog？"><span class="nav-number">3.</span> <span class="nav-text">为什么会有 mixed 格式的 binlog？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#循环复制问题"><span class="nav-number">4.</span> <span class="nav-text">循环复制问题</span></a></li></ol></div>
                 
             </div>
             </section>
