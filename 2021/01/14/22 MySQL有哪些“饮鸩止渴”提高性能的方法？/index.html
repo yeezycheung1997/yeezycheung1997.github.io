@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="有这样的情景：业务高峰期，生产环境的 MySQL 压力太大，没法正常响应，需要短期内、临时性地提升一些性能。 今天就来聊聊这些临时方案，并说一说它们可能存在的风险。 短连接风暴正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要的时候再重连。如果使用的是短连接，在业务高峰期的时候，就可能出现连接数突然暴涨的情况。 第 1 篇文章《基础架构：一条 SQL 查询语句是如何执行的">
+<meta name="description" content="有这样的情景：业务高峰期的 MySQL 压力太大，没法正常响应，需要短期内临时性地提升一些性能。 今天聊聊这些临时方案和它们可能存在的风险。 短连接风暴正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要时再重连。如果使用短连接，在业务高峰期时可能出现连接数突然暴涨的情况。 第 1 篇文章《基础架构：一条 SQL 查询语句是如何执行的？》说过 MySQL 建立连接过程的成本">
 <meta property="og:type" content="article">
 <meta property="og:title" content="22 MySQL有哪些“饮鸩止渴”提高性能的方法？">
 <meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/14/22%20MySQL%E6%9C%89%E5%93%AA%E4%BA%9B%E2%80%9C%E9%A5%AE%E9%B8%A9%E6%AD%A2%E6%B8%B4%E2%80%9D%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="有这样的情景：业务高峰期，生产环境的 MySQL 压力太大，没法正常响应，需要短期内、临时性地提升一些性能。 今天就来聊聊这些临时方案，并说一说它们可能存在的风险。 短连接风暴正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要的时候再重连。如果使用的是短连接，在业务高峰期的时候，就可能出现连接数突然暴涨的情况。 第 1 篇文章《基础架构：一条 SQL 查询语句是如何执行的">
+<meta property="og:description" content="有这样的情景：业务高峰期的 MySQL 压力太大，没法正常响应，需要短期内临时性地提升一些性能。 今天聊聊这些临时方案和它们可能存在的风险。 短连接风暴正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要时再重连。如果使用短连接，在业务高峰期时可能出现连接数突然暴涨的情况。 第 1 篇文章《基础架构：一条 SQL 查询语句是如何执行的？》说过 MySQL 建立连接过程的成本">
 <meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syRNSH.png">
 <meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syRDTf.png">
 <meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syRytS.png">
 <meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syRjn1.png">
 <meta property="article:published_time" content="2021-01-14T02:52:50.000Z">
-<meta property="article:modified_time" content="2021-01-18T05:27:40.380Z">
+<meta property="article:modified_time" content="2021-01-24T06:28:06.559Z">
 <meta property="article:author" content="Qianyi Zhang">
 <meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
@@ -333,8 +333,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2021-01-18T13:27:40+08:00" content="2021-01-18">
-                2021-01-18
+              <time itemprop="dateUpdated" datetime="2021-01-24T14:28:06+08:00" content="2021-01-24">
+                2021-01-24
               </time>
             </span>
           
@@ -367,54 +367,52 @@
       
 
       
-        <p>有这样的情景：业务高峰期，生产环境的 MySQL 压力太大，没法正常响应，需要短期内、临时性地提升一些性能。</p>
-<p>今天就来聊聊这些临时方案，并说一说它们可能存在的风险。</p>
-<h3 id="短连接风暴"><a href="#短连接风暴" class="headerlink" title="短连接风暴"></a>短连接风暴</h3><p>正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要的时候再重连。如果使用的是短连接，在业务高峰期的时候，就可能出现连接数突然暴涨的情况。</p>
-<p>第 1 篇文章<a href="https://yeezycheung1997.github.io/2020/12/19/01%20%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/">《基础架构：一条 SQL 查询语句是如何执行的？》</a>中说过 MySQL 建立连接的过程的成本是很高的。除了正常的网络连接三次握手外，还需要做登录权限判断和获得这个连接的数据读写权限。</p>
-<p>在数据库压力比较小的时候，这些额外的成本并不明显。但短连接模型存在一个风险：一旦数据库处理得慢一些，连接数就会暴涨。</p>
-<p>max_connections 参数用来控制一个 MySQL 实例同时存在的连接数的上限，超过这个值，系统就会拒绝接下来的连接请求，并报错提示“Too many connections”。对于被拒绝连接的请求来说，从业务角度看就是数据库不可用。</p>
-<p>在机器负载比较高的时候，处理现有请求的时间变长，每个连接保持的时间也更长。这时，再有新建连接的话，就可能会超过 max_connections 的限制。</p>
-<p>碰到这种情况时，一个想法就是调高 max_connections 的值。但这是有风险的，因为设计 max_connections 参数的目的是想保护 MySQL，如果把它改得太大，让更多的连接都可以进来，那么系统的负载可能会加大，大量的资源耗费在权限验证等逻辑上，结果可能适得其反，已经连接的线程拿不到 CPU 资源去执行业务的 SQL 请求。</p>
+        <p>有这样的情景：业务高峰期的 MySQL 压力太大，没法正常响应，需要短期内临时性地提升一些性能。</p>
+<p>今天聊聊这些临时方案和它们可能存在的风险。</p>
+<h3 id="短连接风暴"><a href="#短连接风暴" class="headerlink" title="短连接风暴"></a>短连接风暴</h3><p>正常的短连接模式就是连接到数据库后，执行很少的 SQL 语句就断开，下次需要时再重连。如果使用短连接，在业务高峰期时可能出现连接数突然暴涨的情况。</p>
+<p>第 1 篇文章<a href="https://yeezycheung1997.github.io/2020/12/19/01%20%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%EF%BC%9A%E4%B8%80%E6%9D%A1%20SQL%20%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/">《基础架构：一条 SQL 查询语句是如何执行的？》</a>说过 MySQL 建立连接过程的成本很高。除了三次握手外，还要做登录权限判断和获得连接的数据读写权限。</p>
+<p>在数据库压力比较小时，这些额外的成本并不明显。一旦数据库处理得慢一些，连接数就会暴涨。</p>
+<p>max_connections 参数控制一个 MySQL 实例同时存在的连接数的上限，超过这个值，系统就拒绝接下来的连接请求，并报错“Too many connections”。对于被拒绝连接的请求来说，从业务角度看就是数据库不可用。</p>
+<p>碰到这种情况时，一个想法就是调高 max_connections 的值。但这是有风险的，因为max_connections 参数的目的是想保护 MySQL，如果把它改得太大，那么系统的负载会加大，大量的资源耗费在权限验证等逻辑上，浪费 CPU 资源。</p>
 <p>那么这种情况下，还有没有别的建议呢？这里有两种方法，但这些方法都是有损的。</p>
-<h3 id="第一种方法：先处理掉那些占着连接但是不工作的线程"><a href="#第一种方法：先处理掉那些占着连接但是不工作的线程" class="headerlink" title="第一种方法：先处理掉那些占着连接但是不工作的线程"></a>第一种方法：先处理掉那些占着连接但是不工作的线程</h3><p>max_connections 的计算，不是看谁在 running，是只要连着就占用一个计数位置。对于那些不需要保持的连接，我们可以通过 kill connection 主动踢掉。这个行为跟事先设置 wait_timeout 的效果是一样的。wait_timeout 参数表示一个线程空闲 wait_timeout 这么多秒之后，就会被 MySQL 直接断开连接。</p>
+<h3 id="先处理掉那些占着连接但不工作的线程"><a href="#先处理掉那些占着连接但不工作的线程" class="headerlink" title="先处理掉那些占着连接但不工作的线程"></a>先处理掉那些占着连接但不工作的线程</h3><p>max_connections 的计算，不是看谁在 running，是只要连着就占用一个计数位置。对于那些不需要保持的连接，通过 kill connection 主动踢掉。这个行为跟事先设置 wait_timeout 的效果一样。wait_timeout 参数表示一个线程空闲 wait_timeout 这么 多秒之后，就会被 MySQL 断开连接。</p>
 <p>但在 show processlist 的结果里踢掉显示为 sleep 的线程，可能是有损的。</p>
 <p><img src="https://s3.ax1x.com/2021/01/18/syRNSH.png" alt="img"></p>
 <center><font color="grey">图 1 sleep 线程的两种状态</font></center>
 
-<p>在上面这个例子里，如果断开 session A 的连接，因为这时 session A 还未提交，所以 MySQL 只能回滚事务；而断开 session B 的连接就没什么影响。所以应该优先断开像 session B 这样的事务外空闲的连接。</p>
-<p>但怎么判断哪些是事务外空闲的呢？session C 在 T 时刻之后的 30 秒执行 show processlist，看到的结果是这样的。</p>
+<p>上面这个例子如果断开 session A 的连接，因为这时 session A 还未提交，所以 MySQL 只能回滚事务；而断开 session B 的连接就没影响。所以要<strong>优先断开像 session B 这样的事务外空闲的连接</strong>。</p>
+<p>怎么判断哪些是事务外空闲的呢？session C 在 T 时刻之后的 30 秒执行 show processlist，看到的结果如下。</p>
 <p><img src="https://s3.ax1x.com/2021/01/18/syRDTf.png" alt="img"></p>
 <center><font color="grey">图 2 sleep 线程的两种状态，show processlist 结果</font></center>
 
-<p>图中 id=4 和 id=5 的两个会话都是 Sleep 状态。而要看事务具体状态的话，可以查 information_schema 库的 innodb_trx 表。</p>
+<p>上图 id=4 和 id=5 的两个会话都是 Sleep 状态。可以通过 information_schema 库的 innodb_trx 表查看事务具体的状态。</p>
 <p><img src="https://s3.ax1x.com/2021/01/18/syRytS.png" alt="img"></p>
 <center><font color="grey">图 3 从 information_schema.innodb_trx 查询事务状态</font></center>
 
 <p>trx_mysql_thread_id=4 表示 id=4 的线程还处在事务中。</p>
-<p>因此，如果是连接数过多，可以优先断开事务外空闲太久的连接；如果这样还不够，再考虑断开事务内空闲太久的连接。</p>
-<p>从服务端断开连接使用的是 kill connection + id 的命令， 一个客户端处于 sleep 状态时，它的连接被服务端主动断开后，这个客户端不会马上知道。直到客户端在发起下一个请求时会收到 <code>ERROR 2013 (HY000): Lost connection to MySQL server during query</code> 。</p>
-<p>从数据库端主动断开连接可能是有损的，尤其是有的应用端收到这个错误后，不重新连接，而是直接用这个已经不能用的句柄重试查询。这会导致从应用端看上去，“MySQL 一直没恢复”。</p>
-<h3 id="第二种方法：减少连接过程的消耗。"><a href="#第二种方法：减少连接过程的消耗。" class="headerlink" title="第二种方法：减少连接过程的消耗。"></a>第二种方法：减少连接过程的消耗。</h3><p>有的业务代码会在短时间内先大量申请数据库连接做备用，如果现在数据库确认是被连接行为打挂了，那么一种可能的做法，是让数据库跳过权限验证阶段。</p>
-<p>跳过权限验证的方法是：重启数据库，并使用–skip-grant-tables 参数启动。这样，整个 MySQL 会跳过所有的权限验证阶段，包括连接过程和语句执行过程在内。</p>
-<p>但是，这种方法特别符合我们标题里说的“饮鸩止渴”，风险极高，是我特别不建议使用的方案。尤其你的库外网可访问的话，就更不能这么做了。</p>
-<p>在 MySQL 8.0 版本里，如果你启用–skip-grant-tables 参数，MySQL 会默认把 –skip-networking 参数打开，表示这时候数据库只能被本地的客户端连接。可见，MySQL 官方对 skip-grant-tables 这个参数的安全问题也很重视。</p>
-<p>除了短连接数暴增可能会带来性能问题外，实际上碰到更多的是查询或者更新语句导致的性能问题。其中，查询问题比较典型的有两类，一类是由新出现的慢查询导致的，一类是由 QPS（每秒查询数）突增导致的。</p>
-<h3 id="慢查询性能问题"><a href="#慢查询性能问题" class="headerlink" title="慢查询性能问题"></a>慢查询性能问题</h3><p>在 MySQL 中，会引发性能问题的慢查询，大体有以下三种可能</p>
+<p>如果是连接数过多，可以优先断开事务外空闲太久的连接；如果这样还不够，再考虑断开事务内空闲太久的连接。</p>
+<p>从服务端断开连接使用的是 kill connection + id 的命令， 一个客户端处于 sleep 状态时，它的连接被服务端主动断开后，客户端不会马上知道。直到客户端在发起下一个请求时会收到 <code>ERROR 2013 (HY000): Lost connection to MySQL server during query</code> 。</p>
+<p>从数据库端主动断开连接可能是有损的，因为有的应用端收到这个错误后，不重新连接，而是直接用这个已经不能用的句柄重试查询。这会导致从应用端看上去是“MySQL 一直没恢复”。</p>
+<h3 id="减少连接过程的消耗"><a href="#减少连接过程的消耗" class="headerlink" title="减少连接过程的消耗"></a>减少连接过程的消耗</h3><p>有的业务代码会在短时间内先大量申请数据库连接做备用，如果现在数据库确认是被连接行为打挂了，那么一种可能的做法，是让数据库跳过权限验证阶段。</p>
+<p>跳过权限验证的方法是：重启数据库并使用 –skip-grant-tables 参数启动。这样 MySQL 会跳过所有的权限验证阶段，包括连接过程和语句执行过程在内。但这种方法风险极高，不建议使用。</p>
+<p>在 MySQL 8.0 版本里，如果启用了 –skip-grant-tables 参数，MySQL 会默认把 –skip-networking 参数打开，表示这时数据库只能被本地的客户端连接。可见官方对 skip-grant-tables 参数的安全问题也很重视。</p>
+<p>除了短连接数暴增可能会带来性能问题外，实际上碰到更多的是查询或更新语句导致的性能问题。其中查询问题比较典型的有两类，一类是由新出现的慢查询导致的，一类是由 QPS（每秒查询数）突增导致的。</p>
+<h3 id="慢查询性能问题"><a href="#慢查询性能问题" class="headerlink" title="慢查询性能问题"></a>慢查询性能问题</h3><p>在 MySQL 中，下面三种可能会引发性能问题的慢查询：</p>
 <ol>
 <li>索引没设计好</li>
 <li>SQL 语句没写好</li>
 <li>MySQL 选错了索引</li>
 </ol>
-<h4 id="索引没设计好"><a href="#索引没设计好" class="headerlink" title="索引没设计好"></a>索引没设计好</h4><p>这种场景一般通过紧急创建索引来解决。MySQL 5.6 版本以后，创建索引都支持 Online DDL 了，对于那种高峰期数据库已经被这个语句打挂了的情况，最高效的做法就是直接执行 alter table 语句。</p>
-<p>比较理想的是能够在备库先执行。假设你现在的服务是一主一备，主库 A、备库 B，这个方案的大致流程如下：</p>
+<h4 id="索引没设计好"><a href="#索引没设计好" class="headerlink" title="索引没设计好"></a>索引没设计好</h4><p>这种场景一般通过紧急创建索引来解决。MySQL 5.6 版本后创建索引都支持 Online DDL 了，对于那种高峰期数据库已经被这个语句打挂了的情况，最高效的做法就是直接执行 alter table 语句。</p>
+<p>比较理想的是能够在备库先执行。假设有主库 A、备库 B，方案的大致流程如下：</p>
 <ol>
-<li>在备库 B 上执行 set sql_log_bin=off，也就是不写 binlog，然后执行 alter table 语句加上索引</li>
+<li>在备库 B 上执行 set sql_log_bin=off，不写 binlog，然后执行 alter table 语句加上索引</li>
 <li>执行主备切换</li>
-<li>这时候主库是 B，备库是 A。在 A 上执行 set sql_log_bin=off，然后执行 alter table 语句加上索引</li>
+<li>这时主库是 B，备库是 A。在 A 上执行 set sql_log_bin=off，然后执行 alter table 语句加上索引</li>
 </ol>
-<h4 id="语句没写好"><a href="#语句没写好" class="headerlink" title="语句没写好"></a>语句没写好</h4><p>在第 18 篇文章<a href="https://yeezycheung1997.github.io/2021/01/13/18%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%BA%9BSQL%E8%AF%AD%E5%8F%A5%E9%80%BB%E8%BE%91%E7%9B%B8%E5%90%8C%EF%BC%8C%E6%80%A7%E8%83%BD%E5%8D%B4%E5%B7%AE%E5%BC%82%E5%B7%A8%E5%A4%A7%EF%BC%9F/">《为什么这些 SQL 语句逻辑相同，性能却差异巨大？》</a>中提到的那些错误导致了语句没使用上索引。</p>
+<h4 id="语句没写好"><a href="#语句没写好" class="headerlink" title="语句没写好"></a>语句没写好</h4><p>在第 18 篇文章<a href="https://yeezycheung1997.github.io/2021/01/13/18%20%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E4%BA%9BSQL%E8%AF%AD%E5%8F%A5%E9%80%BB%E8%BE%91%E7%9B%B8%E5%90%8C%EF%BC%8C%E6%80%A7%E8%83%BD%E5%8D%B4%E5%B7%AE%E5%BC%82%E5%B7%A8%E5%A4%A7%EF%BC%9F/">《为什么这些 SQL 语句逻辑相同，性能却差异巨大？》</a>中提到的那些错误导致了语句没用上索引。</p>
 <p>这时可以通过改写 SQL 语句来处理。MySQL 5.7 提供了 query_rewrite 功能，可以把输入的一种语句改写成另外一种模式。</p>
-<p>比如，语句被错误地写成了 select * from t where id + 1 = 10000，你可以通过下面的方式，增加一个语句改写规则。</p>
+<p>比如，语句被错误地写成了 select * from t where id + 1 = 10000，可以通过下面的方式增加一个语句改写规则。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; insert into query_rewrite.rewrite_rules(pattern, replacement, pattern_database) values (&quot;select * from t where id + 1 &#x3D; ?&quot;, &quot;select * from t where id &#x3D; ? - 1&quot;, &quot;db1&quot;);</span><br><span class="line"></span><br><span class="line">call query_rewrite.flush_rewrite_rules();</span><br></pre></td></tr></table></figure>
 
 <p>call query_rewrite.flush_rewrite_rules() 这个存储过程，是让插入的新规则生效，也就是“查询重写”。用图 4 中的方法来确认改写规则是否生效。</p>
@@ -425,10 +423,10 @@
 <p>这时的应急方案就是给这个语句加上 force index。</p>
 <p>同样地，使用查询重写功能，给原来的语句加上 force index，也可以解决这个问题。</p>
 <h3 id="QPS-突增问题"><a href="#QPS-突增问题" class="headerlink" title="QPS 突增问题"></a>QPS 突增问题</h3><p>有时由于业务突然出现高峰，或者应用程序 bug，导致某个语句的 QPS 突然暴涨，也可能导致 MySQL 压力过大，影响服务。</p>
-<p>一类情况是由一个新功能的 bug 导致的。当然最理想的情况是让业务把这个功能下掉，服务自然就会恢复。</p>
-<p>而下掉一个功能，如果从数据库端处理的话，对应于不同的背景，有不同的方法可用。</p>
+<p>一类情况是由一个新功能的 bug 导致的。最理想的情况是把这个功能下掉，服务自然就会恢复。</p>
+<p>而下掉一个功能，从数据库端角度处理，不同的背景有不同的方法可用。</p>
 <ol>
-<li><p>一种是由全新业务的 bug 导致的。假设你的 DB 运维是比较规范的，也就是说白名单是一个个加的。这种情况下，如果你能够确定业务方会下掉这个功能，只是时间上没那么快，那么就可以从数据库端直接把白名单去掉。</p>
+<li><p>一种是由全新业务的 bug 导致的。假设 DB 运维比较规范，白名单是一个个加的。这种情况下，如果你能够确定业务方会下掉这个功能，只是时间上没那么快，那么就可以从数据库端直接把白名单去掉。</p>
 </li>
 <li><p>如果这个新功能使用的是单独的数据库用户，可以用管理员账号把这个用户删掉，然后断开现有连接。这样，这个新功能的连接不成功，由它引发的 QPS 就会变成 0。</p>
 </li>
@@ -501,8 +499,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/" rel="next" title="20 幻读是什么，幻读有什么问题？">
-                <i class="fa fa-chevron-left"></i> 20 幻读是什么，幻读有什么问题？
+              <a href="/2021/01/14/21%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%94%B9%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E9%94%81%E8%BF%99%E4%B9%88%E5%A4%9A%EF%BC%9F/" rel="next" title="21 为什么我只改一行的语句，锁这么多？">
+                <i class="fa fa-chevron-left"></i> 21 为什么我只改一行的语句，锁这么多？
               </a>
             
           </div>
@@ -587,7 +585,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives/%7C%7C%20archive">
-              <span class="site-state-item-count">48</span>
+              <span class="site-state-item-count">50</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -685,7 +683,7 @@
                 
 
                 
-                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#短连接风暴"><span class="nav-number">1.</span> <span class="nav-text">短连接风暴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第一种方法：先处理掉那些占着连接但是不工作的线程"><span class="nav-number">2.</span> <span class="nav-text">第一种方法：先处理掉那些占着连接但是不工作的线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二种方法：减少连接过程的消耗。"><span class="nav-number">3.</span> <span class="nav-text">第二种方法：减少连接过程的消耗。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#慢查询性能问题"><span class="nav-number">4.</span> <span class="nav-text">慢查询性能问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#索引没设计好"><span class="nav-number">4.1.</span> <span class="nav-text">索引没设计好</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#语句没写好"><span class="nav-number">4.2.</span> <span class="nav-text">语句没写好</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MySQL-选错了索引"><span class="nav-number">4.3.</span> <span class="nav-text">MySQL 选错了索引</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#QPS-突增问题"><span class="nav-number">5.</span> <span class="nav-text">QPS 突增问题</span></a></li></ol></div>
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#短连接风暴"><span class="nav-number">1.</span> <span class="nav-text">短连接风暴</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#先处理掉那些占着连接但不工作的线程"><span class="nav-number">2.</span> <span class="nav-text">先处理掉那些占着连接但不工作的线程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#减少连接过程的消耗"><span class="nav-number">3.</span> <span class="nav-text">减少连接过程的消耗</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#慢查询性能问题"><span class="nav-number">4.</span> <span class="nav-text">慢查询性能问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#索引没设计好"><span class="nav-number">4.1.</span> <span class="nav-text">索引没设计好</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#语句没写好"><span class="nav-number">4.2.</span> <span class="nav-text">语句没写好</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#MySQL-选错了索引"><span class="nav-number">4.3.</span> <span class="nav-text">MySQL 选错了索引</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#QPS-突增问题"><span class="nav-number">5.</span> <span class="nav-text">QPS 突增问题</span></a></li></ol></div>
                 
             </div>
             </section>

@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Python," />
+  <meta name="keywords" content="数据库," />
 
 
 
@@ -79,17 +79,28 @@
 
 
 
-<meta name="description" content="我们首先定义一个User类，包含两个属性 name 和 birthday 123456from datetime import date, datetimeclass User:    def __init__(self, name, birthday):        self.name &#x3D; name        self.birthday &#x3D; birthday 如果想获得User实例的年龄，">
+<meta name="description" content="上一篇文章绍了间隙锁和 next-key lock 的概念，但没说明加锁规则，今天就说说加锁规则。 间隙锁在可重复读隔离级别下才有效，所以本篇文章接下来的描述若未特殊说明，默认是可重复读隔离级别。 加锁规则包含两个“原则”、两个“优化”*：  原则 1：加锁的基本单位是 next-key lock，next-key lock 是前开后闭区间 原则 2：查找过程中访问到的对象才加锁 优化 1：索引上">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python的property动态属性">
-<meta property="og:url" content="https://yeezycheung1997.github.io/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/index.html">
+<meta property="og:title" content="21 为什么我只改一行的语句，锁这么多？">
+<meta property="og:url" content="https://yeezycheung1997.github.io/2021/01/14/21%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%94%B9%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E9%94%81%E8%BF%99%E4%B9%88%E5%A4%9A%EF%BC%9F/index.html">
 <meta property="og:site_name" content="Qianyi Zhang&#39;s blog">
-<meta property="og:description" content="我们首先定义一个User类，包含两个属性 name 和 birthday 123456from datetime import date, datetimeclass User:    def __init__(self, name, birthday):        self.name &#x3D; name        self.birthday &#x3D; birthday 如果想获得User实例的年龄，">
-<meta property="article:published_time" content="2020-03-21T03:34:09.000Z">
-<meta property="article:modified_time" content="2020-03-21T16:00:35.786Z">
+<meta property="og:description" content="上一篇文章绍了间隙锁和 next-key lock 的概念，但没说明加锁规则，今天就说说加锁规则。 间隙锁在可重复读隔离级别下才有效，所以本篇文章接下来的描述若未特殊说明，默认是可重复读隔离级别。 加锁规则包含两个“原则”、两个“优化”*：  原则 1：加锁的基本单位是 next-key lock，next-key lock 是前开后闭区间 原则 2：查找过程中访问到的对象才加锁 优化 1：索引上">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sycTte.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sycbpd.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sygPpj.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/syglcR.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sygTbV.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sygj29.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sygzK1.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sy2nqP.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sy23GQ.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/18/sy2aZV.png">
+<meta property="article:published_time" content="2021-01-14T02:35:50.000Z">
+<meta property="article:modified_time" content="2021-01-24T03:51:33.300Z">
 <meta property="article:author" content="Qianyi Zhang">
-<meta property="article:tag" content="Python">
+<meta property="article:tag" content="数据库">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ax1x.com/2021/01/18/sycTte.png">
 
 
 
@@ -119,13 +130,13 @@
 
 
 
-  <link rel="canonical" href="https://yeezycheung1997.github.io/2020/03/21/Python的property动态属性/"/>
+  <link rel="canonical" href="https://yeezycheung1997.github.io/2021/01/14/21 为什么我只改一行的语句，锁这么多？/"/>
 
 
 
 
 
-  <title>Python的property动态属性 | Qianyi Zhang's blog</title>
+  <title>21 为什么我只改一行的语句，锁这么多？ | Qianyi Zhang's blog</title>
   
 
 
@@ -287,7 +298,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2020/03/21/Python%E7%9A%84property%E5%8A%A8%E6%80%81%E5%B1%9E%E6%80%A7/">
+    <link itemprop="mainEntityOfPage" href="https://yeezycheung1997.github.io/2021/01/14/21%20%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E5%8F%AA%E6%94%B9%E4%B8%80%E8%A1%8C%E7%9A%84%E8%AF%AD%E5%8F%A5%EF%BC%8C%E9%94%81%E8%BF%99%E4%B9%88%E5%A4%9A%EF%BC%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Qianyi Zhang">
@@ -304,7 +315,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Python的property动态属性</h1>
+          <h1 class="post-title" itemprop="name headline">21 为什么我只改一行的语句，锁这么多？</h1>
         
 
         <div class="post-meta">
@@ -316,8 +327,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-03-21T11:34:09+08:00">
-                2020-03-21
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-14T10:35:50+08:00">
+                2021-01-14
               </time>
             
 
@@ -328,8 +339,8 @@
           
             <span class="post-updated">
               &nbsp; | &nbsp; 更新于
-              <time itemprop="dateUpdated" datetime="2020-03-22T00:00:35+08:00" content="2020-03-22">
-                2020-03-22
+              <time itemprop="dateUpdated" datetime="2021-01-24T11:51:33+08:00" content="2021-01-24">
+                2021-01-24
               </time>
             </span>
           
@@ -362,17 +373,120 @@
       
 
       
-        <p>我们首先定义一个User类，包含两个属性 name 和 birthday</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> date, datetime</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name, birthday)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.birthday = birthday</span><br></pre></td></tr></table></figure>
-<p>如果想获得User实例的年龄，我们可以定义一个方法，然后使用函数调用的方式获得年龄。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_age</span><span class="params">(self)</span>:</span></span><br><span class="line">    <span class="keyword">return</span> datetime.now().year - self.birthday.year</span><br></pre></td></tr></table></figure>
-<p>举例如下：</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</span><br><span class="line">    user = User(<span class="string">"zqy"</span>, date(year=<span class="number">1997</span>, month=<span class="number">6</span>, day=<span class="number">15</span>))</span><br><span class="line">    print(user.get_age()) <span class="comment"># 返回23</span></span><br></pre></td></tr></table></figure>
-<p>如果我们想使用调用属性的方式获得年龄（user.age），那么就可以使用property装饰器。<br>为了区别上面的代码，以下是完整的使用property装饰器的代码。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> date, datetime</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name, birthday)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.birthday = birthday</span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">age</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">""" 将函数调用装饰成属性调用 """</span></span><br><span class="line">        <span class="keyword">return</span> datetime.now().year - self.birthday.year</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    user = User(<span class="string">"zqy"</span>, date(year=<span class="number">1997</span>, month=<span class="number">6</span>, day=<span class="number">15</span>))</span><br><span class="line">    print(user.age)</span><br></pre></td></tr></table></figure>
-<p>我们并没有定义age属性，但是通过property装饰器装饰的age函数，可以直接通过实例调用函数名的方式，作为一个属性返回。<br>那么setter装饰器又是什么呢？  </p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> date, datetime</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">User</span>:</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, name, birthday)</span>:</span></span><br><span class="line">        self.name = name</span><br><span class="line">        self.birthday = birthday</span><br><span class="line">        self._age = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="meta">    @property</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">age</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="string">""" 取函数调用的模式编程取属性调用 """</span></span><br><span class="line">        <span class="keyword">return</span> datetime.now().year - self.birthday.year</span><br><span class="line"></span><br><span class="line"><span class="meta">    @age.setter</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">age</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self._age = value</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    user = User(<span class="string">"zqy"</span>, date(year=<span class="number">1997</span>, month=<span class="number">6</span>, day=<span class="number">15</span>))</span><br><span class="line">    user.age = <span class="number">30</span></span><br><span class="line">    print(user._age) <span class="comment"># 30</span></span><br><span class="line">    print(user.age) <span class="comment"># 23</span></span><br></pre></td></tr></table></figure>
-<p>1、只有 @property 表示只读。<br>2、同时有 @property 和 @*.setter 表示可读可写。</p>
+        <p>上一篇文章绍了间隙锁和 next-key lock 的概念，但没说明加锁规则，今天就说说加锁规则。</p>
+<p><strong>间隙锁在可重复读隔离级别下才有效</strong>，所以本篇文章接下来的描述若未特殊说明，默认是可重复读隔离级别。</p>
+<p><strong>加锁规则包含两个“原则”、两个“优化”*：</strong></p>
+<ol>
+<li>原则 1：加锁的基本单位是 next-key lock，next-key lock 是前开后闭区间</li>
+<li>原则 2：查找过程中访问到的对象才加锁</li>
+<li>优化 1：索引上的等值查询，给唯一索引加锁时，next-key lock 退化为行锁</li>
+<li>优化 2：索引上的等值查询，向右遍历时且最后一个值不满足等值条件时，next-key lock 退化为间隙锁</li>
+</ol>
+<p>表 t 的建表语句和初始化语句如下。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE &#96;t&#96; (</span><br><span class="line">  &#96;id&#96; int(11) NOT NULL,</span><br><span class="line">  &#96;c&#96; int(11) DEFAULT NULL,</span><br><span class="line">  &#96;d&#96; int(11) DEFAULT NULL,</span><br><span class="line">  PRIMARY KEY (&#96;id&#96;),</span><br><span class="line">  KEY &#96;c&#96; (&#96;c&#96;)</span><br><span class="line">) ENGINE&#x3D;InnoDB;</span><br><span class="line"></span><br><span class="line">insert into t values(0,0,0),(5,5,5),</span><br><span class="line">(10,10,10),(15,15,15),(20,20,20),(25,25,25);</span><br></pre></td></tr></table></figure>
+
+<h3 id="案例一：等值查询间隙锁"><a href="#案例一：等值查询间隙锁" class="headerlink" title="案例一：等值查询间隙锁"></a>案例一：等值查询间隙锁</h3><p><img src="https://s3.ax1x.com/2021/01/18/sycTte.png" alt="img"></p>
+<center><font color="grey">图 1 等值查询的间隙锁</font></center>
+
+<p>表 t 中没有 id=7 的记录，用加锁规则判断：</p>
+<ol>
+<li><p>根据原则 1，加锁单位是 next-key lock，session A 加锁范围是 (5,10]</p>
+</li>
+<li><p>根据优化 2，这是一个等值查询 (id=7)，而 id=10 不满足查询条件，next-key lock 退化成间隙锁，因此加锁范围是 (5,10)</p>
+</li>
+</ol>
+<p>所以 session B 往间隙里插入 id=8 的记录会被锁，但 session C 可以修改 id=10 这行。</p>
+<h3 id="案例二：非唯一索引等值锁"><a href="#案例二：非唯一索引等值锁" class="headerlink" title="案例二：非唯一索引等值锁"></a>案例二：非唯一索引等值锁</h3><blockquote>
+<p>覆盖索引是 select 的数据列只用从索引中就能获得，不必读取数据行，换句话说查询列要被所建的索引覆盖。</p>
+</blockquote>
+<p>第二个例子关于覆盖索引上的锁：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sycbpd.png" alt="img"></p>
+<center><font color="grey">图 2 只加在非唯一索引上的锁</font></center>
+
+<p>session A 给索引 c 上 c=5 这一行加读锁。</p>
+<ol>
+<li><p>根据原则 1，加锁单位是 next-key lock，因此会给 (0,5]加上 next-key lock</p>
+</li>
+<li><p>c 是普通索引，仅访问 c=5 这一条记录不能马上停下来，要向右遍历，查到 c=10 才放弃。根据原则 2，访问到的都要加锁，因此要给 (5,10]加 next-key lock</p>
+</li>
+<li><p>但是同时这个符合优化 2：等值判断，向右遍历，最后一个值不满足 c=5 这个等值条件，因此退化成间隙锁 (5,10)</p>
+</li>
+<li><p>根据原则 2 ，<strong>只有访问到的对象才会加锁</strong>，对象指的是列，不是记录行。 加锁是加在索引上的。 列上有索引就加在索引上；没有索引就加在主键上。</p>
+<p>这个查询使用覆盖索引，无需访问主键索引，所以主键索引上没加任何锁，这就是为什么 session B 的 update 语句能执行完成</p>
+</li>
+</ol>
+<p>但 session C 要插入一个 (7,7,7) 的记录，就会被 session A 的间隙锁 (5,10) 锁住。</p>
+<p>在这个例子中，lock in share mode 只锁覆盖索引，但 for update 就不一样了。 执行 for update 时，系统会认为接下来要更新数据，因此会给主键索引上满足条件的行加上行锁。</p>
+<p>这个例子说明锁是加在索引上的；如果要用 lock in share mode 来给行加读锁避免数据被更新的话，就必须绕过覆盖索引的优化，在查询字段中加入索引中不存在的字段。比如将 session A 的查询语句改成 <code>select d from t where c=5 lock in share mode</code>。</p>
+<h3 id="案例三：主键索引范围锁"><a href="#案例三：主键索引范围锁" class="headerlink" title="案例三：主键索引范围锁"></a>案例三：主键索引范围锁</h3><p>对于表 t，下面这两条查询语句的加锁范围相同吗？</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; select * from t where id&#x3D;10 for update;</span><br><span class="line">mysql&gt; select * from t where id&gt;&#x3D;10 and id&lt;11 for update;</span><br></pre></td></tr></table></figure>
+
+<p>你可能会想 id 是 int 类型，这两个语句等价吧？其实并不完全等价。</p>
+<p>逻辑上这两条查语句是等价的，但它们的加锁规则不一样。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygPpj.png" alt="img"></p>
+<center><font color="grey">图 3 主键索引上范围查询的锁</font></center>
+
+<p>用加锁规则来分析一下 session A 会加什么锁呢？</p>
+<ol>
+<li><p>开始执行时找到第一个 id=10 的行，因此是 next-key lock(5,10]。 根据优化 1， 主键 id 上的等值条件退化成行锁，只加了 id=10 这一行的行锁。</p>
+</li>
+<li><p>范围查找就往后继续找，找到 id=15 这一行停下来，因此需要加 next-key lock(10,15]。</p>
+</li>
+</ol>
+<p>所以 session A 锁的范围就是主键索引上行锁 id=10 和 next-key lock(10,15]。</p>
+<p>首次 session A 定位查找 id=10 的行时是当做等值查询来判断的，而向右扫描到 id=15 时用的是范围查询判断。</p>
+<h3 id="案例四：非唯一索引范围锁"><a href="#案例四：非唯一索引范围锁" class="headerlink" title="案例四：非唯一索引范围锁"></a>案例四：非唯一索引范围锁</h3><p>再看两个范围查询加锁的例子，可以对照着案例三来看。</p>
+<p>与案例三不同的是，案例四中查询语句的 where 用的是 c。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/syglcR.png" alt="img"></p>
+<center><font color="grey">图 4 非唯一索引范围锁</font></center>
+
+<p>这次 session A 用 c 判断，跟案例三唯一的不同是：在第一次用 c=10 定位记录时，索引 c 上加了 (5,10] next-key lock 后，由于索引 c 是非唯一索引，没有优化规则，不会蜕变为行锁，因此 session A 加的锁是索引 c 上的 (5,10] 和 (10,15] 这两个 next-key lock。</p>
+<p>所以 session B 插入（8,8,8) 这个 insert 语句被堵住了。</p>
+<p><strong>扫描到 c=15 才停止扫描是合理的，因为 InnoDB 要扫到 c=15 才知道不用继续往后找了。</strong></p>
+<h3 id="案例五：非唯一索引上存在”等值”的例子"><a href="#案例五：非唯一索引上存在”等值”的例子" class="headerlink" title="案例五：非唯一索引上存在”等值”的例子"></a>案例五：非唯一索引上存在”等值”的例子</h3><p>为了更好地说明“间隙”这个概念，给表 t 插入一条新记录。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; insert into t values(30,10,30);</span><br></pre></td></tr></table></figure>
+
+<p>新插入的这一行 c=10，现在表有两个 c=10 的行。这时索引 c 上的间隙是什么状态了呢？由于非唯一索引上包含主键的值，所以不可能存在“相同”的两行。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygTbV.png" alt="img"></p>
+<center><font color="grey">图 6 非唯一索引等值的例子</font></center>
+
+<p>虽然有两个 c=10，但它们的主键值 id 不同（分别是 10 和 30），因此这两个 c=10 的记录之间也有间隙。</p>
+<p>图中画出了索引 c 上的主键 id。为了跟间隙锁的开区间形式进行区别，用 (c=10,id=30) 这样的形式表示索引上的一行。</p>
+<p>这次用 delete 语句来验证。delete 语句加锁逻辑跟 select … for update 类似，也符合两个“原则”、两个“优化”。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygj29.png" alt="img"></p>
+<center><font color="grey">图 7 delete 示例</font></center>
+
+<p>session A 在遍历时先访问第一个 c=10 的记录。根据原则 1，加的是 (c=5,id=5) 到 (c=10,id=10) 这个 next-key lock。</p>
+<p>然后 session A 向右查找，直到碰到 (c=15,id=15) 这一行循环才结束。根据优化 2，这是一个等值查询，向右查找到了不满足条件的行，所以会退化成 (c=10,id=10) 到 (c=15,id=15) 的间隙锁。</p>
+<p>这个 delete 语句在索引 c 上的加锁范围是下图中蓝色区域覆盖的部分。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sygzK1.png" alt="img"></p>
+<center><font color="grey">图 8 delete 加锁效果示例</font></center>
+
+<p>这个蓝色区域左右两边都是虚线，表示开区间，即 (c=5,id=5) 和 (c=15,id=15) 这两行上都没有锁。</p>
+<h3 id="案例六：limit-语句加锁"><a href="#案例六：limit-语句加锁" class="headerlink" title="案例六：limit 语句加锁"></a>案例六：limit 语句加锁</h3><p>上面的例子也有一个对照案例，场景如下：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sy2nqP.png" alt="img"></p>
+<center><font color="grey">图 9 limit 语句加锁</font></center>
+
+<p>session A 的 delete 语句加了 limit 2。表 t 里 c=10 的记录有两条，因此加不加 limit 2，删除的效果都一样，但加锁的效果却不同。可以看到 session B 的 insert 语句执行通过了，跟案例五的结果不同。</p>
+<p>这是因为案例六里的 delete 语句明确加了 limit 2 的限制，因此在遍历到 (c=10, id=30) 这一行之后，满足条件的语句已经有两条，循环结束。</p>
+<p>因此索引 c 上的加锁范围变成了从（c=5,id=5) 到（c=10,id=30) 这个前开后闭区间，如下所示：</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sy23GQ.png" alt="img"></p>
+<center><font color="grey">图 10 带 limit 2 的加锁效果</font></center>
+
+<p>可以看到 (c=10,id=30）之后的间隙没有在加锁范围里，因此 insert 语句插入 c=12 可以执行成功。</p>
+<p>因此在删除数据时尽量加 limit。可以控制删除数据的条数，让操作更安全，并减小加锁的范围。</p>
+<h3 id="案例七：一个死锁的例子"><a href="#案例七：一个死锁的例子" class="headerlink" title="案例七：一个死锁的例子"></a>案例七：一个死锁的例子</h3><p>这个案例目的是说明：next-key lock 实际上是间隙锁和行锁加起来的结果。</p>
+<p><img src="https://s3.ax1x.com/2021/01/18/sy2aZV.png" alt="img"></p>
+<center><font color="grey">图 11 案例八的操作序列</font></center>
+
+<p>现在按时间顺序分析为什么是这样的结果。</p>
+<ol>
+<li>session A 启动事务后执行查询语句加 lock in share mode，在索引 c 上加了 next-key lock(5,10] 和间隙锁 (10,15)</li>
+<li>session B 的 update 语句也要在索引 c 上加 next-key lock(5,10] ，进入锁等待</li>
+<li>然后 session A 要再插入 (8,8,8) 这一行，被 session B 的间隙锁锁住。由于出现了死锁，InnoDB 让 session B 回滚</li>
+</ol>
+<p>你可能会问 session B 的 next-key lock 不是还没申请成功吗？其实 session B 的“加 next-key lock(5,10] ”操作实际分成了两步，先加 (5,10) 的间隙锁，加锁成功；然后加 c=10 的行锁，这时才被锁住。</p>
+<p>因此在分析加锁规则时可以用 next-key lock 分析。具体执行时要分成间隙锁和行锁两段来执行的。</p>
 
       
     </div>
@@ -419,7 +533,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Python/" rel="tag"><i class="fa fa-tag"></i> Python</a>
+            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"><i class="fa fa-tag"></i> 数据库</a>
           
         </div>
       
@@ -432,14 +546,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2021/01/14/20%20%E5%B9%BB%E8%AF%BB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B9%BB%E8%AF%BB%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F/" rel="next" title="20 幻读是什么，幻读有什么问题？">
+                <i class="fa fa-chevron-left"></i> 20 幻读是什么，幻读有什么问题？
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2020/03/23/%E5%AF%B9%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%AF%B9%E8%B1%A1%E3%80%81%E8%BF%AD%E4%BB%A3%E5%99%A8%E5%92%8C%E7%94%9F%E6%88%90%E5%99%A8%E7%9A%84%E7%90%86%E8%A7%A3/" rel="prev" title="对可迭代对象、迭代器和生成器的理解">
-                对可迭代对象、迭代器和生成器的理解 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/14/22%20MySQL%E6%9C%89%E5%93%AA%E4%BA%9B%E2%80%9C%E9%A5%AE%E9%B8%A9%E6%AD%A2%E6%B8%B4%E2%80%9D%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%E7%9A%84%E6%96%B9%E6%B3%95%EF%BC%9F/" rel="prev" title="22 MySQL有哪些“饮鸩止渴”提高性能的方法？">
+                22 MySQL有哪些“饮鸩止渴”提高性能的方法？ <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -492,9 +610,18 @@
 
       
         
+            <ul class="sidebar-nav motion-element">
+              <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+                  文章目录
+              </li>
+              <li class="sidebar-nav-overview" data-target="site-overview">
+                  站点概览
+              </li>
+            </ul>
+        
       
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="https://upload.cc/i1/2020/03/11/XoIZC7.jpg"
@@ -592,6 +719,22 @@
 
       </section>
       
+        
+        <!--noindex-->
+            <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+            <div class="post-toc">
+                
+                    
+                        
+                    
+                
+
+                
+                <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#案例一：等值查询间隙锁"><span class="nav-number">1.</span> <span class="nav-text">案例一：等值查询间隙锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例二：非唯一索引等值锁"><span class="nav-number">2.</span> <span class="nav-text">案例二：非唯一索引等值锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例三：主键索引范围锁"><span class="nav-number">3.</span> <span class="nav-text">案例三：主键索引范围锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例四：非唯一索引范围锁"><span class="nav-number">4.</span> <span class="nav-text">案例四：非唯一索引范围锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例五：非唯一索引上存在”等值”的例子"><span class="nav-number">5.</span> <span class="nav-text">案例五：非唯一索引上存在”等值”的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例六：limit-语句加锁"><span class="nav-number">6.</span> <span class="nav-text">案例六：limit 语句加锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#案例七：一个死锁的例子"><span class="nav-number">7.</span> <span class="nav-text">案例七：一个死锁的例子</span></a></li></ol></div>
+                
+            </div>
+            </section>
+        <!--/noindex-->
         
       
 
